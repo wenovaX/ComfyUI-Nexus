@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Controls.Buttons.RailToolButton"
+			 x:Name="RootView">
+	<Grid WidthRequest="40"
+		  HeightRequest="32"
+		  HorizontalOptions="Fill"
+		  VerticalOptions="Center">
+		<Border x:Name="ButtonBorder"
+				BackgroundColor="Transparent"
+				StrokeThickness="0"
+				WidthRequest="32"
+				HeightRequest="32"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				Opacity="0.96">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="9" />
+			</Border.StrokeShape>
+			<Grid>
+				<Border x:Name="GlowSurface"
+						BackgroundColor="{Binding AccentColor, Source={x:Reference RootView}}"
+						StrokeThickness="0"
+						Opacity="0">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="12" />
+					</Border.StrokeShape>
+					<Border.Shadow>
+						<Shadow Brush="{Binding AccentColor, Source={x:Reference RootView}}"
+								Radius="18"
+								Opacity="0.42"
+								Offset="0,0" />
+					</Border.Shadow>
+				</Border>
+
+				<Image x:Name="NormalIconImage"
+					   Source="{Binding IconSource, Source={x:Reference RootView}}"
+					   WidthRequest="26"
+					   HeightRequest="26"
+					   Aspect="AspectFit"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   InputTransparent="True" />
+
+				<Image x:Name="ActiveIconImage"
+					   Source="{Binding ActiveIconSource, Source={x:Reference RootView}}"
+					   WidthRequest="26"
+					   HeightRequest="26"
+					   Aspect="AspectFit"
+					   Opacity="0"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   InputTransparent="True" />
+			</Grid>
+		</Border>
+
+		<Border x:Name="ActiveEdgeLine"
+				BackgroundColor="{Binding AccentColor, Source={x:Reference RootView}}"
+				WidthRequest="2"
+				HeightRequest="0"
+				StrokeThickness="0"
+				Opacity="0"
+				HorizontalOptions="End"
+				VerticalOptions="Center">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="2" />
+			</Border.StrokeShape>
+			<Border.Shadow>
+				<Shadow Brush="{Binding AccentColor, Source={x:Reference RootView}}"
+						Radius="10"
+						Opacity="0.8"
+						Offset="0,0" />
+			</Border.Shadow>
+		</Border>
+	</Grid>
+</ContentView>

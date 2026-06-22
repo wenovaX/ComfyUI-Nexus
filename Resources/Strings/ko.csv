@@ -1,0 +1,903 @@
+key,text
+command.menu.title,NEXUS 명령
+command.menu.subtitle,"서버, 설정, 아이덴티티"
+command.menu.settings,설정
+command.menu.about,NEXUS 정보
+common.close,닫기
+common.save,저장
+common.cancel,취소
+common.delete,삭제
+common.rename,이름 변경
+common.open,열기
+common.copy,복사
+common.cut,잘라내기
+common.paste,붙여넣기
+common.select_all,전체 선택
+common.duplicate,복제
+common.refresh,새로고침
+common.ok,확인
+common.help,도움말
+common.restart_server,서버 재시작
+common.hand,캔버스 이동
+common.select,노드 선택
+common.standby,대기
+common.recover_boot,복구 및 부팅
+common.retry_boot,부팅 재시도
+common.online,온라인
+common.ready,준비됨
+common.saved,저장됨
+core_link.reset_title,시스템 초기화
+core_link.reset_message,Core Link를 해제하고 구성을 초기화할까요?
+core_link.terminate,해제
+core_link.patch,패치
+core_link.select_comfy_folder,ComfyUI 폴더 선택
+core_link.platform_not_supported_title,플랫폼 미지원
+core_link.folder_selection_not_supported,이 플랫폼에서는 폴더 선택을 지원하지 않습니다.
+core_link.missing_title,Core Link 없음
+core_link.comfy_root_not_configured,ComfyUI 루트 경로가 설정되지 않았습니다.
+core_link.folder_missing_title,폴더 없음
+core_link.folder_missing_message,{0} 폴더를 찾을 수 없습니다.
+core_link.hud_patch_unavailable_title,HUD 패치 불가
+core_link.hud_patch_missing_local_project,"유효한 형제 ComfyUI-HUD 프로젝트를 찾을 수 없습니다.\nhud.manifest.json, __init__.py, js/가 필요합니다."
+core_link.patch_local_hud_title,로컬 HUD 패치
+core_link.patch_local_hud_message,"로컬 HUD 파일을 현재 ComfyUI custom node에 복사할까요?\n\nSource:\n{0}\n\nTarget:\n{1}"
+core_link.hud_patch_complete_title,HUD 패치 완료
+core_link.hud_patch_failed_title,HUD 패치 실패
+core_link.bridge_patch_unavailable_title,Nexus Bridge 패치 불가
+core_link.bridge_patch_missing_hud_message,"ComfyUI-HUD가 설치되어 있지 않거나 불완전합니다.\n\nTarget:\n{0}"
+core_link.bridge_patch_missing_source_message,"패키지된 Nexus bridge 파일을 찾을 수 없습니다.\n\nSource:\n{0}"
+core_link.patch_nexus_bridge_title,Nexus Bridge 패치
+core_link.patch_nexus_bridge_message,"패키지된 Nexus bridge 파일을 현재 ComfyUI-HUD 설치 위치에 복사할까요?\n\nSource:\n{0}\n\nTarget:\n{1}"
+core_link.bridge_patch_complete_title,Nexus Bridge 패치 완료
+core_link.bridge_patch_failed_title,Nexus Bridge 패치 실패
+server_config.host_title,ComfyUI 호스트
+server_config.host_message,Nexus가 ComfyUI를 시작할 때 사용할 호스트를 설정합니다.
+server_config.port_title,ComfyUI 포트
+server_config.port_message,Nexus가 ComfyUI를 시작할 때 사용할 포트를 설정합니다.
+server_config.invalid_host_title,잘못된 호스트
+server_config.invalid_host_message,공백이 없는 짧은 호스트 값을 사용하세요.
+server_config.invalid_port_title,잘못된 포트
+server_config.invalid_port_message,1부터 65535 사이의 포트를 사용하세요.
+server_config.restart_failed_title,재시작 실패
+settings.validation.invalid_settings_title,잘못된 설정
+app.shutdown_failed_title,종료 실패
+views.overlays.about_overlay_view.subtitle,"런타임 셸, 로컬 브리지, ComfyUI 실행 컨텍스트."
+views.overlays.about_overlay_view.version,버전
+views.overlays.about_overlay_view.comfyui_path,ComfyUI 경로
+views.overlays.about_overlay_view.server_url,서버 URL
+views.overlays.about_overlay_view.python_mode,Python 모드
+app.app_shell.home,홈
+pages.main_page.main_page.model,모델
+pages.main_page.main_page.preparing_restart,재시작 준비 중
+pages.main_page.main_page.stopping_probes_and_server_process,프로브 및 서버 중지 중...
+pages.main_page.main_page.input_is_locked_until_current_operation_completes,현재 작업이 완료될 때까지 입력을 제한합니다.
+views.components.folder_browser_view.browse_or_paste_folder_path,폴더 경로를 선택하거나 붙여넣으세요.
+views.components.folder_browser_view.parent,상위
+views.components.folder_browser_view.drives,드라이브
+views.components.folder_browser_view.browse,찾아보기
+views.controls.option_deck.run_mode_option_deck_view.run,실행
+views.controls.option_deck.run_mode_option_deck_view.run_on_change,변경 시 실행
+views.controls.option_deck.run_mode_option_deck_view.run_instant,즉시 실행
+views.overlays.bookmark_hud_view.nexus_workflow_index,워크플로우 인덱스
+views.overlays.bookmark_hud_view.search_workflows,워크플로우 검색...
+views.overlays.bookmark_hud_view.0_workflows_registered,등록된 워크플로우 없음
+views.overlays.canvas_toolbar_view.help_center,도움말 센터
+views.overlays.canvas_toolbar_view.terminal,터미널
+views.overlays.canvas_toolbar_view.shortcuts,단축키
+views.overlays.canvas_toolbar_view.fit,맞춤 화면
+views.overlays.canvas_toolbar_view.map,맵
+views.overlays.canvas_toolbar_view.links,링크
+views.overlays.command_input_view.console,콘솔
+views.overlays.loading_overlay_view.nexus_shell,NEXUS 셸
+views.overlays.loading_overlay_view.initializing_nexus_shell,NEXUS 셸 초기화 중...
+views.overlays.loading_overlay_view.open_setup,설정 열기
+views.overlays.loading_overlay_view.check_install,설치 확인
+views.overlays.loading_overlay_view.nexus_server_boot,NEXUS 서버 부팅
+views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service,설정이 완료되었습니다.\n백엔드 서비스를 시작하세요.
+views.overlays.loading_overlay_view.state,상태
+views.overlays.loading_overlay_view.engage_server,서버 실행
+views.overlays.loading_overlay_view.start_backend_link,백엔드 링크 시작
+views.overlays.loading_overlay_view.repair_cuda_runtime,CUDA 런타임 복구
+views.overlays.loading_overlay_view.access_denied_core_link_not_found,액세스 거부: 코어 링크 없음
+views.overlays.loading_overlay_view.nexus_shell_utilities_require_access_to_your_comfyui_roo,Nexus 유틸리티를 사용하려면 ComfyUI 루트 디렉터리를 연결해야 합니다.\n계속하려면 연결을 설정하세요.
+views.overlays.loading_overlay_view.select_comfyui_core_directory,ComfyUI 코어 디렉토리 선택
+views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal,ComfyUI 코어가 감지되지 않습니까?
+views.overlays.loading_overlay_view.get_official_launcher,공식 런처 다운로드
+views.overlays.loading_overlay_view.clone_from_github,GitHub에서 복제
+views.overlays.loading_overlay_view.nexus_maintenance,NEXUS 유지 관리
+views.overlays.loading_overlay_view.backend_process_already_starting,백엔드가 시작 중입니다. 아래 실시간 로그를 참조하세요.
+views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI 백엔드가 오프라인입니다. 계속하려면 서버를 가동하세요.
+views.overlays.loading_overlay_view.recover_runtime_and_boot_title,런타임 복구 후 부팅하시겠습니까?
+views.overlays.loading_overlay_view.recover_runtime_and_boot_message,"ComfyUI 요구사항을 동기화하고, 선택한 런타임의 CUDA PyTorch를 복구한 후 서버를 시작합니다. 몇 분 정도 소요될 수 있습니다.\n\n대상: {0}"
+views.overlays.loading_overlay_view.preparing_runtime_cleanup_recovery,런타임 정리 및 복구를 준비 중입니다.\n작업이 완료될 때까지 입력이 제한됩니다.
+views.overlays.loading_overlay_view.stopping_runtime_processes,런타임 프로세스를 중지하고 LocalRuntime을 정리하는 중입니다.
+views.overlays.loading_overlay_view.retry_cleanup,정리 재시도
+views.overlays.loading_overlay_view.runtime_cleanup_complete_setup,런타임 정리가 완료되었습니다. 설정을 재개합니다.
+views.overlays.loading_overlay_view.backend_alive_waiting_for_port,백엔드 프로세스가 활성 상태입니다.\nComfyUI 포트 연결을 기다리는 중입니다.
+views.overlays.loading_overlay_view.repairing_runtime_before_backend_launch,백엔드 시작 전 런타임 의존성을 복구 중입니다.\n실시간 로그가 아래에 표시됩니다.
+views.overlays.loading_overlay_view.starting_backend_process,백엔드 프로세스를 시작합니다. 실시간 서버 로그가 아래에 표시됩니다.
+views.overlays.loading_overlay_view.maintenance_completed_setup,유지 관리가 완료되었습니다. 설정을 재개합니다.
+views.overlays.loading_overlay_view.backend_ready_handoff,백엔드 준비가 완료되었습니다. Nexus 셸 제어권 전환을 준비 중입니다.
+views.overlays.loading_overlay_view.backend_online_title,백엔드 온라인
+views.overlays.loading_overlay_view.comfyui_ready_loading_nexus_interface,ComfyUI 준비 완료. Nexus 인터페이스를 로드합니다.
+views.overlays.loading_overlay_view.finalizing_nexus_link,NEXUS 링크 마무리 중...
+views.overlays.loading_overlay_view.nexus_app_entry_not_connected,Nexus App Entry가 연결되지 않았습니다.
+views.overlays.loading_overlay_view.booting,부팅 중
+views.overlays.loading_overlay_view.engaging,가동 중
+views.overlays.loading_overlay_view.awaiting_port,포트 대기 중
+views.overlays.loading_overlay_view.waiting,대기 중
+views.overlays.loading_overlay_view.failed,실패
+views.overlays.loading_overlay_view.cleaning,정리 중
+views.overlays.loading_overlay_view.recovery_failed,복구 실패
+views.overlays.loading_overlay_view.clean,정리
+views.overlays.loading_overlay_view.continue_cleanup,정리 계속
+views.overlays.loading_overlay_view.set_host_used_when_nexus_starts_comfyui,Nexus가 ComfyUI를 시작할 때 사용할 호스트를 설정하세요.
+views.overlays.loading_overlay_view.use_compact_host_without_spaces,공백이 없는 압축된 호스트 값을 사용하세요.
+views.overlays.loading_overlay_view.set_port_used_when_nexus_starts_comfyui,Nexus가 ComfyUI를 시작할 때 사용할 포트를 설정하세요.
+views.overlays.loading_overlay_view.use_port_between_1_and_65535,1에서 65535 사이의 포트를 사용하세요.
+views.overlays.loading_overlay_view.launching_nexus,Nexus 실행 중
+views.overlays.loading_overlay_view.setup_complete_initializing_nexus_shell,설정이 완료되었습니다. Nexus 셸을 초기화합니다.
+views.overlays.loading_overlay_view.system_booting,시스템 부팅 중...
+views.overlays.loading_overlay_view.launch_link_missing,실행 링크 누락
+views.overlays.loading_overlay_view.launch_failed,실행 실패
+views.overlays.loading_overlay_view.launch_failed_title,실행 실패
+views.overlays.product_setup_view.select_your_deployment_strategy,배포 전략 선택
+views.overlays.product_setup_view.deploy_new_environment,새 환경 배포
+views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit,격리된 ComfyUI 환경을 처음부터 새롭게 구축합니다.
+views.overlays.product_setup_view.connect_existing_path,기존 경로 연결
+views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu,로컬 폴더를 연결하고 Nexus 코어와 동기화합니다.
+views.overlays.product_setup_view.initiation_sequence,시스템 점검 시퀀스
+views.overlays.product_setup_view.0_0_ready,0/0 준비됨
+views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s,필수 시스템을 순서대로 확인합니다.\n선택 모듈은 시작을 방해하지 않고 아래에서 설정할 수 있습니다.
+views.overlays.product_setup_view.optional_setup,선택적 설정
+views.overlays.product_setup_view.workspace_link,워크스페이스 링크
+views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins,기존 ComfyUI 설치 경로를 지정하세요.
+views.overlays.product_setup_view.nexus_core_command_center,NEXUS 코어 커맨드 센터
+views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus,시스템 모니터링 // 커널 v4.2.0-NEXUS
+views.overlays.product_setup_view.boot_matrix,부트 매트릭스
+views.overlays.product_setup_view.cuda_device,CUDA 장치
+views.overlays.product_setup_view.scanning,스캔 중...
+views.overlays.product_setup_view.boot_channel,부트 채널
+views.overlays.product_setup_view.probe,프로브
+views.overlays.product_setup_view.server_state,서버 상태
+views.overlays.product_setup_view.ready_to_start_backend,백엔드 시작 준비 완료.
+views.overlays.product_setup_view.engage_boot,부팅 시작
+views.overlays.product_setup_view.back,뒤로
+views.overlays.product_setup_view.start,시작
+views.overlays.settings_overlay_view.nexus_settings,NEXUS 설정
+views.overlays.settings_overlay_view.comfyui_runtime_toolchain_server_launch_and_maintenance,런타임
+views.overlays.settings_overlay_view.restart_required_to_apply_pending_changes,변경 사항 적용을 위해 재시작이 필요합니다.
+views.overlays.settings_overlay_view.next_boot_checklist,부팅 체크리스트
+views.overlays.settings_overlay_view.expand,펼치기
+views.overlays.settings_overlay_view.tools,도구
+views.overlays.settings_overlay_view.server,서버
+views.overlays.settings_overlay_view.maintenance,유지 관리
+views.overlays.settings_overlay_view.extensions,확장 기능
+views.overlays.settings_overlay_view.about,정보
+views.overlays.settings_overlay_view.runtime_source,런타임 소스
+views.overlays.settings_overlay_view.local,로컬
+views.overlays.settings_overlay_view.custom,사용자 정의
+views.overlays.settings_overlay_view.open_folder,폴더 열기
+views.overlays.settings_overlay_view.change_path,경로 변경
+views.overlays.settings_overlay_view.check_updates,업데이트 확인
+views.overlays.settings_overlay_view.update_now,지금 업데이트
+views.overlays.settings_overlay_view.check_repository_status_to_see_whether_this_comfyui_chec,저장소의 업데이트 여부를 확인합니다.
+views.overlays.settings_overlay_view.system,시스템
+views.overlays.settings_overlay_view.built_in,내장
+views.overlays.settings_overlay_view.runtime_mode,런타임 모드
+views.overlays.settings_overlay_view.virtual_environment,가상 환경
+views.overlays.settings_overlay_view.create,생성
+views.overlays.settings_overlay_view.reset,초기화
+views.overlays.settings_overlay_view.delete,삭제
+views.overlays.settings_overlay_view.host,호스트
+views.overlays.settings_overlay_view.port,포트
+views.overlays.settings_overlay_view.detecting_gpu,GPU 감지 중...
+views.overlays.settings_overlay_view.select_gpu,GPU 선택
+views.overlays.settings_overlay_view.runtime_recovery,런타임 복구
+views.overlays.settings_overlay_view.clear_the_current_server_log_runtime_repair_is_available,서버 로그를 초기화합니다. (런타임 복구는 커맨드 센터 이용)
+views.overlays.settings_overlay_view.clear_log,로그 삭제
+settings.logs.clear_title,서버 로그를 삭제할까요?
+settings.logs.clear_message,최근 ComfyUI 서버 로그와 실행 중인 서버 세션 로그를 비웁니다.\n진단용 타임스탬프 히스토리 로그는 유지합니다.
+settings.logs.clear_complete,서버 로그를 삭제했습니다.
+settings.logs.clear_complete_count,서버 로그 파일 {0}개를 비웠습니다.
+settings.logs.clear_already_empty,서버 로그가 이미 비어 있습니다.
+settings.logs.clear_locked,서버 로그 파일 {0}개를 비웠습니다.\n실행 중인 로그 파일 {1}개는 잠겨 있습니다. 서버를 중지한 뒤 로그 삭제를 다시 실행하세요.
+settings.logs.clear_failed,서버 로그 삭제에 실패했습니다.\n{0}
+settings.maintenance.continue,계속
+settings.maintenance.prepare,준비
+settings.maintenance.prepare_reset,초기화 준비
+settings.maintenance.queue_title,유지 관리 작업 준비 중
+settings.maintenance.queue_detail,선택한 유지 관리 작업을 다음 부팅 체크리스트에 추가합니다...
+settings.maintenance.reset_settings_title,Nexus 설정을 초기화할까요?
+settings.maintenance.reset_settings_message,nexus_settings.json을 기본값으로 되돌립니다.\n설치된 런타임 파일, 백업, 외부 ComfyUI 폴더, 외부 모델 라이브러리는 삭제하지 않습니다.\n유지 관리 작업 후 Nexus는 setup으로 돌아갑니다.
+settings.maintenance.reset_settings_scheduled,설정 초기화를 예약했습니다. 유지 관리 복구를 준비합니다...
+settings.maintenance.purge_runtime_title,로컬 런타임을 초기화할까요?
+settings.maintenance.purge_runtime_message,"Nexus가 관리하는 런타임 파일을 삭제합니다:\n{0}\n\n삭제 대상에는 built-in ComfyUI, built-in Python/Git, 관리되는 .venv, 내부 models, LocalRuntime/Installed 안의 관리 custom_nodes가 포함됩니다.\n\n외부 ComfyUI 폴더와 외부 모델 라이브러리는 삭제하지 않습니다.\n아래 백업 위치의 백업은 유지됩니다:\n{1}\n\n내부 models 또는 custom_nodes를 보존해야 한다면 먼저 백업하세요."
+settings.maintenance.purge_runtime_queue_title,런타임 초기화 준비 중
+settings.maintenance.purge_runtime_queue_detail,유지 관리 복구 체크리스트를 준비합니다...
+settings.maintenance.purge_runtime_scheduled,로컬 런타임 초기화를 예약했습니다. 유지 관리 복구를 준비합니다...
+settings.venv.create_title,.venv를 생성할까요?
+settings.venv.reset_title,.venv를 초기화할까요?
+settings.venv.delete_title,.venv를 삭제할까요?
+settings.venv.create_message_venv,격리된 ComfyUI .venv 폴더를 생성합니다.\nVENV 실행에 필요한 requirements와 CUDA PyTorch를 설치합니다.\n변경 사항은 다음 서버 부팅 전에 적용됩니다.
+settings.venv.create_message_direct,격리된 ComfyUI .venv 폴더를 생성하고 의존성을 복구합니다.\nVENV를 선택하기 전까지 DIRECT 실행 모드는 유지됩니다.\n변경 사항은 다음 서버 부팅 전에 적용됩니다.
+settings.venv.reset_message_active,ComfyUI .venv 폴더를 삭제한 뒤 다시 생성합니다.\n.venv 안에 설치된 패키지는 삭제되고 requirements와 CUDA PyTorch를 다시 복구합니다.\n재구성된 환경을 사용하려면 서버를 재시작하세요.
+settings.venv.reset_message_direct,ComfyUI .venv 폴더를 삭제한 뒤 다시 생성합니다.\n.venv 안에 설치된 패키지는 삭제되고 requirements와 CUDA PyTorch를 다시 복구합니다.\nDIRECT 실행 모드는 유지됩니다.
+settings.venv.delete_message_active,ComfyUI .venv 폴더를 삭제하고 서버 실행 모드를 DIRECT로 전환합니다.\n.venv 안에만 설치된 패키지는 삭제됩니다.\n변경 사항을 적용하려면 서버를 재시작하세요.
+settings.venv.delete_message_direct,ComfyUI .venv 폴더를 삭제합니다.\n.venv 안에만 설치된 패키지는 삭제됩니다.\nDIRECT 실행 모드는 유지됩니다.
+settings.venv.queue_create_title,VENV 생성 준비 중
+settings.venv.queue_rebuild_title,VENV 재생성 준비 중
+settings.venv.queue_delete_title,VENV 삭제 준비 중
+settings.venv.queue_detail,선택한 런타임 계획을 저장하고 다음 부팅 체크리스트를 갱신합니다...
+settings.venv.create_scheduled,.venv 생성을 예약했습니다. 서버를 재시작하면 부팅 전에 생성됩니다.
+settings.venv.rebuild_scheduled,.venv 재생성을 예약했습니다. 서버를 재시작하면 부팅 전에 다시 생성됩니다.
+settings.venv.delete_scheduled,.venv 삭제를 예약했습니다. 서버를 재시작하면 부팅 전에 삭제됩니다.
+views.overlays.settings_overlay_view.runtime_backup,런타임 백업
+views.overlays.settings_overlay_view.create_or_restore_manual_runtime_backups_before_risky_ma,중요 작업 전 런타임 백업을 생성하거나 복원하세요.
+views.overlays.settings_overlay_view.backup,백업
+views.overlays.settings_overlay_view.restore,복원
+views.overlays.settings_overlay_view.open_backups,백업 폴더 열기
+views.overlays.settings_overlay_view.backups_can_be_large_delete_or_move_them_after_use_to_fr,디스크 공간 확보를 위해 불필요한 백업은 삭제하세요.
+views.overlays.settings_overlay_view.settings_reset,설정 초기화
+views.overlays.settings_overlay_view.reset_nexus_settings_to_defaults_installed_runtime_files,Nexus 설정을 기본값으로 초기화합니다. (설치 파일은 유지)
+views.overlays.settings_overlay_view.reset_settings,설정 초기화
+views.overlays.settings_overlay_view.local_runtime_reset,로컬 런타임 초기화
+views.overlays.settings_overlay_view.deletes_localruntime_installed_on_next_boot_project_back,다음 부팅 시 관리되는 런타임의 모델/노드를 삭제합니다.
+views.overlays.settings_overlay_view.reset_local_runtime,로컬 런타임 초기화
+views.overlays.settings_overlay_view.dangerous_actions_ask_for_confirmation_before_running,위험한 작업은 실행 전 확인을 요청합니다.
+views.overlays.settings_overlay_view.maintenance_log,유지 관리 로그
+views.overlays.settings_overlay_view.view_full_log,전체 로그 보기
+views.overlays.settings_overlay_view.essential_custom_nodes,필수 커스텀 노드
+views.overlays.settings_overlay_view.scan,스캔
+views.overlays.settings_overlay_view.sync_update,동기화 / 업데이트
+views.overlays.settings_overlay_view.reinstall,재설치
+views.overlays.settings_overlay_view.hud_sample_workflows,HUD 샘플 워크플로우
+views.overlays.settings_overlay_view.restore_hud_samples_description,설치된 ComfyUI-HUD에 포함된 튜토리얼 워크플로우를 다시 복원합니다.
+views.overlays.settings_overlay_view.restore_samples,샘플 복원
+views.overlays.settings_overlay_view.restore_hud_samples_title,HUD 샘플 복원
+views.overlays.settings_overlay_view.restore_hud_samples_message,"설치된 HUD 샘플 워크플로우를 ComfyUI의 workflows 폴더에 복사합니다.\n\n원본:\n{0}\n\n대상:\n{1}"
+views.overlays.settings_overlay_view.restore_hud_samples_conflict_message,"HUD 샘플 폴더에 워크플로우 파일이 이미 있습니다.\n\n누락된 파일만 복원하거나 내장 샘플 전체를 교체할 수 있습니다.\n\n원본:\n{0}\n\n대상:\n{1}"
+views.overlays.settings_overlay_view.restore_missing,누락 파일 복원
+views.overlays.settings_overlay_view.replace_samples,샘플 교체
+views.overlays.settings_overlay_view.restoring_hud_samples,HUD 샘플 워크플로우를 복원하는 중...
+views.overlays.settings_overlay_view.hud_samples_restored,HUD 샘플 워크플로우를 복원했습니다.
+views.overlays.settings_overlay_view.hud_samples_restore_failed,HUD 샘플 복원 실패: {0}
+views.overlays.settings_overlay_view.custom_nodes_folder_status,Custom nodes 폴더: {0}
+views.overlays.settings_overlay_view.scanning_extensions_title,커스텀 노드 스캔 중
+views.overlays.settings_overlay_view.scanning_extensions_detail,설치 상태와 Git revision을 확인하고 있습니다...
+views.overlays.settings_overlay_view.queueing_extension_update_title,확장 기능 업데이트 예약 중
+views.overlays.settings_overlay_view.queueing_extension_reinstall_title,확장 기능 재설치 예약 중
+views.overlays.settings_overlay_view.queueing_extensions_detail,선택한 커스텀 노드 작업을 다음 부팅 목록에 저장하고 있습니다...
+views.overlays.settings_overlay_view.extension_scan_failed,커스텀 노드 스캔 실패: {0}
+settings.extensions.select_at_least_one,수정할 Nexus 관리 확장 기능을 하나 이상 선택하세요.
+settings.extensions.confirm_sync_title,선택한 확장 기능을 동기화할까요?
+settings.extensions.confirm_reinstall_title,선택한 확장 기능을 재설치할까요?
+settings.extensions.confirm_sync_message,"다음 부팅 때 선택한 확장 기능의 Git 동기화/업데이트와 설치 과정을 예약합니다.\n\n선택 항목:\n- {0}"
+settings.extensions.confirm_reinstall_message,"다음 부팅 때 선택한 확장 기능 폴더를 삭제하고 새로 clone한 뒤 설치 과정을 예약합니다.\n\n선택 항목:\n- {0}"
+settings.extensions.queue_sync,동기화 예약
+settings.extensions.queue_reinstall,재설치 예약
+settings.extensions.sync_scheduled,선택한 확장 기능 동기화/업데이트를 예약했습니다. 서버를 재시작하면 부팅 전에 실행됩니다.
+settings.extensions.reinstall_scheduled,선택한 확장 기능 재설치를 예약했습니다. 서버를 재시작하면 부팅 전에 실행됩니다.
+settings.extensions.repair_queued,관리 확장 기능 복구가 다음 부팅에 예약되어 있습니다.
+settings.extensions.scanning_status,Nexus 관리 확장 기능을 스캔하는 중...
+settings.extensions.scan_ready,모든 관리 확장 기능이 준비되었습니다. 폴더: {0}
+settings.extensions.scan_missing,누락된 관리 확장 기능이 있습니다. 폴더: {0}
+settings.extensions.scan_failed_status,확장 기능 스캔에 실패했습니다. 폴더: {0}
+settings.extensions.pending_title_all,관리 확장 기능 수정
+settings.extensions.pending_title_count,관리 확장 기능 {0}개 수정
+settings.extensions.pending_detail_all,Nexus가 관리하는 필수 커스텀 노드만 동기화/재설치합니다. 다른 커스텀 노드는 건드리지 않습니다.
+settings.extensions.pending_detail_targets,{0}: {1}
+settings.extensions.action_reinstall,재설치
+settings.extensions.action_sync_update,동기화/업데이트
+settings.pending_tasks.restart_reason,예약된 부팅 작업: {0}
+settings.pending_tasks.queued_for_next_boot,다음 부팅 예약: {0}
+settings.pending_tasks.queued_for_next_boot_heading,다음 부팅 예약
+settings.pending_tasks.queued_count,{0}개 예약됨
+settings.pending_tasks.expand,펼치기
+settings.pending_tasks.collapse,접기
+settings.pending_tasks.running,실행 중
+settings.pending_tasks.required,필수
+settings.pending_tasks.runtime_purge_title,로컬 런타임 초기화
+settings.pending_tasks.reset_setup_title,설정 과정 초기화
+settings.pending_tasks.reset_all_title,설정 초기화
+settings.pending_tasks.comfy_update_title,ComfyUI 업데이트
+settings.pending_tasks.venv_create_title,.venv 생성
+settings.pending_tasks.venv_rebuild_title,.venv 재생성
+settings.pending_tasks.venv_delete_title,.venv 삭제
+settings.pending_tasks.runtime_repair_title,런타임 의존성 복구
+settings.pending_tasks.runtime_purge_detail,"런타임 프로세스를 중지하고 LocalRuntime/Installed와 Nexus pip 캐시를 삭제한 뒤 setup으로 돌아갑니다."
+settings.pending_tasks.reset_setup_detail,setup 경로와 런타임 실행 선택을 초기화한 뒤 setup을 다시 진행합니다.
+settings.pending_tasks.reset_all_detail,설정 파일을 기본값으로 되돌립니다. 설치된 파일은 유지됩니다.
+settings.pending_tasks.comfy_update_detail,"git pull, requirements 동기화, 선택된 Python 런타임 복구를 실행합니다."
+settings.pending_tasks.venv_create_detail,관리형 ComfyUI .venv를 만들고 VENV 실행 전 의존성을 복구합니다.
+settings.pending_tasks.venv_rebuild_detail,"관리형 ComfyUI .venv를 삭제 후 다시 만들고 의존성을 복구합니다."
+settings.pending_tasks.venv_delete_detail,DIRECT Python으로 실행하기 전에 관리형 ComfyUI .venv를 제거합니다.
+settings.pending_tasks.runtime_repair_detail,선택된 서버 런타임의 requirements와 CUDA PyTorch를 동기화합니다.
+settings.pending_tasks.generic_detail,이 작업은 서버 부팅 전에 실행됩니다.
+settings.operations.settings_operation,설정 작업
+settings.operations.select_comfy_path,ComfyUI 경로 선택 중
+settings.operations.open_folder,폴더 여는 중
+settings.operations.check_comfy_updates,업데이트 확인 중
+settings.operations.apply_comfy_update,ComfyUI 업데이트 중
+settings.operations.repair_runtime,런타임 복구 중
+settings.operations.select_custom_git,Git 선택 중
+settings.operations.select_custom_python,Python 선택 중
+settings.operations.select_pip_cache,pip 캐시 선택 중
+settings.operations.open_pip_cache,pip 캐시 여는 중
+settings.operations.clear_pip_cache,pip 캐시 삭제 중
+settings.operations.venv_maintenance,.venv 관리 중
+settings.operations.open_extensions_folder,확장 폴더 여는 중
+settings.operations.scan_extensions,확장 스캔 중
+settings.operations.repair_extensions,확장 설치 중
+settings.operations.clear_server_log,서버 로그 삭제 중
+settings.operations.reset_settings,설정 초기화 중
+settings.operations.backup_runtime_data,런타임 백업 중
+settings.operations.restore_runtime_data,런타임 복원 중
+settings.operations.delete_runtime_backup,런타임 백업 삭제 중
+settings.operations.purge_local_runtime,런타임 초기화 중
+settings.status.working,작업 중
+settings.status.running_detail,진행 중: {0}
+settings.status.language_changed,언어 변경됨
+settings.status.app_restart,앱 재시작
+settings.status.language_changed_detail,언어 변경을 저장한 뒤 Nexus를 닫고 다시 열면 전체에 적용됩니다.
+settings.status.app_restart_detail,저장된 언어를 전체에 적용하려면 Nexus를 닫고 다시 여세요.
+settings.status.changed_restart,변경 + 재시작
+settings.status.restart_required,재시작 필요
+settings.status.changed_restart_detail,변경 사항을 저장한 뒤 서버를 재시작하면 런타임 변경이 적용됩니다.
+settings.status.restart_required_detail,재시작 필요: {0}
+settings.status.changed,변경됨
+settings.status.changed_detail,저장되지 않은 설정 변경이 있습니다.
+settings.status.saved,저장됨
+settings.status.saved_detail,모든 설정이 저장되었습니다.
+settings.actions.save_restart,저장 후 재시작
+settings.actions.run_tasks_restart,작업 실행 후 재시작
+settings.actions.run_restart,실행 후 재시작
+settings.restart.save_restart_title,저장하고 서버를 재시작할까요?
+settings.restart.save_restart_message,지금 재시작하면 보류 중인 설정을 먼저 저장한 뒤 저장된 구성으로 ComfyUI를 다시 실행합니다.{0}
+settings.restart.run_tasks_title,예약된 부팅 작업을 실행할까요?
+settings.restart.run_tasks_message,"Nexus가 ComfyUI 시작 전에 아래 작업을 실행합니다:\n\n- {0}"
+views.overlays.settings_overlay_view.discard,취소
+views.overlays.settings_overlay_view.save_changes,저장
+views.overlays.settings_overlay_view.queueing_task,태스크 대기열 추가 중
+views.overlays.settings_overlay_view.applying_settings_safely,설정 적용 중...
+views.overlays.settings_overlay_view.comfyui_operation_log,작업 로그
+views.overlays.settings_overlay_view.full_process_output_for_the_latest_settings_operation,최신 작업에 대한 상세 프로세스 로그입니다.
+views.rail.rail_view.assets,애셋
+views.rail.rail_view.media_assets,미디어 애셋
+views.rail.rail_view.node_library,노드 라이브러리
+views.rail.rail_view.comfyui_assets,ComfyUI 미디어 애셋
+views.rail.rail_view.toggle_apps,앱 전환
+views.rail.rail_view.templates,템플릿
+views.rail.rail_view.settings,설정
+views.rail.rail_view.main_menu,메인 메뉴
+views.rail.tools.apps.apps_view.apps,앱
+views.rail.tools.apps.apps_view.workflow_designer,워크플로우 디자이너
+views.rail.tools.apps.apps_view.advanced_node_graph_orchestration_and_management,고급 노드 그래프 관리 및 구성.
+views.rail.tools.apps.apps_view.asset_manager,애셋 매니저
+views.rail.tools.apps.apps_view.centralized_control_for_all_your_models_and_outputs,모델 및 결과물의 중앙 관리 제어.
+views.rail.tools.assets.assets_browser_view.assets,애셋
+views.rail.tools.assets.assets_browser_view.current_location,현재 위치
+views.rail.tools.assets.assets_browser_view.model_libraries,모델 라이브러리
+views.rail.tools.assets.assets_browser_view.model_libraries_internal_only,내부 모델만 사용 중
+views.rail.tools.assets.assets_browser_view.model_libraries_external_count,내부 + 외부 라이브러리 {0}개
+views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer,탐색기에서 열기
+views.rail.tools.assets.assets_browser_view.search_assets,애셋 검색...
+views.rail.tools.assets.assets_browser_view.no_matching_assets_found,일치하는 애셋이 없습니다.
+views.rail.tools.assets.assets_browser_view.updating_assets,애셋 업데이트 중...
+views.rail.tools.media_assets.media_assets_view.title,미디어 애셋
+views.rail.tools.media_assets.media_assets_view.refresh,미디어 애셋 새로고침
+views.rail.tools.media_assets.media_assets_view.open_folder,현재 미디어 폴더 열기
+views.rail.tools.media_assets.media_assets_view.open_folder_short,폴더
+views.rail.tools.media_assets.media_assets_view.output,Output
+views.rail.tools.media_assets.media_assets_view.input,Input
+views.rail.tools.media_assets.media_assets_view.output_feed_title,생성 결과
+views.rail.tools.media_assets.media_assets_view.output_feed_description,ComfyUI Job Queue에서 동기화된 결과입니다
+views.rail.tools.media_assets.media_assets_view.empty_title,표시할 미디어 애셋이 없습니다
+views.rail.tools.media_assets.media_assets_view.empty_description,생성되거나 가져온 이미지 파일이 여기에 표시됩니다.
+views.rail.tools.media_assets.media_assets_view.loading_title,썸네일 준비 중
+views.rail.tools.media_assets.media_assets_view.loading_description,현재 미디어 폴더를 스캔하고 있습니다...
+views.rail.tools.media_assets.media_assets_view.delete_selected_count,선택한 미디어 파일 {0}개
+views.rail.tools.media_assets.media_assets_view.delete_selected_message,선택한 미디어 파일 {0}개를 삭제할까요?
+views.rail.tools.media_assets.media_assets_view.sort_recent_desc,최신순 ↓
+views.rail.tools.media_assets.media_assets_view.sort_recent_asc,오래된순 ↑
+views.rail.tools.media_assets.media_assets_view.view_mode,썸네일 컬럼
+views.rail.tools.media_assets.media_assets_view.search_results,결과 검색...
+views.rail.tools.media_assets.media_assets_view.deselect_all,전체 선택 해제
+views.rail.tools.media_assets.media_assets_view.move_to,이동...
+views.rail.tools.media_assets.media_assets_view.move_picker_title,미디어 파일 이동
+views.rail.tools.media_assets.media_assets_view.move_confirm_title,미디어 파일 이동
+views.rail.tools.media_assets.media_assets_view.move_confirm_message,"선택한 미디어 파일 {0}개를 이동할까요?\n원본 파일은 현재 위치에서 제거됩니다.\n대상: {1}"
+views.rail.tools.media_assets.media_assets_view.move_conflict_title,이름 충돌
+views.rail.tools.media_assets.media_assets_view.move_conflict_message,대상 위치에 같은 이름의 파일이 있습니다.\n충돌하는 파일은 자동으로 이름을 바꿔 이동합니다.
+views.rail.tools.media_assets.media_assets_view.move,이동
+views.rail.tools.node_library.node_library_view.expand_all,모두 펼치기
+views.rail.tools.node_library.node_library_view.collapse_all,모두 접기
+views.rail.tools.node_library.node_library_view.add_to_stage,추가
+views.rail.tools.node_library.node_library_view.node_library,노드 라이브러리
+views.rail.tools.node_library.node_library_view.search_nodes,노드 검색...
+views.rail.tools.node_library.node_library_view.include_desc,설명 포함
+views.rail.tools.node_library.node_library_view.updating_nodes,노드 업데이트 중...
+views.shell.header_toolbar_tray_view.enter_app_mode,앱 모드
+views.shell.header_toolbar_tray_view.workflow_actions,워크플로우 작업
+views.shell.header_toolbar_tray_view.graph,그래프
+views.shell.header_toolbar_tray_view.jobs,작업
+views.shell.header_toolbar_tray_view.comfyui_manager,매니저
+views.shell.header_toolbar_tray_view.manager,매니저
+views.shell.header_toolbar_tray_view.show_favorite_custom_node_list,즐겨찾는 노드 목록 보기
+views.shell.header_toolbar_tray_view.unload_models,모델 언로드
+views.shell.header_toolbar_tray_view.free_model_and_node_cache,캐시 비우기
+views.shell.header_toolbar_tray_view.share,공유
+views.shell.header_toolbar_tray_view.toggle_properties_panel,속성 패널
+views.shell.header_view.modified,수정됨
+views.shell.header_view.no_workflow_selected,워크플로우 미선택
+views.overlays.settings_overlay_view.language,언어
+views.overlays.settings_overlay_view.choose_the_language_used_by_the_nexus_shell,사용할 언어를 선택하세요.
+views.overlays.settings_overlay_view.select_language,언어 선택
+help.title,NEXUS 도움말
+help.subtitle,"모델, 노드, 레퍼런스 활용을 위한 실용적인 현장 노트입니다."
+help.section.practical.title,실용 가이드
+help.section.practical.description,모델과 리소스 작업을 위한 단계별 실전 가이드입니다.
+help.item.huggingface.title,Hugging Face
+help.item.huggingface.hint,모델 검색 ➔ 다운로드 ➔ 즉시 적용
+help.item.civitai.title,Civitai
+help.item.civitai.hint,모델 검색 ➔ 다운로드 ➔ 즉시 적용
+help.section.field.title,실전 노트
+help.section.field.description,자주 다시 찾아볼 개념을 짧게 정리합니다.
+help.item.gpu_hardware_guide.title,GPU 하드웨어 가이드
+help.item.gpu_hardware_guide.hint,"왜 NVIDIA 그래픽카드가 유리한지, VRAM 용량이 왜 중요한지 설명합니다."
+help.item.how_images_are_born.title,이미지 생성 원리
+help.item.how_images_are_born.hint,"결과가 어색하다면 모델, 시드, CFG, 샘플러 설정을 먼저 확인하세요."
+help.item.how_nexus_work.title,Nexus 구동 환경
+help.item.how_nexus_work.hint,"Nexus는 환경을 관리하며, 워크플로우 제어권은 여전히 ComfyUI에 있습니다."
+help.item.adding_a_model.title,모델 추가하기
+help.item.adding_a_model.hint,"폴더 예시: checkpoints, loras, vae, controlnet, ipadapter."
+help.item.face_sync_identity.title,페이스 싱크 / 아이덴티티
+help.item.face_sync_identity.hint,"인물이 다를 경우: 디노이즈 조절, 크롭 품질 개선, 모델 가중치를 확인하세요."
+help.item.practical_workflow_checklist.title,워크플로우 체크리스트
+help.item.practical_workflow_checklist.hint,"팁: 폴더 매핑, 선호 모델 조합, 빈번한 오류 해결법을 기록해두면 좋습니다."
+views.rail.rail_view.transition_loading_title,준비 중
+views.rail.rail_view.transition_loading_description,활성 패널을 안정화하고 있습니다...
+views.overlays.media_viewer.delete_tooltip,현재 미디어 파일 삭제
+views.overlays.media_viewer.close_tooltip,미디어 뷰어 닫기
+views.overlays.media_viewer.zoom,확대
+views.overlays.media_viewer.pan_while_zoomed,확대 중 이동
+views.overlays.media_viewer.left_right_keys,← / →
+views.overlays.media_viewer.arrow_keys,← ↑ ↓ →
+views.overlays.media_viewer.space_enter_keys,SPACE / ENTER
+views.overlays.media_viewer.space_key,SPACE
+views.overlays.media_viewer.click_key,CLICK
+views.overlays.media_viewer.esc_key,ESC
+views.overlays.media_viewer.drag_key,DRAG
+views.overlays.media_viewer.previous_next,이전 / 다음
+views.overlays.media_viewer.move_image,이미지 이동
+views.overlays.media_viewer.pan_freely,드래그 이동
+views.overlays.media_viewer.play_pause,재생 / 일시정지
+views.overlays.media_viewer.zoom_in,확대
+views.overlays.media_viewer.zoom_out,축소
+views.overlays.media_viewer.confirm_shortcut_hint,Enter 확인 · Esc 취소
+views.overlays.media_viewer.delete_media_title,미디어 삭제
+views.overlays.media_viewer.delete_media_message,{0} 파일을 삭제할까요?
+views.rail.tools.assets.file_operations.batch_rename_title,일괄 이름 변경
+views.rail.tools.assets.file_operations.batch_rename_message,선택한 항목에 사용할 기본 이름을 입력하세요.
+views.rail.tools.assets.file_operations.batch_rename_empty_message,기본 이름을 입력하세요.
+views.rail.tools.assets.file_operations.rename_message,새 이름을 입력하세요.
+views.rail.tools.assets.file_operations.rename_file_message,새 이름을 입력하세요. 확장자 '{0}'은 유지됩니다.
+views.rail.tools.assets.file_operations.paste_conflict_title,이름 충돌
+views.rail.tools.assets.file_operations.paste_conflict_message,대상 위치에 같은 이름의 항목이 있습니다.\n충돌하는 파일은 자동으로 이름을 바꿔 붙여넣습니다.
+context_menu.reveal_in_explorer,탐색기에서 보기
+context_menu.open_model_folder,모델 폴더 열기
+context_menu.open_model_root,모델 루트 열기
+context_menu.add_model_thumbnail,썸네일 이미지 추가
+context_menu.set_model_primary_thumbnail,대표 썸네일 설정
+context_menu.copy_path,경로 복사
+context_menu.insert_workflow_into_graph,현재 워크플로우에 삽입
+context_menu.add_workflow_bookmark,워크플로우 북마크 추가
+asset_bookmark.add_asset_bookmark,에셋 북마크 추가
+context_menu.refresh_search,검색 새로고침
+model_thumbnail.pick_image_title,썸네일 이미지 선택
+model_thumbnail.pick_failed_title,이미지 선택 실패
+model_thumbnail.unsupported_title,지원하지 않는 이미지
+model_thumbnail.unsupported_message,"PNG, JPG, JPEG, WEBP 이미지를 선택하세요."
+model_thumbnail.model_not_found_title,모델 파일을 찾을 수 없음
+model_thumbnail.model_not_found_message,Nexus가 이 항목의 실제 모델 파일을 찾지 못했습니다.
+model_thumbnail.add_failed_title,썸네일 추가 실패
+model_thumbnail.add_complete_title,썸네일 추가 완료
+model_thumbnail.add_complete_message,썸네일 이미지를 추가했습니다: {0}
+model_thumbnail.set_primary_title,대표 썸네일 설정
+model_thumbnail.set_primary_message,이 모델의 대표 썸네일로 사용할 이미지를 선택하세요.
+model_thumbnail.set_primary_action,대표로 설정
+model_thumbnail.primary_badge,대표
+model_thumbnail.page_indicator,{0} / {1} 페이지 · 이미지 {2}개
+model_thumbnail.no_selection_message,먼저 썸네일 이미지를 선택하세요.
+model_thumbnail.image_missing_title,썸네일 이미지 없음
+model_thumbnail.image_missing_message,선택한 썸네일 이미지가 더 이상 존재하지 않습니다. 다른 이미지를 선택한 뒤 다시 시도하세요.
+model_thumbnail.set_primary_failed_title,대표 썸네일 설정 실패
+model_thumbnail.set_primary_failed_message,Nexus가 선택한 이미지를 대표 썸네일로 설정하지 못했습니다.
+model_thumbnail.set_primary_complete_title,대표 썸네일 변경 완료
+model_thumbnail.set_primary_complete_message,대표 썸네일이 변경되었습니다: {0}
+help.frequent_jumps.title,자주 찾는 위치
+help.frequent_jumps.description,워크플로우 구축이나 디버깅 시 필요한 주요 위치로 빠르게 이동합니다.
+help.frequent_jumps.badge,북마크
+help.concept.runtime.title,Nexus 구동 환경
+help.concept.runtime.body,"ComfyUI는 엔진, Python은 서버/노드, Git은 동기화, WebView는 캔버스를 담당합니다."
+help.concept.runtime.hint,"Nexus는 환경을 관리하며, 워크플로우 제어권은 여전히 ComfyUI에 있습니다."
+help.concept.image_birth.title,이미지 생성 원리
+help.concept.image_birth.body,"프롬프트는 가이드, 체크포인트는 지능, 샘플러는 노이즈 정제, VAE는 픽셀 변환을 수행합니다."
+help.concept.image_birth.hint,"결과가 어색하다면 모델, 시드, CFG, 샘플러 설정을 먼저 확인하세요."
+help.concept.model_apply.title,모델 추가하기
+help.concept.model_apply.body,"모델을 다운로드하여 해당 폴더에 넣은 후, 인식을 위해 새로고침하거나 재시작하세요."
+help.concept.model_apply.hint,"폴더 예시: checkpoints, loras, vae, controlnet, ipadapter."
+help.concept.face_identity.title,페이스 싱크 / 아이덴티티
+help.concept.face_identity.body,"참조 이미지를 활용해 FaceID 모델 가중치를 조합하고, 적절한 디노이즈 값을 유지하세요."
+help.concept.face_identity.hint,"인물이 다를 경우: 디노이즈 조절, 크롭 품질 개선, 모델 가중치를 확인하세요."
+help.concept.workflow.title,워크플로우 체크리스트
+help.concept.workflow.body,"검증된 샘플로 시작해 하나씩 변경하고, 유용한 버전은 반드시 저장해두세요."
+help.concept.workflow.hint,"팁: 폴더 매핑, 선호 모델 조합, 빈번한 오류 해결법을 기록해두면 좋습니다."
+views.overlays.product_setup_view.vanguard,뱅가드
+views.overlays.product_setup_view.architect,아키텍트
+views.overlays.product_setup_view.venv,VENV
+views.overlays.settings_overlay_view.python_source,Python 소스
+views.overlays.settings_overlay_view.venv,VENV
+views.overlays.settings_overlay_view.direct,직접
+workflow.dialog.workflow_missing_title,워크플로우 없음
+workflow.dialog.tracked_workflow_missing_message,추적 중인 워크플로우 파일이 더 이상 존재하지 않습니다.
+workflow.dialog.rename_file_title,워크플로우 파일 이름 변경
+workflow.dialog.rename_file_message,"추적 중인 워크플로우 파일의 이름을 변경합니다.
+{0}"
+workflow.dialog.invalid_name_title,잘못된 이름
+workflow.dialog.invalid_file_name_message,올바른 워크플로우 파일 이름을 입력하세요.
+workflow.dialog.file_exists_title,파일이 이미 있음
+workflow.dialog.file_exists_message,{0} 파일이 이미 있습니다.
+workflow.dialog.workflow_path_not_found,{0} 파일을 찾을 수 없습니다.
+workflow.batch_operation.blocker_title,워크플로우 업데이트 중
+workflow.batch_operation.blocker_detail,{0}개 항목을 처리하고 있습니다. 잠시 기다려 주세요...
+workflow.bookmark_hud.bookmarked,북마크됨
+workflow.bookmark_hud.available,사용 가능
+workflow.bookmark_hud.no_workflow_files,설정된 ComfyUI의 workflows 폴더에서 워크플로우 파일을 찾지 못했습니다.
+workflow.bookmark_hud.no_filter_matches,현재 검색어와 일치하는 워크플로우가 없습니다.
+workflow.bookmark_hud.count,북마크 {0}개 // 전체 {1}개
+workflow.bookmark_hud.filtered_count,표시 {0}개 // 북마크 {1}개 // 전체 {2}개
+workflow.bookmark_hud.pinned,고정됨
+workflow.bookmark_hud.known,등록됨
+workflow.bookmark_hud.pin,고정
+workflow.bookmark_hud.unpin,해제
+views.rail.tools.assets.assets_browser_view.bookmarked_workflows,북마크된 워크플로우
+views.rail.tools.assets.assets_browser_view.searching_current_location,현재 위치에서 검색 중...
+views.rail.tools.assets.assets_browser_view.search_failed,검색 실패
+views.rail.tools.assets.assets_browser_view.search_failed_message,검색 실패: {0}
+views.rail.tools.assets.assets_browser_view.search_results_count,현재 위치에서 {0}개 결과
+views.rail.tools.assets.assets_browser_view.root_path_unavailable,루트 경로를 사용할 수 없습니다.
+views.rail.tools.assets.assets_browser_view.folder_empty,이 폴더는 비어 있습니다.
+views.rail.tools.assets.assets_browser_view.rail_error,레일 오류: {0}
+views.rail.tools.assets.file_operations.move_title,파일 이동
+views.rail.tools.assets.file_operations.move_button,이동
+views.rail.tools.assets.file_operations.move_single_message,'{0}' 항목을 '{1}' 위치로 이동할까요?
+views.rail.tools.assets.file_operations.move_multiple_message,{0}개 항목을 '{1}' 위치로 이동할까요?
+views.rail.tools.assets.file_operations.move_multiple_file_message,{0}개 파일을 '{1}' 위치로 이동할까요?\n\n{2}
+views.rail.tools.assets.file_operations.move_more_items_message,...외 {0}개 파일
+views.rail.tools.assets.file_operations.new_folder_name,새 폴더
+views.rail.tools.assets.file_operations.add_folder_title,폴더 추가
+views.rail.tools.assets.file_operations.add_folder_prompt_message,"아래 위치에 폴더가 추가됩니다.
+{0}"
+views.rail.tools.assets.file_operations.folder_name_placeholder,폴더 이름
+views.rail.tools.assets.file_operations.folder_name_required,폴더 이름을 입력하세요.
+views.rail.tools.assets.file_operations.folder_name_invalid,폴더 이름에는 경로 구분자나 사용할 수 없는 문자를 포함할 수 없습니다.
+views.rail.tools.assets.file_operations.folder_exists_message,'{0}' 이름의 폴더 또는 파일이 이미 있습니다.
+views.rail.tools.assets.file_operations.parent_folder_unavailable,상위 폴더를 확인할 수 없습니다.
+views.rail.tools.assets.file_operations.selected_item_missing,선택한 항목이 더 이상 존재하지 않습니다.
+views.rail.tools.assets.file_operations.delete_message,'{0}' 항목을 삭제할까요?
+settings.model_libraries.title,모델 라이브러리
+settings.model_libraries.description,ComfyUI 외부에 보관된 모델 폴더를 연결합니다.\n각 라이브러리는 현재 ComfyUI 모델 폴더 구조를 그대로 따릅니다.
+settings.model_libraries.add_library,라이브러리 추가
+settings.model_libraries.sync_structure,구조 동기화
+settings.model_libraries.library,외부 라이브러리 {0}
+settings.model_libraries.not_connected,연결되지 않음
+settings.model_libraries.unavailable,사용할 수 없음: {0}
+settings.model_libraries.open,열기
+settings.model_libraries.connect,연결
+settings.model_libraries.replace,교체
+settings.model_libraries.remove,제거
+settings.model_libraries.restart_hint,변경 사항은 다음 ComfyUI 시작부터 적용됩니다.\n실행 중인 서버는 재시작해야 모델 경로를 다시 읽습니다.
+settings.model_libraries.folder_picker_title,모델 라이브러리 폴더 선택
+settings.model_libraries.duplicate,이미 등록된 모델 라이브러리입니다.
+settings.model_libraries.settings_save_failed,Nexus 설정을 저장하지 못해 모델 경로를 이전 상태로 복원했습니다.
+settings.model_libraries.restart_reason,모델 라이브러리
+settings.model_libraries.syncing_title,모델 라이브러리 구조 동기화 중
+settings.model_libraries.syncing_detail,현재 ComfyUI 모델 폴더를 읽습니다.\n외부 라이브러리 구조를 업데이트합니다.
+settings.model_libraries.sync_complete,모델 라이브러리 구조를 동기화했습니다.\n변경된 경로를 적용하려면 ComfyUI를 재시작하세요.
+settings.model_libraries.sync_failed,모델 라이브러리 구조 동기화에 실패했습니다: {0}
+settings.model_duplicates.title,모델 중복 검사
+settings.model_duplicates.description,내부 및 외부 라이브러리에서 내용이 같은 모델 파일을 찾습니다.\nNexus는 위치만 열어주며 삭제는 사용자가 직접 결정합니다.
+settings.model_duplicates.scan,중복 검사
+settings.model_duplicates.open_report,리포트 열기
+settings.model_duplicates.open_location_1,위치 1 열기
+settings.model_duplicates.open_location_2,위치 2 열기
+settings.model_duplicates.next,다음 중복
+settings.model_duplicates.ready,모델 라이브러리를 검사해 정확히 같은 파일을 찾습니다.
+settings.model_duplicates.scanning_title,모델 중복 검사 중
+settings.model_duplicates.scanning_detail,중복 파일 스캔 중...
+settings.model_duplicates.progress_discovering,"모델 파일 수집 중: {0}개, {1}"
+settings.model_duplicates.progress_preparing,"정확한 비교 준비 중: 후보 {0}개, {1}"
+settings.model_duplicates.progress_hashing,"파일 내용 비교 중: {0}/{1}개, {2}/{3}"
+settings.model_duplicates.progress_report,중복 검사 리포트 작성 중...
+settings.model_duplicates.cancelled,모델 중복 검사를 중단했습니다.
+settings.model_duplicates.scan_failed,모델 중복 검사에 실패했습니다.\n{0}
+settings.model_duplicates.none_found,"중복 모델을 찾지 못했습니다.\n{0}개 파일, {1}를 검사했습니다."
+settings.model_duplicates.found,"중복 {0}/{1}: {2}\n크기: {3} · 위치 {4}개"
+settings.model_duplicates.found_many,"중복 {0}/{1}: {2}\n크기: {3} · 위치 {4}개 · 리포트에 {5}개 더 있음"
+setup.model_library.title,외부 모델 라이브러리
+setup.model_library.description,용량이 큰 모델을 ComfyUI 밖에 따로 보관할 수 있습니다.\n재설치·백업·여러 ComfyUI 공유가 더 쉬워집니다.
+setup.model_library.not_connected,연결된 외부 모델 라이브러리가 없습니다.\n선택 사항이며 나중에 Settings에서 추가할 수 있습니다.
+setup.model_library.connected_count,외부 모델 라이브러리 루트 {0}개가 연결되었습니다.\n다음 ComfyUI 시작부터 적용됩니다.
+setup.model_library.unchanged,선택한 모델 라이브러리가 이미 연결되어 있습니다.
+setup.model_library.duplicate,이미 등록된 모델 라이브러리입니다.
+setup.model_library.folder_picker_title,모델 라이브러리 폴더 선택
+setup.model_library.remove_failed,선택한 모델 라이브러리를 제거할 수 없습니다.
+model_libraries.service.duplicate_path,이미 등록된 모델 라이브러리입니다: {0}
+model_libraries.service.none_connected,연결된 외부 모델 라이브러리가 없습니다.
+model_libraries.service.unavailable,모델 라이브러리를 사용할 수 없습니다: {0}
+model_libraries.service.yaml_missing,외부 모델 라이브러리가 설정되어 있지만 extra_model_paths.yaml 파일이 없습니다.
+model_libraries.service.connected_count,외부 모델 라이브러리 루트 {0}개가 연결되었습니다.
+model_libraries.service.out_of_sync,Nexus 모델 라이브러리 구간이 설정과 일치하지 않습니다.
+model_libraries.service.comfy_unavailable,ComfyUI 폴더를 사용할 수 없습니다.
+model_libraries.service.removed,외부 모델 라이브러리를 제거했습니다.
+model_libraries.service.applied_count,외부 모델 라이브러리 루트 {0}개를 적용했습니다.
+model_libraries.service.update_failed,extra_model_paths.yaml을 업데이트할 수 없습니다: {0}
+model_libraries.service.markers_invalid,Nexus 모델 경로 마커가 중복되었거나 올바르지 않습니다.
+model_libraries.service.top_level_mapping,extra_model_paths.yaml의 최상위 구조는 매핑이어야 합니다.
+model_libraries.service.reserved_key,Nexus 관리 구간 밖에 예약된 최상위 키가 있습니다: {0}
+settings.runtime_backup.description,내부 models 및 custom_nodes 폴더의 휴대용 백업을 생성합니다.\n시작 전에 저장 위치와 형식을 선택하세요.
+settings.runtime_backup.destination,백업 저장 위치
+settings.runtime_backup.change,변경
+settings.runtime_backup.open,열기
+settings.runtime_backup.available_space,사용 가능 공간: {0}
+settings.runtime_backup.space_unavailable,여유 공간 확인 불가: {0}
+settings.runtime_backup.format,형식
+settings.runtime_backup.folder,폴더
+settings.runtime_backup.zip,ZIP
+settings.runtime_backup.include,포함 대상
+settings.runtime_backup.models,모델
+settings.runtime_backup.custom_nodes,커스텀 노드
+settings.runtime_backup.ready_to_calculate,백업할 폴더를 선택하세요.\n시작 전에 필요한 디스크 공간을 계산합니다.
+settings.runtime_backup.external_libraries_excluded,외부 모델 라이브러리는 런타임 백업에 포함되지 않습니다.\n아래 경로를 열어 별도로 보관된 파일을 확인할 수 있습니다.
+settings.runtime_backup.calculating,백업 데이터 크기와 디스크 여유 공간을 계산 중입니다...
+settings.runtime_backup.insufficient_space,디스크 여유 공간이 부족합니다.\n필요: {0} · 남음: {1}
+settings.runtime_backup.analysis_failed,백업을 시작할 수 없습니다.\n{0}
+settings.runtime_backup.analysis_ready,"원본: {1}개 파일 · {0}\n필요: {2} · 남음: {3}"
+settings.runtime_backup.confirm_title,런타임 백업을 시작할까요?
+settings.runtime_backup.confirm_message,"포함 대상: {0}\n형식: {1}\n원본 크기: {2}\n필요 공간: {3}\n남은 공간: {4}\n\n저장 위치:\n{5}\n\n외부 모델 라이브러리는 포함되지 않습니다."
+settings.runtime_backup.start,백업 시작
+settings.runtime_backup.browse_folder,폴더 찾아보기...
+settings.runtime_backup.browse_zip,ZIP 찾아보기...
+settings.runtime_backup.restore_title,런타임 백업 복원
+settings.runtime_backup.select_backup_folder,Nexus 런타임 백업 폴더 선택
+settings.runtime_backup.select_backup_zip,Nexus 런타임 백업 ZIP 선택
+settings.runtime_backup.select_destination,런타임 백업 저장 위치 선택
+settings.runtime_backup.preference_save_failed,백업 저장 위치 또는 형식을 저장하지 못했습니다.\n이전 설정을 계속 사용합니다.
+settings.runtime_backup.destination_changed,백업 저장 위치를 변경했습니다.\n백업 전에 용량을 다시 계산합니다.
+settings.runtime_backup.format_changed,백업 형식을 변경했습니다.\n백업 전에 용량을 다시 계산합니다.
+settings.runtime_backup.operation_failed,런타임 백업에 실패했습니다.\n{0}
+settings.runtime_backup.backup_complete,런타임 백업을 완료했습니다.\n{0}
+settings.runtime_backup.restore_confirm_title,런타임 백업을 복원할까요?
+settings.runtime_backup.restore_confirm_message,선택한 백업을 현재 ComfyUI 런타임에 복사합니다.\n복원 후 서버를 재시작해야 파일을 다시 읽습니다.
+settings.runtime_backup.restore_complete,런타임 백업을 복원했습니다.\n복원한 데이터를 사용하려면 서버를 재시작하세요.
+settings.runtime_backup.delete_title,런타임 백업 삭제
+settings.runtime_backup.delete_confirm_title,런타임 백업을 삭제할까요?
+settings.runtime_backup.delete_confirm_message,선택한 Nexus 백업을 영구적으로 삭제합니다.\n\n{0}\n\n현재 ComfyUI 런타임에는 영향을 주지 않습니다.
+settings.runtime_backup.delete_complete,런타임 백업을 삭제했습니다.
+settings.runtime_backup.status_complete,완료
+settings.runtime_backup.status_incomplete,미완료
+settings.runtime_backup.ready_to_restore,선택한 백업을 복원할 준비가 되었습니다.
+settings.runtime_backup.none_selected,선택한 런타임 백업이 없습니다.
+settings.runtime_backup.ready_to_delete,{0} 백업을 삭제 대상으로 선택했습니다.
+settings.runtime_backup.open_failed,런타임 백업 폴더를 열 수 없습니다.
+settings.runtime_backup.restore_analyzing_title,런타임 복원 분석 중
+settings.runtime_backup.restore_analyzing_detail,백업과 현재 ComfyUI 파일을 비교합니다.\n내용이 같은 파일은 복사하지 않습니다.
+settings.runtime_backup.restore_analysis_ready,"복원 점검 완료: 추가 {0} · 교체 {1} · 동일 {2} · 유지 {3}"
+settings.runtime_backup.restore_analysis_message,"백업:\n{0}\n\n복원 위치:\n{1}\n\n추가: {2} · 교체: {3} · 동일: {4} · 유지: {5}\n복사 크기: {6}\n필요 공간: {7}\n남은 공간: {8}\n\n현재 위치에만 있는 파일은 유지됩니다. 내용이 다른 동일 경로 파일은 백업본으로 교체합니다.\n계속하기 전에 변경 파일을 확인하세요.\n\n미리보기:\n{9}\n\n이동 경로:\n{10}"
+settings.runtime_backup.open_change_list,변경 목록 열기
+settings.runtime_backup.start_restore,복원 시작
+settings.runtime_backup.open_report_failed,복원 변경 목록을 열 수 없습니다.
+settings.runtime_backup.restore_handler_missing,런타임 복원 처리기를 사용할 수 없습니다.
+settings.runtime_backup.restore_merge_complete,런타임 병합 복원을 완료했습니다.\n파일 {0}개를 추가하거나 교체했습니다.
+settings.runtime_backup.restore_merge_complete_restarting,런타임 병합 복원을 완료했습니다.\n파일 {0}개를 추가하거나 교체했습니다.\n서버 재시작은 로딩 화면에서 계속 진행됩니다.
+settings.runtime_backup.restore_merge_failed,런타임 병합 복원에 실패했습니다.\n{0}
+settings.runtime_backup.blocker_title,런타임 복원 중
+settings.runtime_backup.blocker_preparing,안전한 병합 복원을 위해 ComfyUI를 준비합니다...
+settings.runtime_backup.blocker_stopping_server,ComfyUI 서버를 안전하게 중지합니다...
+settings.runtime_backup.blocker_merging,검증된 백업 파일을 병합합니다...
+settings.runtime_backup.blocker_complete,런타임 복원을 완료했습니다.
+settings.runtime_backup.restore_no_changes_title,복원할 변경 사항 없음
+settings.runtime_backup.restore_no_changes_message,백업과 현재 런타임의 내용이 같습니다.\n동일 파일 {0}개는 건너뛰고 현재 위치에만 있는 파일 {1}개는 그대로 유지합니다.
+settings.pip_cache.title,pip cache
+settings.pip_cache.description,pip 다운로드/빌드 캐시만 제어합니다.\n패키지 설치 위치는 바뀌지 않습니다.
+settings.pip_cache.pip_default_path,pip가 캐시 위치를 직접 선택합니다
+settings.pip_cache.pip_default_detail,현재 캐시: Python/venv에 포함된 pip 기본값.\nNexus는 PIP_CACHE_DIR을 설정하지 않습니다.
+settings.pip_cache.default_detail,현재 캐시: LocalRuntime 아래의 Nexus 기본 위치.\nNexus가 관리하는 pip 명령에 PIP_CACHE_DIR을 설정합니다.
+settings.pip_cache.custom_detail,현재 캐시: 사용자 지정 위치.\nNexus가 관리하는 pip 명령에 PIP_CACHE_DIR을 설정합니다.
+settings.pip_cache.use_pip_default,pip default
+settings.pip_cache.use_default,Nexus default
+settings.pip_cache.change,Custom
+settings.pip_cache.clear,캐시 비우기
+settings.pip_cache.select_folder,pip cache 폴더 선택
+settings.pip_cache.save_failed,pip cache 설정을 저장할 수 없습니다.
+settings.pip_cache.clear_title,pip cache를 비울까요?
+settings.pip_cache.clear_message,다운로드된 pip 캐시 파일만 삭제합니다.\n설치된 Python 패키지는 삭제하지 않습니다.\n패키지가 부족하면 Repair runtime 또는 Repair & Boot를 사용하세요.
+settings.pip_cache.clear_complete,pip cache를 비웠습니다.
+settings.pip_cache.clear_failed,pip cache를 비우지 못했습니다.\n{0}
+setup.venv.title,Virtual Environment
+setup.venv.description,ComfyUI 패키지를 격리해 관리하는 Python 작업 공간입니다.\nNexus가 의존성을 안전하게 관리하게 하려면 생성하세요.
+setup.venv.checking,ComfyUI Python 환경을 확인하는 중...
+setup.venv.requires_python,Python Runtime이 필요합니다.\nPython이 준비되면 여기서 격리된 .venv를 만들 수 있습니다.\n초기 설정은 보통 10-20분 정도 걸리고 의존성에 몇 GB가 필요할 수 있습니다.
+setup.venv.keep_selected,기존 .venv를 서버 실행 환경으로 선택했습니다.
+setup.venv.mode_selected,.venv 모드를 서버 실행 환경으로 선택했습니다.\n초기 설정은 보통 10-20분 정도 걸립니다.\nComfyUI requirements와 CUDA PyTorch 패키지는 몇 GB의 디스크 공간을 사용할 수 있습니다.
+setup.venv.direct_active,Direct Python 모드가 활성화되어 있습니다. 서버 Python: {0}.
+setup.venv.direct_existing,기존 .venv가 있습니다.\n깨끗한 설정을 원하면 Reset을 권장하며, 신뢰하는 환경이면 그대로 유지할 수 있습니다.
+setup.venv.direct_incomplete,기존 .venv 폴더가 불완전합니다.\nReset을 권장합니다.
+setup.venv.direct_missing,.venv가 아직 없습니다. Create를 권장합니다.\n초기 설정은 보통 10-20분 정도 걸립니다.\nComfyUI requirements와 CUDA PyTorch 패키지는 몇 GB의 디스크 공간을 사용할 수 있습니다.
+setup.venv.ready,.venv가 준비되었습니다.\nNexus가 이 격리 환경으로 ComfyUI 의존성을 관리할 수 있습니다.
+setup.venv.incomplete,.venv 폴더는 있지만 Scripts\python.exe가 없습니다.\nReset으로 깨끗하게 다시 만들 수 있습니다.\n초기 설정은 보통 10-20분 정도 걸립니다.
+setup.venv.missing,.venv가 아직 없습니다. Create를 권장합니다.\n초기 설정은 보통 10-20분 정도 걸립니다.\n고급 사용자는 Direct Python으로 계속 진행할 수 있습니다.
+setup.venv.launch_mode_updated,Python 실행 모드를 업데이트했습니다.
+setup.venv.setup_failed,Python 환경 설정에 실패했습니다: {0}
+setup.venv.option_create,Create
+setup.venv.option_create_description,격리된 ComfyUI .venv를 생성합니다. 대부분의 사용자에게 권장합니다.
+setup.venv.option_reset,Reset
+setup.venv.option_reset_description,.venv를 삭제하고 깨끗하게 다시 생성합니다.
+setup.venv.option_reset_incomplete_description,불완전한 .venv를 삭제하고 다시 생성합니다.
+setup.venv.option_keep,Keep Existing
+setup.venv.option_keep_description,기존 .venv를 그대로 사용합니다.
+setup.pip_cache.title,pip cache
+setup.pip_cache.description,Nexus가 관리하는 pip 다운로드/빌드 캐시 위치를 제어합니다.\n설치된 Python 패키지 위치는 바뀌지 않습니다.
+setup.pip_cache.unsupported_option,지원하지 않는 pip cache 옵션입니다.
+setup.pip_cache.invalid_folder,유효한 pip cache 폴더를 선택하세요.
+setup.pip_cache.details_pip_default,pip가 캐시 위치를 직접 선택합니다.\nNexus는 관리하는 pip 명령에 PIP_CACHE_DIR을 설정하지 않습니다.
+setup.pip_cache.details_nexus_default,Nexus default pip cache가 활성화되어 있습니다.
+setup.pip_cache.details_custom,Custom pip cache가 활성화되어 있습니다.
+setup.pip_cache.option_pip_default,pip default
+setup.pip_cache.option_pip_default_description,선택된 Python 또는 .venv의 pip가 자체 캐시를 선택하게 둡니다.
+setup.pip_cache.option_nexus_default,Nexus default
+setup.pip_cache.option_nexus_default_description,pip cache를 LocalRuntime 아래에 저장합니다.
+setup.pip_cache.option_custom,Custom
+setup.pip_cache.option_custom_description,전용 pip cache 폴더를 선택합니다.
+setup.model_library.invalid_folder,유효한 모델 라이브러리 폴더를 선택하세요.
+setup.model_library.already_connected_selected,선택한 모델 라이브러리는 이미 연결되어 있습니다.
+setup.model_library.already_connected,이 모델 라이브러리는 이미 연결되어 있습니다.
+setup.model_library.option_connect,라이브러리 연결
+setup.model_library.option_replace,교체
+setup.model_library.option_replace_indexed,라이브러리 {0} 교체
+setup.model_library.option_remove,제거
+setup.model_library.option_remove_indexed,라이브러리 {0} 제거
+setup.model_library.option_add,라이브러리 추가
+setup.model_library.restart_hint,변경 사항은 다음 ComfyUI 시작부터 적용됩니다.
+setup.model_library.unavailable,하나 이상의 외부 모델 라이브러리를 사용할 수 없습니다.
+setup.model_library.needs_sync,외부 모델 라이브러리 설정을 동기화해야 합니다.
+setup.status.label,상태
+setup.status.pending,대기
+setup.status.working,작업 중
+setup.status.ready,준비됨
+setup.status.setup,설정
+setup.status.optional,선택
+setup.status.missing,누락
+setup.status.error,오류
+setup.status.probing,점검 중...
+setup.status.checking,확인 중...
+setup.status.installing,설치 중...
+setup.status.install,설치
+setup.status.config,설정
+setup.status.edit,편집
+setup.common.probing,시스템 환경을 점검하는 중...
+setup.common.pending_detail,대기 중...
+setup.common.option_install_builtin,내장 설치
+setup.common.option_manual_selection,수동 선택
+setup.common.option_keep_next,기존 항목 유지 (다음)
+setup.common.install_service_missing,설치 서비스가 초기화되지 않았습니다.
+setup.common.probe_failed,{0} 점검 실패: {1}
+setup.git.title,Git Core Engine
+setup.git.description,ComfyUI와 custom node를 동기화하기 위한 버전 관리 시스템입니다.
+setup.git.system_detected,System Git (v{0})을 감지했습니다.
+setup.git.system_missing,System Git을 찾을 수 없습니다. 내장 설치가 필요합니다.
+setup.git.option_system,System Git 사용
+setup.git.option_system_description,System Git v{0}을 사용합니다.
+setup.git.option_builtin_description,"격리된 portable Git을 설치합니다."
+setup.git.option_manual_description,git.exe 경로를 직접 선택합니다.
+setup.git.using_system,System Git v{0} 사용 중
+setup.git.using_builtin,내장 Git v{0} 사용 중
+setup.git.custom_selected,Custom Git 경로를 선택했습니다.
+setup.git.using_custom,Custom Git 사용 중: {0}
+setup.git.system_unavailable,System Git이 없거나 접근할 수 없습니다. Built-in 모드로 바꾸거나 전역 Git을 다시 설치하세요.
+setup.git.install_service_missing,설치 서비스가 초기화되지 않아 이 단계에서 Git 패키지를 압축 해제할 수 없습니다.
+setup.git.extract_success,Git 패키지를 압축 해제했습니다.
+setup.git.extract_failed,Git 압축 해제 실패: {0}
+setup.python.title,Python Runtime
+setup.python.description,ComfyUI backend를 실행하는 독립 Python 엔진입니다.
+setup.python.system_detected,System Python (v{0})을 감지했습니다.
+setup.python.system_missing,System Python을 찾을 수 없습니다. 내장 설치가 필요합니다.
+setup.python.option_system,System Python 사용
+setup.python.option_system_description,System Python v{0}을 사용합니다.
+setup.python.option_builtin_description,격리된 Python runtime을 설치합니다.
+setup.python.option_manual_description,python.exe 경로를 직접 선택합니다.
+setup.python.using_system,System Python v{0} 사용 중
+setup.python.using_builtin,내장 Python v{0} 사용 중
+setup.python.custom_selected,Custom Python 경로를 선택했습니다.
+setup.python.using_custom,Custom Python 사용 중: {0}
+setup.python.system_unavailable,System Python을 선택했지만 사용할 수 없습니다. Built-in으로 전환하세요.
+setup.python.install_success,Python runtime을 설치했습니다.
+setup.python.install_failed,Python runtime 설치 실패: {0}
+setup.comfy_core.title,ComfyUI Core & Venv
+setup.comfy_core.description,메인 backend 소스 코드와 Python virtual environment입니다.
+setup.comfy_core.ready_to_install,ComfyUI Core와 .venv를 설치할 준비가 되었습니다.
+setup.comfy_core.option_default_path,기본 경로 사용
+setup.comfy_core.option_custom_path,Custom 경로 선택
+setup.comfy_core.recover_failed,ComfyUI Core 복구 실패: {0}
+setup.base_model.title,Base Model Checkpoint
+setup.base_model.description,이미지 생성을 위해 필요한 기본 Stable Diffusion 모델입니다.
+setup.base_model.present,Base model이 준비되어 있습니다.
+setup.base_model.missing,Base model checkpoint가 없습니다.
+setup.base_model.option_download,모델 다운로드
+setup.base_model.option_skip,나중에 하기
+setup.base_model.skipped,Base model 다운로드를 건너뛰었습니다.
+setup.base_model.download_success,Base model을 다운로드했습니다.
+setup.base_model.download_failed,Base model 다운로드 실패: {0}
+setup.extensions.title,ComfyUI Extensions
+setup.extensions.description,Nexus를 구동하기 위한 필수 확장입니다.
+setup.extensions.item_installed,{0}: 설치됨
+setup.extensions.item_pending,{0}: 설치 대기
+setup.extensions.check_failed,Extension 점검 실패: {0}
+setup.extensions.option_install,Extensions 설치
+setup.extensions.prepare_success,관리 대상 extensions를 준비했습니다. Python 설치 스크립트는 서버 부팅 전에 실행됩니다.
+setup.extensions.install_failed,Manager/Extensions 설치 실패: {0}
+common.next,다음
+setup.action.launch_nexus,NEXUS 실행
+setup.status.requirements_pending,필수 항목 대기
+setup.console.recover_boot_title,Runtime을 복구하고 부팅할까요?
+setup.console.recover_boot_message,ComfyUI requirements를 동기화하고 선택된 서버 runtime에 맞는 CUDA PyTorch wheel을 복구합니다.\n이후 Nexus가 서버를 시작합니다. 몇 분 정도 걸릴 수 있습니다.\n\n대상: {0}
+setup.console.recover_boot,복구 및 부팅
+setup.console.state_standby,대기
+setup.console.state_initializing,초기화 중
+setup.console.state_booting,부팅 중
+setup.console.state_failed,실패
+setup.console.state_online,온라인
+setup.console.badge_ready,준비
+setup.console.badge_boot,부팅
+setup.console.badge_fail,실패
+setup.console.badge_live,활성
+setup.console.preparing_detail,부팅 전 runtime 점검을 준비하는 중입니다.
+setup.console.standby_detail,ComfyUI backend를 시작할 준비가 되었습니다.
+setup.console.booting_detail,Backend process를 시작하고 있습니다. 로그와 포트 응답을 확인합니다.
+setup.console.failed_detail,부팅 시퀀스가 실패했습니다. Console log를 확인하고 다시 시도하세요.
+setup.console.online_detail,ComfyUI backend에 연결되었고 Nexus hand-off 준비가 끝났습니다.
+setup.steps.welcome.title,시작
+setup.steps.welcome.description,Nexus setup deck을 초기화하고 로컬 command center를 준비합니다.
+setup.steps.core_link.title,Core Link 점검
+setup.steps.core_link.description,환경 도구를 초기화하고 로컬 runtime 기반을 준비합니다.
+setup.steps.comfy_core.title,ComfyUI Core
+setup.steps.comfy_core.description,ComfyUI core 패키지와 workspace 폴더를 다운로드하거나 확인합니다.
+setup.steps.base_resources.title,Base Resources
+setup.steps.base_resources.description,기본 Stable Diffusion checkpoint와 필수 asset을 다운로드합니다.
+setup.steps.manager.title,ComfyUI-Manager
+setup.steps.manager.description,유지보수 명령에 사용하는 manager extension을 설치하고 확인합니다.
+setup.steps.hud_bridge.title,Nexus HUD Bridge
+setup.steps.hud_bridge.description,HUD bridge, native action relay, 내장 ComfyUI 연동을 패치합니다.
+setup.steps.dependencies.title,Dependencies
+setup.steps.dependencies.description,설정된 ComfyUI Python runtime과 CUDA 패키지를 복구합니다.
+setup.steps.server.title,Server Standby
+setup.steps.server.description,설정된 서버 옵션으로 ComfyUI를 시작하고 로컬 포트를 기다립니다.
+setup.steps.launch.title,Nexus 실행
+setup.steps.launch.description,서버가 준비되면 기존 WebView login sequence로 넘깁니다.
+loading.bridge_online_title,Neural Bridge Online
+loading.bridge_online_detail,ComfyUI가 shell handshake에 응답했습니다.
+loading.bridge_online_status,WELCOME TO NEXUS
+loading.finalizing_title,작업 공간 마무리 중
+loading.finalizing_detail,"도구를 연결하고, shell control을 동기화하고, 화면 전환을 준비합니다."
+loading.finalizing_status,PLEASE STAND BY // PREPARING WORKSPACE...
+loading.comfy_unreachable_title,ComfyUI Core에 연결할 수 없음
+loading.comfy_unreachable_status,COMFYUI CORE UNREACHABLE // RETRYING...
+loading.bridge_timeout_title,Bridge Handshake Timeout
+loading.bridge_timeout_detail,PROTOS가 제한 시간 안에 응답하지 않았습니다. HUD bridge가 없거나 불완전할 수 있습니다.
+loading.bridge_timeout_status,PROTOS TIMEOUT // SETUP AVAILABLE
+toast.interrupting_job,현재 작업을 중단하는 중...
+setup.gpu.scanning,스캔 중...
+setup.console.boot_canceled,서버가 준비되기 전에 부팅 시퀀스가 취소되었습니다.
+setup.console.boot_failed_with_message,부팅 시퀀스 실패: {0}
+setup.console.maintenance_completed,Setup maintenance가 완료되었습니다. 부팅 전에 설정을 계속 진행하세요.

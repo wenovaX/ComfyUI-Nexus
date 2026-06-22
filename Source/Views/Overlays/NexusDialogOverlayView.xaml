@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.NexusDialogOverlayView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<Grid BackgroundColor="#B8050A14">
+		<BoxView Color="Transparent" />
+		<Button x:Name="DialogKeyboardFocusSink"
+				WidthRequest="1"
+				HeightRequest="1"
+				Opacity="0"
+				Text=""
+				HorizontalOptions="Start"
+				VerticalOptions="Start" />
+
+		<Border x:Name="DialogPanelBorder"
+				WidthRequest="460"
+				MaximumWidthRequest="620"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				BackgroundColor="#F20A121F"
+				Stroke="#668DE7FF"
+				StrokeThickness="1"
+				StrokeShape="RoundRectangle 28"
+				Padding="26,24">
+			<Border.Shadow>
+				<Shadow x:Name="DialogPanelGlow"
+						Brush="#31D8FF"
+						Radius="32"
+						Offset="0,12"
+						Opacity="0" />
+			</Border.Shadow>
+
+			<VerticalStackLayout Spacing="10">
+				<Label x:Name="DialogTitleLabel"
+						TextColor="#F4FBFF"
+						FontSize="18"
+						FontAttributes="Bold"
+						LineBreakMode="WordWrap" />
+				<Label x:Name="DialogMessageLabel"
+						TextColor="#9EB7CA"
+						FontSize="13"
+						Padding="0,20,0,0"
+						VerticalTextAlignment="Center"
+						LineBreakMode="WordWrap" />
+
+				<Border x:Name="DialogPromptFrame"
+						IsVisible="False"
+						BackgroundColor="#102132"
+						Stroke="#3D8CC9"
+						StrokeThickness="1"
+						StrokeShape="RoundRectangle 14"
+						Padding="12,0,8,0"
+						HeightRequest="44">
+					<Border.Shadow>
+						<Shadow x:Name="DialogPromptGlow"
+								Brush="#31D8FF"
+								Radius="18"
+								Offset="0,0"
+								Opacity="0.08" />
+					</Border.Shadow>
+					<Grid ColumnDefinitions="*,Auto"
+						  ColumnSpacing="6"
+						  VerticalOptions="Center">
+						<Entry x:Name="DialogPromptEntry"
+							   Grid.Column="0"
+							   TextColor="#F2FBFF"
+							   PlaceholderColor="#7894A8"
+							   BackgroundColor="Transparent"
+							   FontSize="14"
+							   HeightRequest="36"
+							   MinimumHeightRequest="36"
+							   ClearButtonVisibility="Never"
+							   VerticalOptions="Center"
+							   VerticalTextAlignment="Center"
+							   TextChanged="OnDialogPromptEntryTextChanged"
+							   Focused="OnDialogPromptEntryFocused"
+							   Unfocused="OnDialogPromptEntryUnfocused" />
+						<Border x:Name="DialogPromptClearButton"
+								Grid.Column="1"
+								WidthRequest="24"
+								HeightRequest="24"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 7"
+								VerticalOptions="Center"
+								HorizontalOptions="Center"
+								IsVisible="False">
+							<Label x:Name="DialogPromptClearLabel"
+								   Text="×"
+								   FontSize="14"
+								   FontAttributes="Bold"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center" />
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnDialogPromptClearTapped" />
+							</Border.GestureRecognizers>
+						</Border>
+					</Grid>
+				</Border>
+
+				<Label x:Name="DialogInlineMessageLabel"
+					   IsVisible="False"
+					   TextColor="#FF8BA8"
+					   FontSize="12"
+					   LineBreakMode="WordWrap" />
+
+				<ScrollView x:Name="DialogChoicesScroll"
+							IsVisible="False"
+							MaximumHeightRequest="320">
+					<VerticalStackLayout x:Name="DialogChoicesStack"
+										 Spacing="8" />
+				</ScrollView>
+
+				<Grid x:Name="DialogThumbnailPickerPanel"
+					  IsVisible="False"
+					  RowDefinitions="Auto,Auto"
+					  RowSpacing="12"
+					  Margin="0,8,0,0">
+					<HorizontalStackLayout x:Name="DialogThumbnailChoiceGrid"
+											Spacing="12"
+											HorizontalOptions="Center"
+											VerticalOptions="Start" />
+				</Grid>
+
+				<Grid x:Name="DialogThumbnailPagerGrid"
+					  IsVisible="False"
+					  ColumnDefinitions="Auto,*,Auto"
+					  ColumnSpacing="12">
+					<Border x:Name="DialogThumbnailPrevButton"
+								HeightRequest="34"
+								WidthRequest="72"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 12">
+						<Path x:Name="DialogThumbnailPrevIcon"
+								  Data="M 19 9 L 11 17 L 19 25"
+								  Stroke="#DFFAFF"
+								  StrokeThickness="3"
+								  StrokeLineCap="Round"
+								  StrokeLineJoin="Round"
+								  WidthRequest="30"
+								  HeightRequest="34"
+								  HorizontalOptions="Center"
+								  VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnDialogThumbnailPreviousTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+					<Label x:Name="DialogThumbnailPageLabel"
+							   Grid.Column="1"
+							   TextColor="#88A8BC"
+							   FontSize="12"
+							   HorizontalTextAlignment="Center"
+							   VerticalTextAlignment="Center" />
+					<Border x:Name="DialogThumbnailNextButton"
+								Grid.Column="2"
+								HeightRequest="34"
+								WidthRequest="72"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 12">
+						<Path x:Name="DialogThumbnailNextIcon"
+								  Data="M 11 9 L 19 17 L 11 25"
+								  Stroke="#DFFAFF"
+								  StrokeThickness="3"
+								  StrokeLineCap="Round"
+								  StrokeLineJoin="Round"
+								  WidthRequest="30"
+								  HeightRequest="34"
+								  HorizontalOptions="Center"
+								  VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnDialogThumbnailNextTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+				</Grid>
+				<Grid x:Name="DialogButtonGrid"
+					  ColumnDefinitions="*,*"
+					  ColumnSpacing="10"
+					  Margin="0,20,0,0">
+					<Border x:Name="DialogCancelButton"
+							HeightRequest="42"
+							BackgroundColor="#151E2B"
+							Stroke="#37516A"
+							StrokeThickness="1"
+							StrokeShape="RoundRectangle 14">
+						<Label x:Name="DialogCancelButtonLabel"
+							   Text="Cancel"
+							   TextColor="#CDEBFF"
+							   FontSize="13"
+							   FontAttributes="Bold"
+							   HorizontalOptions="Center"
+							   VerticalTextAlignment="Center"
+							   VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnCancelTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="DialogOkButton"
+							Grid.Column="1"
+							HeightRequest="42"
+							BackgroundColor="#173044"
+							Stroke="#5A8DE7FF"
+							StrokeThickness="1"
+							StrokeShape="RoundRectangle 14">
+						<Label x:Name="DialogOkButtonLabel"
+							   Text="OK"
+							   TextColor="#E6F8FF"
+							   FontSize="13"
+							   FontAttributes="Bold"
+							   HorizontalOptions="Center"
+							   VerticalTextAlignment="Center"
+							   VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnOkTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+				</Grid>
+			</VerticalStackLayout>
+		</Border>
+	</Grid>
+</ContentView>

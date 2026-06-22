@@ -1,0 +1,75 @@
+---
+
+[h]What is Nexus?[/h]
+
+Nexus is a dedicated all-in-one tool that automatically manages the installation, execution,
+environment setup, and updates of ComfyUI for you. Think of it as a [b]"veteran studio manager"[/b]
+dispatched to ensure you can work in a flawless AI environment.
+
+[accent]If ComfyUI is a highly powerful but tricky machine to handle,
+Nexus acts as your reliable guide, taking care of all the complicated background work.[/accent]
+
+---
+
+[h]How It Works: "Waking Up the Magic Studio"[/h]
+
+To start your AI artistry, Nexus lights up your studio in the following order.
+
+[b]1. Nexus (The Smart Agent)[/b]
+
+This is the core element that moves first.
+Like an [b]"agent"[/b] dispatched to ComfyUI in advance, Nexus organizes the room,
+checks the tools, and creates a pleasant environment for you to work in.
+
+[b]2. Python (The Foundation of the Studio)[/b]
+
+ComfyUI fundamentally operates on a programming language called Python.
+Nexus automatically configures this Python environment so that you
+don't need to understand any complex code.
+
+[b]3. WebView (The Workspace Itself)[/b]
+
+Without any complicated web browser setups or cumbersome extra installations,
+users can open the ComfyUI screen just like a regular program and dive right into creating.
+
+[b]4. Git (The Supply Route for Useful Tools)[/b]
+
+This serves as the [b]"official channel"[/b] used to safely bring in not only the core ComfyUI,
+but also countless extra features (custom nodes) created by developers worldwide into your studio.
+
+---
+
+[h]What is Needed (And Why?)[/h]
+
+[h]1. Python[/h]
+
+This is the [b]"core engine."[/b] Just like a car needs an engine to move,
+Python is absolutely required for ComfyUI to think and generate images.
+
+[h]2. Virtual Environment (venv)[/h]
+
+This is your [b]"dedicated toolbox."[/b] Instead of scattering tools on the floor,
+it's like keeping them in an organized box. This prevents your computer from
+getting messy and avoids conflicts with other programs.
+[img:python_environment.png|800]
+
+[h]3. PyTorch & CUDA[/h]
+
+This is your [b]"hyper-speed power."[/b]
+
+→ [b]PyTorch[/b] is the core tool that AI uses to actually perform calculations.
+→ [b]CUDA[/b] borrows the power of your graphics card to vastly improve generation speed.
+
+[accent]Without these, your AI would be as slow as a snail![/accent]
+
+[b]4. Git[/b]
+
+This is the [b]"universal connector."[/b] It is used when downloading the latest
+features and new nodes created by creators all over the world.
+
+---
+
+[accent]Nexus manages all these complicated installation and setup processes for you.
+Leave the headache of configuration to Nexus, and focus entirely on your own AI creation.[/accent]
+
+---

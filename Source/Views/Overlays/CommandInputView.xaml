@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.CommandInputView">
+	<Grid x:Name="CommandInputOverlayGrid"
+		  IsVisible="False"
+		  Opacity="0"
+		  InputTransparent="False">
+		<BoxView BackgroundColor="#99030a14">
+			<BoxView.GestureRecognizers>
+				<TapGestureRecognizer Tapped="OnBackdropTapped" />
+			</BoxView.GestureRecognizers>
+		</BoxView>
+		<Border x:Name="CommandInputBorder"
+				InputTransparent="False"
+				WidthRequest="480"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				Padding="0"
+				BackgroundColor="#0b1220"
+				StrokeThickness="0">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="10" />
+			</Border.StrokeShape>
+			<Border.Shadow>
+				<Shadow Brush="#00d9ff" Opacity="0.22" Radius="18" Offset="0,6" />
+			</Border.Shadow>
+			<Grid RowDefinitions="2,Auto" IsClippedToBounds="True">
+				<BoxView Grid.Row="0">
+					<BoxView.Background>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+							<GradientStop Color="#00d9ff" Offset="0.0" />
+							<GradientStop Color="#7a5cff" Offset="0.55" />
+							<GradientStop Color="#ff4d7d" Offset="1.0" />
+						</LinearGradientBrush>
+					</BoxView.Background>
+				</BoxView>
+				<Grid Grid.Row="1" ColumnDefinitions="Auto,*" Padding="14,12">
+					<Label Text=">"
+						   TextColor="#00e5ff"
+						   FontSize="18"
+						   FontAttributes="Bold"
+						   VerticalOptions="Center"
+						   Margin="0,0,10,0" />
+					<Entry x:Name="CommandInputEntry"
+						   Grid.Column="1"
+						   Placeholder="{loc:Loc views.overlays.command_input_view.console}"
+						   PlaceholderColor="#53657b"
+						   TextColor="#f1fbff"
+						   FontSize="16"
+						   Completed="OnEntryCompleted"
+						   ReturnType="Go"
+						   ClearButtonVisibility="Never" />
+				</Grid>
+			</Grid>
+		</Border>
+	</Grid>
+</ContentView>

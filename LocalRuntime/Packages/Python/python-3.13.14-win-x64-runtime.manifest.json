@@ -1,0 +1,12 @@
+{
+  "archive": "python-3.13.14-win-x64-runtime.zip",
+  "sha256": "7C444C215626E02C11778A5BBB6BBCC370CA0BD06CDC9C4760CAC06C54769D0E",
+  "version": "3.13.14",
+  "platform": "win-x64",
+  "layout_root": "python",
+  "created_utc": "2026-06-21T03:16:50Z",
+  "source": "https://www.python.org/downloads/release/python-31314/",
+  "source_installer": "python-3.13.14-amd64.exe",
+  "source_installer_sha256": "C54D9B9BBB8A36E6489363DDD01139707FD781D72F1F9E90C7EC65D0061368E0",
+  "publisher": "Python Software Foundation"
+}

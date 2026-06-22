@@ -1,0 +1,116 @@
+---
+
+[h]Make Your First Image: Practical Guide[/h]
+
+If your model ingredients are ready, it's time to start the engine.
+
+[img:asset_workflows.png|360]
+
+[accent]Want to start quickly? Open [b]sample/checkpoint.json[/b]
+from the [b]Workflows[/b] tab in the Asset panel.
+The basic structure described below is already built for you.[/accent]
+
+If you want to build it from scratch yourself, follow along below.
+
+---
+
+[h]Step 1: Place the Nodes[/h]
+
+[copy:Copy Text|Save this text separately and try it step by step.|Copies the tutorial block to clipboard.|Copied|Copied to clipboard.]
+Open the [b]Right-click → Add Node[/b] menu on the empty canvas,
+and place the following nodes one by one.
+
+→  [b]loader → Load Checkpoint[/b]
+This is where you select the checkpoint model you downloaded.
+This single node contains [b]MODEL[/b], [b]CLIP[/b], and [b]VAE[/b] information.
+
+→  [b]conditioning → CLIP Text Encode (Prompt)[/b] — Place [b]2[/b] of these
+One for [b]Positive[/b] (what you want to draw), one for [b]Negative[/b] (what you want to exclude).
+
+→  [b]sampling → KSampler[/b]
+The core step that actually generates the image.
+
+→  [b]latent → Empty Latent Image[/b]
+This is where you set the size of the 'clay' we compared it to in previous articles.
+Set the Width/Height here.
+Start with [b]512×512 (SD1.5)[/b] or [b]1024×1024 (SDXL)[/b].
+
+→  [b]latent → VAE Decode[/b]
+Converts the latent space result into an image that humans can see.
+
+→  [b]image → Save Image[/b]
+Saves the completed image.
+[/copy]
+
+---
+
+[h]Step 2: Connect Them (Understanding the Flow)[/h]
+
+[copy:Copy Text|Save this text separately and try it step by step.|Copies the connection order block to clipboard.|Copied|Copied to clipboard.]
+Once all nodes are placed, connect them by drawing lines between dots (slots) of the same color.
+Here is the overall flow:
+
+[img:checkpoint_connection.png|360]
+
+It all starts from [b]Load Checkpoint[/b] and branches out in three directions.
+
+→  [b]CLIP → CLIP Text Encode (Prompt)[/b]
+Connect the CLIP output to both the Positive and Negative text encoders.
+The encoded results are injected into the [b]positive[/b] and [b]negative[/b] inputs of KSampler.
+
+→  [b]MODEL → KSampler[/b]
+Passes the model information to KSampler.
+This connection decides "which sculptor will do the carving."
+
+→  [b]Empty Latent Image → KSampler[/b]
+Sends the size and shape of the clay (Latent) to KSampler.
+Think of it as deciding "how large the canvas will be."
+
+→  [b]KSampler → VAE Decode[/b]
+Sends the finished Latent result from sampling to VAE Decode, converting it into an image humans can see.
+
+→  [b]Load Checkpoint (VAE) → VAE Decode[/b]
+Connects the VAE information included in the checkpoint to VAE Decode.
+This pathway is required for the Latent → image conversion to work.
+
+→  [b]VAE Decode → Save Image[/b]
+Saves the final image.
+[/copy]
+
+---
+
+[h]Step 3: Enter a Prompt and Run[/h]
+
+Type what you want to draw in the [b]Positive[/b] text encoder in English.
+Example: [b]"a beautiful sunset over the ocean"[/b]
+
+In [b]Negative[/b], type elements you want to exclude.
+Example: [b]"blurry, low quality, watermark"[/b]
+
+Check that there are no nodes highlighted in red with errors,
+then click the [b]Queue Prompt[/b] button at the top right.
+Wait a moment, and your first AI-generated image will appear!
+
+[accent]Results are saved in the [b]output[/b] folder.
+If you enter a path like [b]folder/result[/b] in the filename_prefix of the Save Image node,
+you can organize files into subfolders under output.[/accent]
+
+[accent]Tip: If the image looks strange, check whether the model is SD 1.5 or SDXL,
+and verify the resolution (Width/Height) matches the model's recommended specs.[/accent]
+
+→  [b]Output folder shortcut:[/b] [folder:ComfyUI/output|output]
+
+---
+
+[h]Want More Fun? Try the HUD Workflow[/h]
+
+Once you're comfortable with the basic structure, try the HUD convenience features provided by Nexus.
+
+[accent]Open [b]sample/checkpoint_hud.json[/b]
+from the [b]Workflows[/b] tab in the Asset panel.
+
+It's the same checkpoint workflow, but with HUD controls added
+so you can adjust settings far more intuitively.
+Now that you understand the basic node structure, you'll immediately feel how much easier this workflow is.[/accent]
+
+---

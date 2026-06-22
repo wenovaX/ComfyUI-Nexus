@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:views="clr-namespace:ComfyUI_Nexus.Views"
+			 x:Class="ComfyUI_Nexus.Views.HeaderView">
+	<ContentView.Resources>
+		<Color x:Key="HeaderShellColor">#0b121c</Color>
+		<Color x:Key="HeaderDividerColor">#31506d</Color>
+		<Color x:Key="HeaderTextPrimaryColor">#ebf9ff</Color>
+		<Color x:Key="HeaderTextSoftColor">#cfeeff</Color>
+		<Color x:Key="HeaderSavedTextColor">#7fe7ff</Color>
+		<Color x:Key="HeaderSavedSurfaceColor">#0f1d2c</Color>
+		<Color x:Key="HeaderModifiedTextColor">#ffb347</Color>
+		<Color x:Key="HeaderModifiedSurfaceColor">#26140a</Color>
+		<Color x:Key="HeaderGpuTrackColor">#07101a</Color>
+		<Color x:Key="HeaderGpuAccentColor">#22d3ee</Color>
+		<Color x:Key="HeaderGpuLabelColor">#8fb9d8</Color>
+		<Color x:Key="HeaderValueTextColor">#f2fbff</Color>
+		<Color x:Key="HeaderWhiteTextColor">#ffffff</Color>
+
+		<Style x:Key="HeaderWorkflowBadgeStyle" TargetType="Border">
+			<Setter Property="Padding" Value="7,1" />
+			<Setter Property="StrokeThickness" Value="1" />
+			<Setter Property="StrokeShape" Value="Rectangle" />
+		</Style>
+	</ContentView.Resources>
+
+	<Grid x:Name="NativeHeaderGrid"
+		  RowDefinitions="Auto,Auto,1,Auto"
+		  ColumnDefinitions="Auto,*"
+		  BackgroundColor="{StaticResource HeaderShellColor}"
+		  IsClippedToBounds="False">
+
+		<!-- Logo Section -->
+		<Border x:Name="LogoHostBorder"
+				Grid.Row="0"
+				Grid.RowSpan="3"
+				Grid.Column="0"
+				ZIndex="20"
+				WidthRequest="40"
+				HeightRequest="61"
+				BackgroundColor="Transparent"
+				StrokeThickness="0"
+				VerticalOptions="Center">
+			<Grid IsClippedToBounds="False">
+				<Border x:Name="LoadingHalo" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0" Scale="1.0">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="18" />
+					</Border.StrokeShape>
+					<Border.Background>
+						<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+							<GradientStop Color="#ffffff" Offset="0.1" />
+							<GradientStop Color="#88ffffff" Offset="0.4" />
+							<GradientStop Color="Transparent" Offset="1.0" />
+						</RadialGradientBrush>
+					</Border.Background>
+				</Border>
+				<Border x:Name="LogoGlow" WidthRequest="30" HeightRequest="30" StrokeShape="RoundRectangle 20" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0" Scale="0.5">
+					<Border.Background>
+						<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+							<GradientStop Color="#4400e5ff" Offset="0.0" />
+							<GradientStop Color="Transparent" Offset="1.0" />
+						</RadialGradientBrush>
+					</Border.Background>
+				</Border>
+				<Image x:Name="LogoImage" Source="nexus_logo.png" WidthRequest="24" HeightRequest="24" HorizontalOptions="Center" VerticalOptions="Center" Aspect="AspectFit" />
+			</Grid>
+			<Border.GestureRecognizers>
+				<TapGestureRecognizer Tapped="OnLogoTapped" />
+				<PointerGestureRecognizer PointerEntered="OnLogoPointerEntered" PointerExited="OnLogoPointerExited" />
+			</Border.GestureRecognizers>
+		</Border>
+
+		<Grid x:Name="HeaderRightGrid"
+			  Grid.Column="1"
+			  RowDefinitions="Auto,1,Auto,Auto"
+			  IsClippedToBounds="False">
+			<Grid x:Name="TabRowsGrid" Grid.Row="0" HeightRequest="30" Padding="0">
+				<Grid x:Name="PrimaryTabsGrid" Opacity="0" />
+			</Grid>
+
+			<BoxView Grid.Row="1" HeightRequest="1" BackgroundColor="{StaticResource HeaderDividerColor}" HorizontalOptions="Fill" />
+
+			<!-- Sub Navigation / Status Bar -->
+			<Grid x:Name="WorkflowStatusBarBorder" Grid.Row="2" HeightRequest="30" BackgroundColor="{StaticResource HeaderShellColor}" Padding="0,0,10,0" IsClippedToBounds="False">
+				<Grid ColumnDefinitions="*,Auto" IsClippedToBounds="False">
+
+					<!-- Left: Status & Badges -->
+					<Grid Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+						<HorizontalStackLayout x:Name="ActiveWorkflowBadgesStack" Grid.Column="0" Spacing="6" VerticalOptions="Center" IsVisible="False">
+							<Border x:Name="ActiveSavedStateBadge" Style="{StaticResource HeaderWorkflowBadgeStyle}" BackgroundColor="{StaticResource HeaderSavedSurfaceColor}" Stroke="{StaticResource HeaderDividerColor}">
+								<Label x:Name="ActiveSavedStateLabel" Text="{loc:Loc common.saved}" TextColor="{StaticResource HeaderSavedTextColor}" FontSize="9" FontAttributes="Bold" />
+							</Border>
+							<Border x:Name="ActiveModifiedStateBadge" Style="{StaticResource HeaderWorkflowBadgeStyle}" IsVisible="False" BackgroundColor="{StaticResource HeaderModifiedSurfaceColor}" Stroke="{StaticResource HeaderModifiedTextColor}">
+								<Label Text="{loc:Loc views.shell.header_view.modified}" TextColor="{StaticResource HeaderModifiedTextColor}" FontSize="9" FontAttributes="Bold" />
+							</Border>
+						</HorizontalStackLayout>
+						<Label x:Name="ActiveWorkflowNameLabel" Grid.Column="1" Text="{loc:Loc views.shell.header_view.no_workflow_selected}" TextColor="{StaticResource HeaderTextPrimaryColor}" FontSize="11" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+					</Grid>
+
+					<!-- Right: System Status -->
+					<HorizontalStackLayout x:Name="SystemStatusStack" Grid.Column="1" Spacing="6" VerticalOptions="Center" HorizontalOptions="End" IsVisible="False">
+						<Border HeightRequest="28" Padding="8,0,9,0" StrokeThickness="0" VerticalOptions="Center">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="9" />
+							</Border.StrokeShape>
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+									<GradientStop Color="#1a2d40" Offset="0" />
+									<GradientStop Color="#0e1b2a" Offset="0.48" />
+									<GradientStop Color="#050c16" Offset="1" />
+								</LinearGradientBrush>
+							</Border.Background>
+							<Border.Shadow>
+								<Shadow Brush="#0ad7ff" Opacity="0.11" Radius="12" Offset="0,0" />
+							</Border.Shadow>
+							<Grid x:Name="GpuStatusStack" ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="6" VerticalOptions="Center" HorizontalOptions="End">
+								<Label x:Name="GpuUtilizationLabel" Grid.Column="0" Text="0%" TextColor="{StaticResource HeaderValueTextColor}" FontSize="15" FontAttributes="Bold" VerticalTextAlignment="Center" />
+
+								<Border x:Name="GpuRunningIndicatorShell" Grid.Column="1" WidthRequest="10" HeightRequest="12" BackgroundColor="#102232" StrokeThickness="0">
+									<Border.StrokeShape>
+										<RoundRectangle CornerRadius="6" />
+									</Border.StrokeShape>
+									<Grid>
+										<Border x:Name="GpuRunningBlob" WidthRequest="10" HeightRequest="10" Opacity="0.32" BackgroundColor="#5ee7ff" StrokeThickness="0">
+											<Border.StrokeShape>
+												<RoundRectangle CornerRadius="5" />
+											</Border.StrokeShape>
+										</Border>
+										<Border x:Name="GpuRunningIndicator" WidthRequest="6" HeightRequest="6" BackgroundColor="{StaticResource HeaderGpuAccentColor}" StrokeThickness="0">
+											<Border.StrokeShape>
+												<RoundRectangle CornerRadius="3" />
+											</Border.StrokeShape>
+										</Border>
+									</Grid>
+								</Border>
+
+								<Grid Grid.Column="2" RowDefinitions="Auto,Auto,Auto" VerticalOptions="Center">
+									<Label x:Name="GpuModelLabel" Text="GPU" TextColor="{StaticResource HeaderTextSoftColor}" FontSize="8" FontAttributes="Bold" />
+									<Border Grid.Row="1" BackgroundColor="#121b28" HeightRequest="6" WidthRequest="120" StrokeThickness="0">
+										<Border.StrokeShape>
+											<RoundRectangle CornerRadius="4" />
+										</Border.StrokeShape>
+										<Grid>
+											<Border x:Name="GpuCacheBarFill" HorizontalOptions="Start" WidthRequest="0" BackgroundColor="#657181" Opacity="0.42" StrokeThickness="0">
+												<Border.StrokeShape>
+													<RoundRectangle CornerRadius="4" />
+												</Border.StrokeShape>
+											</Border>
+											<Border x:Name="GpuUtilBarFill" HorizontalOptions="Start" WidthRequest="0" BackgroundColor="{StaticResource HeaderGpuAccentColor}" StrokeThickness="0">
+												<Border.StrokeShape>
+													<RoundRectangle CornerRadius="4" />
+												</Border.StrokeShape>
+											</Border>
+										</Grid>
+									</Border>
+									<HorizontalStackLayout Grid.Row="2" Spacing="4">
+										<Label x:Name="GpuActiveVramLabel" Text="0.0" TextColor="{StaticResource HeaderValueTextColor}" FontSize="8" />
+										<Label x:Name="GpuCachedVramLabel" Text="0.0" TextColor="#7dc8ff" FontSize="8" />
+										<Label x:Name="GpuTotalVramLabel" Text="/ 0.0 GB" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="8" />
+									</HorizontalStackLayout>
+								</Grid>
+							</Grid>
+						</Border>
+
+						<Border WidthRequest="2" HeightRequest="28" VerticalOptions="Center" StrokeThickness="0" Opacity="0.9">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="2" />
+							</Border.StrokeShape>
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+									<GradientStop Color="Transparent" Offset="0" />
+									<GradientStop Color="#10d9ff" Offset="0.45" />
+									<GradientStop Color="#ef3f6b" Offset="0.62" />
+									<GradientStop Color="Transparent" Offset="1" />
+								</LinearGradientBrush>
+							</Border.Background>
+							<Border.Shadow>
+								<Shadow Brush="#10d9ff" Opacity="0.28" Radius="8" Offset="0,0" />
+							</Border.Shadow>
+						</Border>
+
+						<Border WidthRequest="112" HeightRequest="28" Padding="6,2" StrokeThickness="0" VerticalOptions="Center">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="9" />
+							</Border.StrokeShape>
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+									<GradientStop Color="#20344a" Offset="0" />
+									<GradientStop Color="#102134" Offset="0.52" />
+									<GradientStop Color="#070f1a" Offset="1" />
+								</LinearGradientBrush>
+							</Border.Background>
+							<Border.Shadow>
+								<Shadow Brush="#ffffff" Opacity="0.07" Radius="10" Offset="0,0" />
+							</Border.Shadow>
+							<Grid RowDefinitions="10,10" RowSpacing="2" VerticalOptions="Center">
+								<!-- CPU Bar Group -->
+								<Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="5" HeightRequest="10">
+									<Label Grid.Column="0" Text="CPU" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="7" FontAttributes="Bold" VerticalOptions="Center" />
+									<Border Grid.Column="1" BackgroundColor="{StaticResource HeaderGpuTrackColor}" StrokeThickness="0" VerticalOptions="Center" HeightRequest="6">
+										<Border.StrokeShape><RoundRectangle CornerRadius="3"/></Border.StrokeShape>
+										<Border x:Name="CpuUsageBarFill" HorizontalOptions="Start" WidthRequest="0" BackgroundColor="#224466" StrokeThickness="0">
+											<Border.StrokeShape><RoundRectangle CornerRadius="3"/></Border.StrokeShape>
+										</Border>
+									</Border>
+									<Label x:Name="CpuUsageValueLabel" Grid.Column="2" Text="0%" TextColor="{StaticResource HeaderWhiteTextColor}" FontSize="8" FontAttributes="Bold" VerticalOptions="Center" HorizontalTextAlignment="End" WidthRequest="22" />
+								</Grid>
+
+								<!-- GPU Bar Group -->
+								<Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="5" HeightRequest="10">
+									<Label Grid.Column="0" Text="GPU" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="7" FontAttributes="Bold" VerticalOptions="Center" />
+									<Border Grid.Column="1" BackgroundColor="{StaticResource HeaderGpuTrackColor}" StrokeThickness="0" VerticalOptions="Center" HeightRequest="6">
+										<Border.StrokeShape><RoundRectangle CornerRadius="3"/></Border.StrokeShape>
+										<Border x:Name="GpuMiniUsageBarFill" HorizontalOptions="Start" WidthRequest="0" BackgroundColor="#1a5a6a" StrokeThickness="0">
+											<Border.StrokeShape><RoundRectangle CornerRadius="3"/></Border.StrokeShape>
+										</Border>
+									</Border>
+									<Label x:Name="GpuMiniUsageValueLabel" Grid.Column="2" Text="0%" TextColor="{StaticResource HeaderWhiteTextColor}" FontSize="8" FontAttributes="Bold" VerticalOptions="Center" HorizontalTextAlignment="End" WidthRequest="22" />
+								</Grid>
+							</Grid>
+						</Border>
+					</HorizontalStackLayout>
+				</Grid>
+			</Grid>
+
+			<!-- Toolbar Separator -->
+			<BoxView Grid.Row="3" HeightRequest="1" BackgroundColor="#1a2d40" HorizontalOptions="Fill" VerticalOptions="Start" ZIndex="-1" />
+
+			<views:HeaderToolbarTrayView x:Name="ToolbarTrayControl" Grid.Row="3" />
+		</Grid>
+	</Grid>
+</ContentView>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Components.FolderBrowserView"
+			 BackgroundColor="Transparent">
+
+	<Border StrokeThickness="0"
+			StrokeShape="RoundRectangle 16"
+			BackgroundColor="#1A0a0f1a">
+
+		<Grid RowDefinitions="Auto,Auto,Auto,*" Padding="0, 20" RowSpacing="12">
+
+			<!-- 1. Guidance Section -->
+			<Label Text="{loc:Loc views.components.folder_browser_view.browse_or_paste_folder_path}"
+				   TextColor="#31d8ff"
+				   FontSize="14"
+				   FontAttributes="Bold"
+				   CharacterSpacing="1"
+				   Margin="0,0,0,4"/>
+
+			<!-- 2. Path Input (Entry) -->
+			<Border Grid.Row="1"
+					HeightRequest="40"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 8"
+					BackgroundColor="#1Affffff"
+					Padding="12,0">
+				<Entry x:Name="PathEntry"
+					   Text="C:\"
+					   TextColor="#e8fbff"
+					   FontSize="13"
+					   VerticalOptions="Center"
+					   BackgroundColor="Transparent"
+					   ClearButtonVisibility="WhileEditing"
+					   Completed="OnPathEntryCompleted" />
+			</Border>
+
+			<!-- 3. Action Buttons Row -->
+			<Grid Grid.Row="2" ColumnDefinitions="Auto, Auto, *, Auto" ColumnSpacing="8">
+				<!-- UP BUTTON -->
+				<Border x:Name="UpButtonBorder"
+						WidthRequest="80" HeightRequest="32"
+						StrokeThickness="1" Stroke="#33c78bff" StrokeShape="RoundRectangle 6"
+						BackgroundColor="Transparent">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnUpClicked" />
+						<PointerGestureRecognizer PointerEntered="OnUpHovered" PointerExited="OnUpUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="UpNormal" />
+							<VisualState x:Name="UpPointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#4Dc78bff" />
+									<Setter Property="Stroke" Value="#ffffff" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.parent}" TextColor="#c78bff" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+
+				<!-- DRIVES BUTTON -->
+				<Border x:Name="DrivesButtonBorder"
+						Grid.Column="1"
+						WidthRequest="80" HeightRequest="32"
+						StrokeThickness="1" Stroke="#3331D8FF" StrokeShape="RoundRectangle 6"
+						BackgroundColor="Transparent">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnDrivesClicked" />
+						<PointerGestureRecognizer PointerEntered="OnDrivesHovered" PointerExited="OnDrivesUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="DrivesNormal" />
+							<VisualState x:Name="DrivesPointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#4D31D8FF" />
+									<Setter Property="Stroke" Value="#ffffff" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.drives}" TextColor="#31d8ff" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+
+				<!-- NATIVE BROWSE BUTTON -->
+				<Border x:Name="NativeBrowseButtonBorder"
+						Grid.Column="3"
+						WidthRequest="120" HeightRequest="32"
+						StrokeThickness="1" Stroke="#80c78bff" StrokeShape="RoundRectangle 6"
+						BackgroundColor="#1Ac78bff">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnNativeBrowseClicked" />
+						<PointerGestureRecognizer PointerEntered="OnNativeBrowseHovered" PointerExited="OnNativeBrowseUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="NativeBrowseNormal" />
+							<VisualState x:Name="NativeBrowsePointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#4Dc78bff" />
+									<Setter Property="Stroke" Value="#ffffff" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.browse}" TextColor="#ffffff" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+			</Grid>
+
+			<!-- 4. Folder List -->
+			<CollectionView x:Name="FolderList"
+							Grid.Row="3"
+							SelectionMode="Single"
+							SelectionChanged="OnFolderSelected"
+							Margin="0,8,0,0">
+				<CollectionView.ItemTemplate>
+					<DataTemplate>
+						<Border StrokeThickness="0" BackgroundColor="Transparent" Padding="8">
+							<VisualStateManager.VisualStateGroups>
+								<VisualStateGroup>
+									<VisualState x:Name="ItemNormal" />
+									<VisualState x:Name="ItemPointerOver">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="#1Affffff" />
+										</VisualState.Setters>
+									</VisualState>
+									<VisualState x:Name="ItemSelected">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="#33c78bff" />
+										</VisualState.Setters>
+									</VisualState>
+								</VisualStateGroup>
+							</VisualStateManager.VisualStateGroups>
+
+							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+								<Image Source="{Binding IconSource}"
+									   WidthRequest="18"
+									   HeightRequest="18"
+									   VerticalOptions="Center" />
+								<Label Grid.Column="1" Text="{Binding Name}" TextColor="#e8fbff" VerticalOptions="Center" FontSize="14" />
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</CollectionView.ItemTemplate>
+			</CollectionView>
+		</Grid>
+	</Border>
+</ContentView>

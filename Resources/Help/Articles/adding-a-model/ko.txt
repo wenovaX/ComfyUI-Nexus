@@ -1,0 +1,72 @@
+---
+
+[h]모델 추가하기: 가장 먼저 해야 할 일[/h]
+
+이 페이지는 순서대로 읽는 글이 아니라,
+작업 중 막히는 순간마다 필요한 부분만 찾아보는 [b]참고용 페이지[/b]입니다.
+
+---
+
+[h]모델이 안 보일 때 / 어디에 넣어야 할지 헷갈릴 때[/h]
+
+AI가 그림을 그리려면 '재료'가 필요합니다.
+다운로드한 모델 파일을 알맞은 폴더에 넣어주기만 하면, AI가 알아서 찾아 씁니다.
+
+→  [b]models (모델 모음):[/b] [folder:ComfyUI/models|models]  
+→  [b]Checkpoint (핵심 모델):[/b] [folder:ComfyUI/models/checkpoints|models/checkpoints]  
+→  [b]LoRA (캐릭터/스타일):[/b] [folder:ComfyUI/models/loras|models/loras]  
+→  [b]VAE (색감 보정):[/b] [folder:ComfyUI/models/vae|models/vae]  
+→  [b]ControlNet (포즈 제어):[/b] [folder:ComfyUI/models/controlnet|models/controlnet]
+
+[accent]파일을 넣었는데 리스트에 보이지 않는다면,
+[b]F5 키로 목록을 새로고침[/b]하거나 앱을 [b]재시작[/b]해 주세요.[/accent]
+
+---
+
+[h]모델이 필요할 때 (어디서 구하나요?)[/h]
+
+처음이라면 [b]Civitai[/b]에서 시작하세요.  [article:Civitai 알아보기|civitai]
+마켓처럼 프리뷰 이미지를 보고 마음에 드는 모델을 고를 수 있어서 가장 직관적입니다.
+
+익숙해졌다면 [b]Hugging Face[/b]도 둘러보세요.  [article:Hugging Face 알아보기|hugging-face-downloads]
+코스트코 같은 거대한 보물창고에서, 아직 마켓에 올라오지 않은 원석들을 발굴할 수 있습니다.
+
+---
+
+[h]다운로드할 때 이것만 확인하세요[/h]
+
+모델 상세 페이지에서 아래 세 가지만 체크해도 대부분의 실수를 피할 수 있습니다.
+
+1. [b]Base Model 버전 확인[/b]  
+→ [b]SD 1.5[/b]인지 [b]SDXL[/b]인지 반드시 확인하세요.  
+→ 이후 사용할 LoRA나 ControlNet도 이 버전에 맞춰야 합니다.
+
+2. [b]제작자 설명 확인[/b]  
+→ 권장 VAE, Trigger words, 권장 해상도, 샘플러 설정이 적혀 있을 수 있습니다.  
+→ 특히 VAE를 따로 써야 하는 모델은 보통 설명이나 다운로드 정보에 안내되어 있습니다.
+
+3. [b]파일명 정리[/b]  
+→ 다운로드할 때 파일명을 직관적으로 정리해 두세요.  
+→ 예: sdxl_real_model이름_v1.safetensors / sd15_anime_model이름.safetensors
+→ SD1.5 / SDXL / 스타일 / 버전을 구분해 두면 나중에 찾는 시간이 크게 줄어듭니다.
+
+---
+
+[h]미래의 나를 위한 로드맵 (나중에 다시 오세요)[/h]
+
+지금 당장은 체크포인트 하나면 충분합니다.  
+하지만 아래와 같은 순간이 오면, 다시 이 페이지를 떠올리면 됩니다.
+
+1. [b]"색감이 탁해!"[/b]  
+→ [b]VAE[/b]가 필요한 시점입니다.  
+([folder:ComfyUI/models/vae|models/vae])
+
+2. [b]"이 캐릭터를 만들고 싶어!"[/b]  
+→ [b]LoRA[/b]가 필요한 시점입니다.  
+([folder:ComfyUI/models/loras|models/loras])
+
+3. [b]"자세를 고정하고 싶어!"[/b]  
+→ [b]ControlNet[/b]이 필요한 시점입니다.  
+([folder:ComfyUI/models/controlnet|models/controlnet])
+
+---

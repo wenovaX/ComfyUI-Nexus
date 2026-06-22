@@ -1,0 +1,91 @@
+---
+
+[h]高級任務：固定主角的臉部[/h]
+
+是否因為每次生成圖像時主角的臉都會改變而感到苦惱？
+將特定人物的臉一致地應用到所有生成圖像中的技術，也被稱為**「臉部同步 (Face Sync)」**。
+
+[accent]💡 提示：由於該技術需要安裝額外的庫 (InsightFace) 並且下載專用模型，
+因此對於初學者來說，這是門檻稍高的 [b]「終極深造任務」[/b]。
+強烈建議您在完全處理了基礎圖像生成後，再輕鬆地開啟這場冒險！[/accent]
+
+---
+
+[h]向 AI 問路[/h]
+
+複製以下提示詞，並將其貼上到您喜歡的 AI（如 GPT、Gemini 或 Copilot）中。
+您將獲得即使是完全的新手也能跟上的步驟指南，涵蓋從下載模型到連接節點的全過程。
+
+[copy:複製 AI 提示詞|將以下提示詞貼上到您喜歡的 AI 中，例如 GPT、Gemini 或 Copilot。|將提示詞複製到剪貼簿。|已複製|已複製到剪貼簿。]
+我想在 ComfyUI 中創建一個使用 IP-Adapter FaceID 固定特定人物臉部的工作流。
+
+請按順序指導我完成以下步驟，以便完全的新手也能跟上：
+
+1. 所需模型文件的列表及其下載連結 (CLIP Vision, IP-Adapter FaceID 權重, InsightFace buffalo_l)
+2. 每個模型文件應放入 ComfyUI 的哪個資料夾
+3. 在 ComfyUI 中新增節點的順序（從 Load Checkpoint 到 Save Image）
+4. 每個節點的輸出連接到哪裡（包括插槽名稱）
+5. IP-Adapter 節點 weight 值的推薦範圍
+6. 參考臉部照片的推薦尺寸和裁剪提示
+7. 如何在最後新增 FaceDetailer 節點來優化臉部細節
+
+我的基礎模型：[在此處輸入 SD 1.5 或 SDXL]
+[/copy]
+
+---
+
+[h]已為您配備的預設武器[/h]
+
+值得慶幸的是，IP-Adapter 節點已經包含在 Nexus 的 [b]基礎安裝包[/b] 中。
+因此，您完全不需要浪費時間去下載和安裝任何額外的自訂節點！
+
+在工作流編輯區域點擊滑鼠右鍵並搜尋「IPAdapter」。
+透過自己動手連接端子、親自喚醒這個強大節點的實驗過程，去體驗那份純粹的探索樂趣吧。
+
+→ [link:🔗 IP-Adapter 官方 GitHub (參考用)|https://github.com/cubiq/ComfyUI_IPAdapter_plus]
+
+---
+
+[h]冒險家的武器管理工具：ComfyUI-Manager[/h]
+
+雖然這次的節點已經由 Nexus 預先為您裝備好，
+但在未來的高級冒險旅程中，您不可避免地需要去收集新的自訂節點並管理版本。
+
+點擊工作流螢幕右下角的 [b]「Manager」[/b] 按鈕。
+學會在這個中央控制台裡搜尋擴充節點並獨立管理各種依賴項，
+是成為一名頂尖建置者（Senior Builder）的核心必經之路。
+
+---
+
+[h]冒險必備的 3 件原材料[/h]
+
+要親自構建這個魔法，您必須將以下 3 件核心原材料收集並放入正確的路徑中：
+
+[b]1. CLIP Vision 模型 (AI 的第二隻眼睛)[/b]
+→ [b]收集品：[/b] 探索並找到契合您基礎模型的版本——基於 SD 1.5 的 [b]ViT-H[/b] 或基於 SDXL 的 [b]ViT-bigG[/b]，並將其放置在 [folder:ComfyUI/models/clip_vision|models/clip_vision] 路徑下。
+→ [link:🔗 CLIP Vision 探索起點|https://huggingface.co/h94/IP-Adapter/tree/main/models]
+
+[b]2. IP-Adapter FaceID 權重 (Weights/Presets)[/b]
+→ [b]收集品：[/b] 映射源人臉形態的預設檔案。同樣分為 SD 1.5 版和 SDXL 版。
+→ [b]路徑：[/b] 放置在 [folder:ComfyUI/models/ipadapter|models/ipadapter] 路徑下。
+→ [b]探索提示：[/b] 存在一個歷史悠久的謎團——部分自訂載入器節點只挑食特定副檔名（例如 [b]`.bin` 副檔名[/b]），因此在收集時需要格外注意。
+→ [link:🔗 FaceID 權重探索起點|https://huggingface.co/h94/IP-Adapter-FaceID/tree/main]
+
+[b]3. InsightFace 分析模型 (buffalo_l)[/b]
+→ [b]收集品：[/b] 從相片中精細測量臉部輪廓及五官精確座標的隱形探測器引擎。檢測精度最高的 [b]「buffalo_l」[/b] 模型是行業黃金標準，通常在首次運行時由後台自動建置並下載。
+
+---
+
+[h]決定性的一個提示[/h]
+
+透過自己連接節點成功固定了臉部，但卻發現五官周圍顯得輕微模糊或不夠自然？
+
+[accent]💡 提示：嘗試在您工作流的最後階段整合 [b]Impact Pack 的 FaceDetailer 節點[/b]。[/accent]
+
+該節點的詳細配置和協同機制，可訪問 [link:🔗 Impact Pack 官方 GitHub|https://github.com/ltdrdata/ComfyUI-Impact-Pack] 官方倉庫進行查閱。
+當這兩件材料的秘密公式完成時，一幅近看也完美無瑕的「大師級畫作」將在您眼前誕生。
+
+剩下的節點搭建和去噪值調優拼圖，就請您親自去碰撞和解開吧。
+冒險的終點，正有豐厚的獎勵在等待著您！
+
+---

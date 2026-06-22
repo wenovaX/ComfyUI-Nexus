@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.ControlDeckView">
+	<ContentView.Resources>
+		<Color x:Key="DeckAccentColor">#00e5ff</Color>
+		<Color x:Key="DeckTextSoftColor">#dff8ff</Color>
+		<Color x:Key="DeckTextMutedColor">#6f8fab</Color>
+		<Color x:Key="DeckPanelColor">#0a0e1a</Color>
+		<Color x:Key="DeckHeaderColor">#0b0f19</Color>
+		<Color x:Key="DeckStrokeColor">#1a2244</Color>
+		<Color x:Key="DeckSearchColor">#121826</Color>
+		<Color x:Key="DeckPlaceholderColor">#445566</Color>
+		<Color x:Key="DeckActionColor">#88e4ff</Color>
+		<Color x:Key="DeckDangerColor">#ff6666</Color>
+	</ContentView.Resources>
+
+	<Border BackgroundColor="{StaticResource DeckPanelColor}"
+			Stroke="{StaticResource DeckStrokeColor}"
+			StrokeThickness="1">
+		<Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
+			<Border Grid.Row="0" BackgroundColor="{StaticResource DeckHeaderColor}" Padding="12,8" StrokeThickness="0">
+				<Label Text="NEXUS CONTROL DECK" TextColor="{StaticResource DeckAccentColor}" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" />
+			</Border>
+
+			<Border Grid.Row="1"
+					Margin="10,10,10,2"
+					Padding="10,8"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 12">
+				<Border.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="#111b2a" Offset="0" />
+						<GradientStop Color="#07101b" Offset="0.58" />
+						<GradientStop Color="#101527" Offset="1" />
+					</LinearGradientBrush>
+				</Border.Background>
+				<Border.Shadow>
+					<Shadow Brush="#00d7ff" Opacity="0.12" Radius="14" Offset="0,0" />
+				</Border.Shadow>
+
+				<Grid RowDefinitions="Auto, 4, Auto" RowSpacing="6">
+					<Grid ColumnDefinitions="Auto, *, Auto">
+						<HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+							<BoxView WidthRequest="6"
+									 HeightRequest="6"
+									 CornerRadius="3"
+									 Color="{StaticResource DeckAccentColor}"
+									 Opacity="0.92"
+									 VerticalOptions="Center" />
+							<Label Text="NEXUS PULSE"
+								   TextColor="{StaticResource DeckTextSoftColor}"
+								   FontSize="10"
+								   FontAttributes="Bold"
+								   CharacterSpacing="1.2"
+								   VerticalOptions="Center" />
+						</HorizontalStackLayout>
+
+						<Label x:Name="PulseBridgeStatusLabel"
+							   Grid.Column="2"
+							   Text="BRIDGE ACTIVE"
+							   TextColor="#7fe7ff"
+							   FontSize="9"
+							   FontAttributes="Bold"
+							   CharacterSpacing="0.8"
+							   VerticalOptions="Center" />
+					</Grid>
+
+					<Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="3">
+						<BoxView x:Name="PulseRunBar" Grid.Column="0" Color="{StaticResource DeckAccentColor}" Opacity="0.86" CornerRadius="2" />
+						<BoxView x:Name="PulseWebBar" Grid.Column="1" Color="#2373ff" Opacity="0.46" CornerRadius="2" />
+					</Grid>
+
+					<Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="4">
+						<Label x:Name="PulseRunLabel"
+							   Text="RUN"
+							   TextColor="{StaticResource DeckTextMutedColor}"
+							   FontSize="8"
+							   FontAttributes="Bold"
+							   HorizontalTextAlignment="Start" />
+						<Label x:Name="PulseWebLabel"
+							   Grid.Column="1"
+							   Text="WEB"
+							   TextColor="{StaticResource DeckTextMutedColor}"
+							   FontSize="8"
+							   FontAttributes="Bold"
+							   HorizontalTextAlignment="End" />
+					</Grid>
+				</Grid>
+			</Border>
+
+			<VerticalStackLayout Grid.Row="2" Padding="12,10" Spacing="8">
+				<Button Text="REBOOT SYSTEM  F5"
+						Clicked="OnManualRebootClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="{StaticResource DeckAccentColor}"
+						/>
+
+				<Button x:Name="BridgeDiagnosticsButton"
+						Text="BRIDGE TRACE: ON"
+						Clicked="OnToggleBridgeDiagnosticsClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#88e4ff"
+						/>
+
+				<Button x:Name="WebLogsButton"
+						Text="WEB LOGS: OFF"
+						Clicked="OnToggleWebLogsClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#6688aa"
+						BorderColor="#445566"
+						/>
+
+				<Button x:Name="DevToolsButton"
+						Text="DEVTOOLS: OFF"
+						Clicked="OnToggleDevToolsClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#88aa66"
+						BorderColor="#446644"
+						/>
+
+				<Button x:Name="UiIsolationButton"
+						Text="UI ISOLATION: ON"
+						Clicked="OnToggleUiIsolationClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#88e4ff"
+						BorderColor="#335f7a"
+						/>
+
+				<Button Text="PATCH LOCAL HUD"
+						Clicked="OnPatchLocalHudClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#7be495"
+						BorderColor="#446655"
+						/>
+
+				<Button Text="PATCH NEXUS BRIDGE"
+						Clicked="OnPatchNexusBridgeClicked"
+						Style="{StaticResource HudActionButtonStyle}"
+						TextColor="#7fe7ff"
+						BorderColor="#335f7a"
+						/>
+			</VerticalStackLayout>
+
+			<BoxView Grid.Row="3" HeightRequest="1" Color="{StaticResource DeckStrokeColor}" Margin="0,5" />
+
+			<Grid Grid.Row="4" RowDefinitions="Auto, Auto, *">
+				<Border Grid.Row="0" BackgroundColor="{StaticResource DeckHeaderColor}" Padding="12,8" StrokeThickness="0">
+					<Grid ColumnDefinitions="*, Auto, Auto, Auto">
+						<Label Text="NEXUS CONSOLE" TextColor="{StaticResource DeckAccentColor}" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" />
+						<Button Grid.Column="1"
+								Text="LOG FILE"
+								Clicked="OnOpenFullLogClicked"
+								Style="{StaticResource HudMiniButtonStyle}"
+								Margin="0,0,5,0"
+								TextColor="{StaticResource DeckAccentColor}" />
+						<Button Grid.Column="2"
+								Text="COPY"
+								Clicked="OnCopyAllClicked"
+								Style="{StaticResource HudMiniButtonStyle}"
+								Margin="0,0,5,0"
+								TextColor="{StaticResource DeckActionColor}" />
+						<Button Grid.Column="3"
+								Text="CLEAR"
+								Clicked="OnClearLogClicked"
+								Style="{StaticResource HudMiniButtonStyle}"
+								TextColor="{StaticResource DeckDangerColor}"
+								/>
+					</Grid>
+				</Border>
+
+				<Border Grid.Row="1"
+						Margin="10,8,10,6"
+						Padding="10,0"
+						BackgroundColor="{StaticResource DeckSearchColor}"
+						Stroke="{StaticResource DeckStrokeColor}"
+						StrokeThickness="1">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="6" />
+					</Border.StrokeShape>
+					<Entry x:Name="LogSearchEntry"
+						   Placeholder="Filter logs"
+						   PlaceholderColor="{StaticResource DeckPlaceholderColor}"
+						   TextColor="#ffffff"
+						   FontSize="12"
+						   ClearButtonVisibility="WhileEditing"
+						   TextChanged="OnLogSearchChanged" />
+				</Border>
+
+				<ScrollView x:Name="ConsoleLogScrollView"
+							Grid.Row="2"
+							Margin="10,0,10,8"
+							BackgroundColor="Transparent">
+					<VerticalStackLayout x:Name="ConsoleLogStack"
+										 Spacing="1"
+										 Padding="0,2" />
+				</ScrollView>
+			</Grid>
+		</Grid>
+	</Border>
+</ContentView>

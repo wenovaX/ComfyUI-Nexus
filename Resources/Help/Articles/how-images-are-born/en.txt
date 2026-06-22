@@ -1,0 +1,64 @@
+---
+
+[h]How Images are Born: Finding Form in the Clay[/h]
+
+[img:ai_sculptor.png|768]
+
+The process of AI generating an image is closer to sculpting a statue from a rough block of clay, 
+rather than drawing a picture on a blank piece of paper.
+
+The reason we wire nodes in ComfyUI is to personally design this [b]'image sculpting process.'[/b]
+
+[accent]This process is known as [b]'Diffusion.'[/b] It's a scientific magic that finds meaningful shapes within meaningless noise.[/accent]
+
+---
+
+[h]The Generation Phases[/h]
+
+[b]1. Prompt and VAE (The Blueprint and the Converter)[/b]
+
+The prompt serves as the [b]'blueprint'[/b] that determines what kind of sculpture to make.
+The actual generation happens in the [b]'Latent Space,'[/b] an internal workspace that humans cannot see.
+The VAE acts as a converter, traveling between the image we see and this latent space.
+
+[b]2. Checkpoint (The Sculptor's Mind and Art Style)[/b]
+
+The checkpoint model represents the sculptor's [b]'skills and unique art style.'[/b]
+Depending on whether the model is realistic or anime, it can look at the same prompt (blueprint) 
+and create completely different artworks. You can think of it as the AI's massive knowledge base.
+
+[b]3. Sampler (The Sculptor and Their Tools)[/b]
+
+This is the core phase where the sculptor actually takes the chisel to carve the clay. 
+Starting from random noise, it's an iterative process of refining the shape, determining how much care is put in.
+
+→ [b]Steps (Carving Quality):[/b] The number of times the chisel is swung.
+  - [b]Lower:[/b] Leaves the image in a rough, incomplete state filled with noise.
+  - [b]Higher:[/b] Refines the details, but going beyond a certain point only wastes time.
+
+→ [b]CFG Scale (Adherence to Blueprint):[/b] How strictly the sculptor follows the prompt (blueprint).
+  - [b]Lower:[/b] Ignores the prompt to paint freely, but results in a blurry image.
+  - [b]Higher:[/b] Obsesses over the prompt, but going too high causes burned colors or distorted shapes.
+
+→ [b]Denoise (Re-creation Strength):[/b] Determines how much of the original image is kept versus redrawn.
+  (This is particularly important in img2img or upscale/refining workflows.)
+  - [b]Lower:[/b] Preserves the original shape, only lightly touching up fine details.
+  - [b]Higher:[/b] Boldly discards the original frame, creating a completely new picture.
+
+[b]4. VAE Decode and Output (Final Polishing and Exhibition)[/b]
+
+The raw data immediately after carving is still in a mathematical state that we cannot see.
+Only after passing through the [b]'developing/printing'[/b] process of VAE decoding is it converted 
+into clean pixel data visible to our eyes, which is then finally displayed on the screen.
+
+---
+
+[h]Why is the Result Different Every Time?[/h]
+
+It's because the sculptor starts their work on a different block of clay (Seed) every time.
+The [b]Seed[/b] is a unique value that determines the initial noise pattern.
+Even with the same prompt (blueprint), a different initial noise leads to a completely different texture.
+
+[accent]Generation is rarely completed in a single try. Change the checkpoint to switch knowledge bases, adjust the sampler to change carving techniques, and discover the most beautiful shape you dream of.[/accent]
+
+---

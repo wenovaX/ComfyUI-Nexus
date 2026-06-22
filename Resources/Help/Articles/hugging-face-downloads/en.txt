@@ -1,0 +1,85 @@
+---
+
+[h]Hugging Face: The Raw AI Treasure Trove[/h]
+
+[img:huggingface_homepage_minimal.png|360]
+
+
+When you first visit [link:Hugging Face|https://huggingface.co/], the flood of text and unfamiliar concepts might feel suffocating.
+However, once you start understanding how AI works and get thirsty for 'something more,' coming here will feel as thrilling as discovering a [b]massive warehouse store[/b] like Costco or IKEA.
+
+[accent]This is a playground where AI developers from all over the world show off their latest technologies and creations, and almost everything is open for free.
+Just remember one thing: if you plan to use them commercially, always check the license of each model!
+
+[b]Quick Access:[/b]
+→  [link:Hugging Face Home|https://huggingface.co/]
+→  [link:Text-to-Image Models|https://huggingface.co/models?pipeline_tag=text-to-image][/accent]
+
+---
+
+[h]Treasures You Will Eventually Covet[/h]
+
+You may not need them yet, but you will eventually come looking for these.
+Take a sneak peek at the hidden gems buried here.
+
+→  [link:IP-Adapter Official Repository|https://huggingface.co/h94/IP-Adapter]
+→  [link:ControlNet Official Repository|https://huggingface.co/lllyasviel]
+→  [link:LoRA Model Collection|https://huggingface.co/models?library=diffusers]
+
+---
+
+[h]Recommended Download Method[/h]
+
+[img:huggingface_downloand_guide.png|360]
+
+1. Open the model page
+2. Navigate to the "Files and versions" tab
+3. Search for the required file (.safetensors / .bin)
+4. Click the download icon on the right side of the file
+
+[accent]Click the download icon (↓) on the right, not the file name.[/accent]
+
+---
+
+[h]Treasure Hunting Practical Tips[/h]
+
+→ Before downloading, always check the file extension (.safetensors, .bin, etc.).
+  - Usually, .safetensors files are much safer from a security standpoint.
+→ Even for the same model, multiple versions (fp16, fp32, etc.) may exist.
+  - Choose the fp16 version to save VRAM, or fp32 if you need the original quality.
+
+---
+
+[h]For Advanced Users (Git / CLI)[/h]
+
+If you are familiar with Git, you can clone the entire repository instead of downloading files one by one.
+This is useful when you need the complete setup (models + config files, etc.) and saves you the trouble of downloading files individually.
+
+[h]Using Git[/h]
+
+[code]git lfs install
+git clone https://huggingface.co/<repo>[/code]
+
+- Clones the entire repository, including all large files.
+- Best when downloading massive amounts of files or a full set of models at once.
+
+[h]Using Hugging Face CLI[/h]
+
+[code]huggingface-cli download[/code]
+
+- Downloads specific files or repositories via commands.
+- More flexible than Git for selective downloading and highly useful for automation tasks.
+
+---
+
+[h]When to Use What?[/h]
+
+[b]Using Web UI[/b]
+- When downloading a single file
+
+[b]Using Git / CLI[/b]
+- When multiple files are needed
+- When downloading a large batch of models or a set all at once
+- When configuring a reproducible environment
+
+---

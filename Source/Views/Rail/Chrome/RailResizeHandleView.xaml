@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Rail.Chrome.RailResizeHandleView"
+			 InputTransparent="False">
+	<Border x:Name="HandleBorder"
+			WidthRequest="20"
+			HorizontalOptions="Start"
+			BackgroundColor="Transparent"
+			StrokeThickness="0">
+		<Border.GestureRecognizers>
+			<PanGestureRecognizer PanUpdated="OnPanUpdated" />
+		</Border.GestureRecognizers>
+		<Grid>
+			<BoxView x:Name="GripLine"
+					 WidthRequest="2"
+					 HorizontalOptions="Start"
+					 Margin="4,0,0,0"
+					 VerticalOptions="Fill"
+					 Color="#17324a"
+					 Opacity="0.72" />
+		</Grid>
+	</Border>
+</ContentView>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.CommandMenuView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<Border x:Name="CommandMenuBorder"
+			BackgroundColor="#D90A101B"
+			Stroke="#2631d8ff"
+			StrokeThickness="1"
+			Padding="8"
+			WidthRequest="160"
+			HorizontalOptions="Start"
+			VerticalOptions="Start">
+		<Border.StrokeShape>
+			<RoundRectangle CornerRadius="10" />
+		</Border.StrokeShape>
+		<Border.Resources>
+			<Style x:Key="MenuButtonStyle" TargetType="Button">
+				<Setter Property="BackgroundColor" Value="Transparent" />
+				<Setter Property="TextColor" Value="#dff8ff" />
+				<Setter Property="FontSize" Value="12" />
+				<Setter Property="FontAttributes" Value="Bold" />
+				<Setter Property="HeightRequest" Value="42" />
+				<Setter Property="Padding" Value="14,0" />
+				<Setter Property="CornerRadius" Value="12" />
+				<Setter Property="HorizontalOptions" Value="Fill" />
+				<Setter Property="VisualStateManager.VisualStateGroups">
+					<VisualStateGroupList>
+						<VisualStateGroup x:Name="CommonStates">
+							<VisualState x:Name="Normal" />
+							<VisualState x:Name="PointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#1831d8ff" />
+									<Setter Property="TextColor" Value="#f3feff" />
+								</VisualState.Setters>
+							</VisualState>
+							<VisualState x:Name="Pressed">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#2631d8ff" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateGroupList>
+				</Setter>
+			</Style>
+			<Style x:Key="MenuSeparatorStyle" TargetType="BoxView">
+				<Setter Property="HeightRequest" Value="1" />
+				<Setter Property="BackgroundColor" Value="#24344f" />
+				<Setter Property="Margin" Value="12,5" />
+				<Setter Property="Opacity" Value="0.75" />
+			</Style>
+		</Border.Resources>
+		<Border.Shadow>
+			<Shadow x:Name="CommandMenuGlow" Brush="#31d8ff" Opacity="0" Radius="26" Offset="0,8" />
+		</Border.Shadow>
+		<Grid>
+			<Border BackgroundColor="Transparent"
+					StrokeThickness="0"
+					Padding="0">
+				<Border.StrokeShape>
+					<RoundRectangle CornerRadius="12" />
+				</Border.StrokeShape>
+				<VerticalStackLayout Spacing="3">
+					<Button Text="{loc:Loc common.restart_server}" Style="{StaticResource MenuButtonStyle}" Clicked="OnRestartServerClicked" />
+					<BoxView Style="{StaticResource MenuSeparatorStyle}" />
+					<Button Text="{loc:Loc command.menu.settings}" Style="{StaticResource MenuButtonStyle}" Clicked="OnSettingsClicked" />
+					<Button Text="{loc:Loc common.help}" Style="{StaticResource MenuButtonStyle}" Clicked="OnHelpClicked" />
+					<Button Text="{loc:Loc command.menu.about}" Style="{StaticResource MenuButtonStyle}" Clicked="OnAboutClicked" />
+				</VerticalStackLayout>
+			</Border>
+		</Grid>
+	</Border>
+</ContentView>

@@ -1,0 +1,89 @@
+---
+
+[h]Face Sync: Fixing the Character's Face[/h]
+
+Are you struggling because the main character's face changes every time you generate an image?
+The technology to consistently apply a specific person's face to all generated images is called **'Face Sync'**.
+
+[accent]💡 Note: Because this technology requires installing an additional library (InsightFace) and downloading dedicated models, it is considered a [b]'Master-class Advanced Quest'[/b] with a slightly higher entry barrier for beginners.
+We highly recommend trying this out comfortably after you get fully accustomed to basic image generation![/accent]
+
+---
+
+[h]Ask AI for Directions[/h]
+
+Copy the prompt below and paste it into the AI of your choice, such as GPT, Gemini, or Copilot.
+You will receive step-by-step guidance that even a complete beginner can follow, from downloading models to connecting nodes.
+
+[copy:Copy AI Prompt|Paste the prompt below into the AI of your choice, such as GPT, Gemini, or Copilot.|Copies the prompt to your clipboard.|Copied|Copied to clipboard.]
+I want to create a workflow in ComfyUI that fixes a specific person's face using IP-Adapter FaceID.
+
+Please guide me through the following steps in order, so that a complete beginner can follow along:
+
+1. A list of required model files and their respective download links (CLIP Vision, IP-Adapter FaceID weights, InsightFace buffalo_l)
+2. Which folder in ComfyUI each model file should be placed into
+3. The order in which to add nodes in ComfyUI (from Load Checkpoint to Save Image)
+4. Where to connect the output of each node (including slot names)
+5. The recommended range for the weight value of the IP-Adapter node
+6. The recommended size and cropping tips for the reference face photo
+7. How to add a FaceDetailer node at the end to refine facial details
+
+My base model: [Enter SD 1.5 or SDXL here]
+[/copy]
+
+---
+
+[h]Your Pre-installed Basic Weapon[/h]
+
+Fortunately, the IP-Adapter node is already included and built into Nexus's [b]Basic Pack[/b]. 
+Therefore, you don't need to waste time downloading and installing any extra custom nodes!
+
+Right-click on the workflow editor and search for 'IPAdapter'. 
+Feel the thrill of experimenting, wiring the terminals yourself, and figuring out how to awaken this powerful node.
+
+→ [link:🔗 IP-Adapter Official GitHub (For Reference)|https://github.com/cubiq/ComfyUI_IPAdapter_plus]
+
+---
+
+[h]The Adventurer's Weapon Manager: ComfyUI-Manager[/h]
+
+Although this specific node was pre-installed by Nexus, 
+your future advanced adventures will inevitably require collecting new custom nodes and managing versions.
+
+Click the [b]'Manager'[/b] button at the bottom right of the workflow screen. 
+Learning how to search for expansion nodes and manage dependencies through this central console is a vital milestone in becoming a senior builder.
+
+---
+
+[h]3 Essential Ingredients for the Exploration[/h]
+
+To build this magic yourself, you must collect the following 3 core ingredients and place them in their correct directories:
+
+[b]1. CLIP Vision Model (AI's Second Eye)[/b]
+→ [b]Collectible:[/b] Explore and find the version that matches your base model—either [b]ViT-H[/b] for SD 1.5 or [b]ViT-bigG[/b] for SDXL—and place it in the [folder:ComfyUI/models/clip_vision|models/clip_vision] path.
+→ [link:🔗 CLIP Vision Exploration Starting Point|https://huggingface.co/h94/IP-Adapter/tree/main/models]
+
+[b]2. IP-Adapter FaceID Weights (Weights/Presets)[/b]
+→ [b]Collectible:[/b] Preset files that map the source face's shape. Similarly, these are divided into SD 1.5 and SDXL versions.
+→ [b]Path:[/b] Place in the [folder:ComfyUI/models/ipadapter|models/ipadapter] path.
+→ [b]Exploration Hint:[/b] There is a historic mystery where some custom loader nodes only recognize specific extensions (e.g. [b]`.bin` extension[/b]), so caution is required during collection.
+→ [link:🔗 FaceID Weights Exploration Starting Point|https://huggingface.co/h94/IP-Adapter-FaceID/tree/main]
+
+[b]3. InsightFace Analysis Model (buffalo_l)[/b]
+→ [b]Collectible:[/b] An invisible detector engine that precisely measures facial contours and exact coordinates of facial features from the photo. The [b]'buffalo_l'[/b] model—offering the highest detection accuracy—is the gold standard, and it generally builds and downloads automatically in the background on first run.
+
+---
+
+[h]A Single Crucial Hint[/h]
+
+Did you succeed in fixing the face by wiring the nodes yourself, but find the area around the eyes, nose, and mouth slightly glitchy or blurry?
+
+[accent]💡 Hint: Try combining [b]Impact Pack's FaceDetailer node[/b] at the very end of your workflow.[/accent]
+
+Detailed guides and integration mechanisms for this node can be found in the [link:🔗 Impact Pack Official GitHub|https://github.com/ltdrdata/ComfyUI-Impact-Pack] repository. 
+When the secret formula of these two ingredients is complete, a 'master-class masterpiece' that looks flawless up close will be born before you.
+
+Solve the remaining node wiring and denoise tuning puzzles by diving in and experimenting yourself. 
+A sweet reward awaits you at the end of the adventure!
+
+---

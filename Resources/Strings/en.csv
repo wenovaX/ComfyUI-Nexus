@@ -1,0 +1,903 @@
+key,text
+command.menu.title,NEXUS COMMAND
+command.menu.subtitle,"Server, settings, identity"
+command.menu.settings,SETTINGS
+command.menu.about,ABOUT NEXUS
+common.close,CLOSE
+common.save,Save
+common.cancel,Cancel
+common.delete,Delete
+common.rename,Rename
+common.open,Open
+common.copy,Copy
+common.cut,Cut
+common.paste,Paste
+common.select_all,Select all
+common.duplicate,Duplicate
+common.refresh,Refresh
+common.ok,OK
+common.help,HELP
+common.restart_server,RESTART SERVER
+common.hand,HAND
+common.select,SELECT
+common.standby,STANDBY
+common.recover_boot,RECOVER & BOOT
+common.retry_boot,RETRY BOOT
+common.online,ONLINE
+common.ready,READY
+common.saved,SAVED
+core_link.reset_title,SYSTEM RESET
+core_link.reset_message,Terminate Core Link and reset configuration?
+core_link.terminate,TERMINATE
+core_link.patch,PATCH
+core_link.select_comfy_folder,Select ComfyUI Folder
+core_link.platform_not_supported_title,Platform Not Supported
+core_link.folder_selection_not_supported,Folder selection is not supported on this platform.
+core_link.missing_title,Core Link Missing
+core_link.comfy_root_not_configured,ComfyUI root path is not configured.
+core_link.folder_missing_title,Folder Missing
+core_link.folder_missing_message,{0} folder was not found.
+core_link.hud_patch_unavailable_title,HUD Patch Unavailable
+core_link.hud_patch_missing_local_project,"Could not find a valid sibling ComfyUI-HUD project.\nExpected hud.manifest.json, __init__.py, and js/."
+core_link.patch_local_hud_title,PATCH LOCAL HUD
+core_link.patch_local_hud_message,"Copy local HUD files into the active ComfyUI custom node?\n\nSource:\n{0}\n\nTarget:\n{1}"
+core_link.hud_patch_complete_title,HUD Patch Complete
+core_link.hud_patch_failed_title,HUD Patch Failed
+core_link.bridge_patch_unavailable_title,Nexus Bridge Patch Unavailable
+core_link.bridge_patch_missing_hud_message,"ComfyUI-HUD is not installed or incomplete.\n\nTarget:\n{0}"
+core_link.bridge_patch_missing_source_message,"Packaged Nexus bridge files were not found.\n\nSource:\n{0}"
+core_link.patch_nexus_bridge_title,PATCH NEXUS BRIDGE
+core_link.patch_nexus_bridge_message,"Copy packaged Nexus bridge files into the active ComfyUI-HUD install?\n\nSource:\n{0}\n\nTarget:\n{1}"
+core_link.bridge_patch_complete_title,Nexus Bridge Patch Complete
+core_link.bridge_patch_failed_title,Nexus Bridge Patch Failed
+server_config.host_title,ComfyUI Host
+server_config.host_message,Set the host used when Nexus starts ComfyUI.
+server_config.port_title,ComfyUI Port
+server_config.port_message,Set the port used when Nexus starts ComfyUI.
+server_config.invalid_host_title,Invalid Host
+server_config.invalid_host_message,Use a compact host value without spaces.
+server_config.invalid_port_title,Invalid Port
+server_config.invalid_port_message,Use a port between 1 and 65535.
+server_config.restart_failed_title,Restart Failed
+settings.validation.invalid_settings_title,Invalid Settings
+app.shutdown_failed_title,Shutdown Failed
+views.overlays.about_overlay_view.subtitle,"Runtime shell, local bridge, and ComfyUI launch context."
+views.overlays.about_overlay_view.version,VERSION
+views.overlays.about_overlay_view.comfyui_path,COMFYUI PATH
+views.overlays.about_overlay_view.server_url,SERVER URL
+views.overlays.about_overlay_view.python_mode,PYTHON MODE
+app.app_shell.home,Home
+pages.main_page.main_page.model,MODEL
+pages.main_page.main_page.preparing_restart,PREPARING RESTART
+pages.main_page.main_page.stopping_probes_and_server_process,Stopping probes and server process...
+pages.main_page.main_page.input_is_locked_until_current_operation_completes,Input is locked until the current operation completes.
+views.components.folder_browser_view.browse_or_paste_folder_path,BROWSE OR PASTE FOLDER PATH
+views.components.folder_browser_view.parent,PARENT
+views.components.folder_browser_view.drives,DRIVES
+views.components.folder_browser_view.browse,BROWSE
+views.controls.option_deck.run_mode_option_deck_view.run,Run
+views.controls.option_deck.run_mode_option_deck_view.run_on_change,Run (On Change)
+views.controls.option_deck.run_mode_option_deck_view.run_instant,Run (Instant)
+views.overlays.bookmark_hud_view.nexus_workflow_index,NEXUS WORKFLOW INDEX
+views.overlays.bookmark_hud_view.search_workflows,SEARCH WORKFLOWS...
+views.overlays.bookmark_hud_view.0_workflows_registered,0 WORKFLOWS REGISTERED
+views.overlays.canvas_toolbar_view.help_center,Help Center
+views.overlays.canvas_toolbar_view.terminal,TERMINAL
+views.overlays.canvas_toolbar_view.shortcuts,SHORTCUTS
+views.overlays.canvas_toolbar_view.fit,FIT
+views.overlays.canvas_toolbar_view.map,MAP
+views.overlays.canvas_toolbar_view.links,LINKS
+views.overlays.command_input_view.console,console
+views.overlays.loading_overlay_view.nexus_shell,NEXUS SHELL
+views.overlays.loading_overlay_view.initializing_nexus_shell,INITIALIZING NEXUS SHELL...
+views.overlays.loading_overlay_view.open_setup,OPEN SETUP
+views.overlays.loading_overlay_view.check_install,CHECK INSTALL
+views.overlays.loading_overlay_view.nexus_server_boot,NEXUS SERVER BOOT
+views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service,ComfyUI configuration is ready.\nStart the backend service to continue.
+views.overlays.loading_overlay_view.state,STATE
+views.overlays.loading_overlay_view.engage_server,ENGAGE SERVER
+views.overlays.loading_overlay_view.start_backend_link,START BACKEND LINK
+views.overlays.loading_overlay_view.repair_cuda_runtime,REPAIR CUDA RUNTIME
+views.overlays.loading_overlay_view.access_denied_core_link_not_found,ACCESS DENIED: CORE LINK NOT FOUND
+views.overlays.loading_overlay_view.nexus_shell_utilities_require_access_to_your_comfyui_roo,Nexus Shell requires access to your ComfyUI root directory.\nPlease establish a link to continue.
+views.overlays.loading_overlay_view.select_comfyui_core_directory,SELECT COMFYUI CORE DIRECTORY
+views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal,No ComfyUI core detected on this terminal?
+views.overlays.loading_overlay_view.get_official_launcher,GET OFFICIAL LAUNCHER
+views.overlays.loading_overlay_view.clone_from_github,CLONE FROM GITHUB
+views.overlays.loading_overlay_view.nexus_maintenance,NEXUS MAINTENANCE
+views.overlays.loading_overlay_view.backend_process_already_starting,Backend is starting. Live server log attached below.
+views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI backend is offline. Engage the server to continue.
+views.overlays.loading_overlay_view.recover_runtime_and_boot_title,Recover runtime and boot?
+views.overlays.loading_overlay_view.recover_runtime_and_boot_message,"This will sync ComfyUI requirements, repair the CUDA PyTorch wheel for the selected server runtime, then start the server. It can take several minutes.\n\nTarget: {0}"
+views.overlays.loading_overlay_view.preparing_runtime_cleanup_recovery,Preparing runtime cleanup recovery.\nInput is locked until maintenance completes.
+views.overlays.loading_overlay_view.stopping_runtime_processes,Stopping runtime processes and cleaning LocalRuntime before setup resumes.
+views.overlays.loading_overlay_view.retry_cleanup,RETRY CLEANUP
+views.overlays.loading_overlay_view.runtime_cleanup_complete_setup,Runtime cleanup complete. Setup will resume now.
+views.overlays.loading_overlay_view.backend_alive_waiting_for_port,Backend process is alive.\nWaiting for the ComfyUI port to accept connections.
+views.overlays.loading_overlay_view.repairing_runtime_before_backend_launch,Repairing runtime dependencies before backend launch.\nLive log is attached below.
+views.overlays.loading_overlay_view.starting_backend_process,Starting backend process. Live server log is attached below.
+views.overlays.loading_overlay_view.maintenance_completed_setup,Maintenance completed. Setup will resume now.
+views.overlays.loading_overlay_view.backend_ready_handoff,Backend is ready. Preparing Nexus shell hand-off.
+views.overlays.loading_overlay_view.backend_online_title,Backend Online
+views.overlays.loading_overlay_view.comfyui_ready_loading_nexus_interface,ComfyUI is ready. Loading Nexus interface.
+views.overlays.loading_overlay_view.finalizing_nexus_link,FINALIZING NEXUS LINK...
+views.overlays.loading_overlay_view.nexus_app_entry_not_connected,Nexus App Entry is not connected.
+views.overlays.loading_overlay_view.booting,BOOTING
+views.overlays.loading_overlay_view.engaging,ENGAGING
+views.overlays.loading_overlay_view.awaiting_port,AWAITING PORT
+views.overlays.loading_overlay_view.waiting,WAITING
+views.overlays.loading_overlay_view.failed,FAILED
+views.overlays.loading_overlay_view.cleaning,CLEANING
+views.overlays.loading_overlay_view.recovery_failed,RECOVERY FAILED
+views.overlays.loading_overlay_view.clean,CLEAN
+views.overlays.loading_overlay_view.continue_cleanup,CONTINUE CLEANUP
+views.overlays.loading_overlay_view.set_host_used_when_nexus_starts_comfyui,Set the host used when Nexus starts ComfyUI.
+views.overlays.loading_overlay_view.use_compact_host_without_spaces,Use a compact host value without spaces.
+views.overlays.loading_overlay_view.set_port_used_when_nexus_starts_comfyui,Set the port used when Nexus starts ComfyUI.
+views.overlays.loading_overlay_view.use_port_between_1_and_65535,Use a port between 1 and 65535.
+views.overlays.loading_overlay_view.launching_nexus,Launching Nexus
+views.overlays.loading_overlay_view.setup_complete_initializing_nexus_shell,Setup is complete. Initializing the Nexus shell.
+views.overlays.loading_overlay_view.system_booting,SYSTEM BOOTING...
+views.overlays.loading_overlay_view.launch_link_missing,Launch Link Missing
+views.overlays.loading_overlay_view.launch_failed,LAUNCH FAILED
+views.overlays.loading_overlay_view.launch_failed_title,Launch Failed
+views.overlays.product_setup_view.select_your_deployment_strategy,SELECT YOUR DEPLOYMENT STRATEGY
+views.overlays.product_setup_view.deploy_new_environment,DEPLOY NEW ENVIRONMENT
+views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit,"Build a complete, isolated ComfyUI setup from scratch with optimized Nexus core."
+views.overlays.product_setup_view.connect_existing_path,CONNECT EXISTING PATH
+views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu,Link your local ComfyUI folder and synchronize with Nexus core.
+views.overlays.product_setup_view.initiation_sequence,INITIATION SEQUENCE
+views.overlays.product_setup_view.0_0_ready,0/0 READY
+views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s,Required systems are checked in order.\nOptional modules stay available below without interrupting startup.
+views.overlays.product_setup_view.optional_setup,OPTIONAL SETUP
+views.overlays.product_setup_view.workspace_link,WORKSPACE LINK
+views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins,Identify the root directory of your existing ComfyUI installation.
+views.overlays.product_setup_view.nexus_core_command_center,NEXUS CORE COMMAND CENTER
+views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus,SYSTEM RUNTIME MONITORING // KERNEL v4.2.0-NEXUS
+views.overlays.product_setup_view.boot_matrix,BOOT MATRIX
+views.overlays.product_setup_view.cuda_device,CUDA DEVICE
+views.overlays.product_setup_view.scanning,Scanning...
+views.overlays.product_setup_view.boot_channel,BOOT CHANNEL
+views.overlays.product_setup_view.probe,PROBE
+views.overlays.product_setup_view.server_state,SERVER STATE
+views.overlays.product_setup_view.ready_to_start_backend,Ready to start backend.
+views.overlays.product_setup_view.engage_boot,ENGAGE BOOT
+views.overlays.product_setup_view.back,BACK
+views.overlays.product_setup_view.start,START
+views.overlays.settings_overlay_view.nexus_settings,NEXUS SETTINGS
+views.overlays.settings_overlay_view.comfyui_runtime_toolchain_server_launch_and_maintenance,"ComfyUI runtime, toolchain, server launch, and maintenance controls."
+views.overlays.settings_overlay_view.restart_required_to_apply_pending_changes,Restart required to apply pending changes.
+views.overlays.settings_overlay_view.next_boot_checklist,NEXT BOOT CHECKLIST
+views.overlays.settings_overlay_view.expand,EXPAND
+views.overlays.settings_overlay_view.tools,Tools
+views.overlays.settings_overlay_view.server,Server
+views.overlays.settings_overlay_view.maintenance,Maintenance
+views.overlays.settings_overlay_view.extensions,Extensions
+views.overlays.settings_overlay_view.about,About
+views.overlays.settings_overlay_view.runtime_source,Runtime source
+views.overlays.settings_overlay_view.local,LOCAL
+views.overlays.settings_overlay_view.custom,CUSTOM
+views.overlays.settings_overlay_view.open_folder,OPEN FOLDER
+views.overlays.settings_overlay_view.change_path,CHANGE PATH
+views.overlays.settings_overlay_view.check_updates,CHECK UPDATES
+views.overlays.settings_overlay_view.update_now,UPDATE NOW
+views.overlays.settings_overlay_view.check_repository_status_to_see_whether_this_comfyui_chec,Check repository status to see whether this ComfyUI checkout has updates.
+views.overlays.settings_overlay_view.system,SYSTEM
+views.overlays.settings_overlay_view.built_in,BUILT-IN
+views.overlays.settings_overlay_view.runtime_mode,Runtime mode
+views.overlays.settings_overlay_view.virtual_environment,Virtual environment
+views.overlays.settings_overlay_view.create,CREATE
+views.overlays.settings_overlay_view.reset,RESET
+views.overlays.settings_overlay_view.delete,DELETE
+views.overlays.settings_overlay_view.host,Host
+views.overlays.settings_overlay_view.port,Port
+views.overlays.settings_overlay_view.detecting_gpu,Detecting GPU...
+views.overlays.settings_overlay_view.select_gpu,Select GPU
+views.overlays.settings_overlay_view.runtime_recovery,Runtime recovery
+views.overlays.settings_overlay_view.clear_the_current_server_log_runtime_repair_is_available,Clear server logs. (Runtime repair is available in Command Center)
+views.overlays.settings_overlay_view.clear_log,CLEAR LOG
+settings.logs.clear_title,Clear server logs?
+settings.logs.clear_message,This clears the latest ComfyUI server log and the active server session log when available.\nTimestamp history logs are kept for diagnostics.
+settings.logs.clear_complete,Server logs cleared.
+settings.logs.clear_complete_count,Cleared {0} server log file(s).
+settings.logs.clear_already_empty,Server logs are already empty.
+settings.logs.clear_locked,Cleared {0} server log file(s).\n{1} active log file(s) are locked. Stop the server and run Clear Log again to empty them.
+settings.logs.clear_failed,Failed to clear server logs.\n{0}
+settings.maintenance.continue,Continue
+settings.maintenance.prepare,Prepare
+settings.maintenance.prepare_reset,PREPARE RESET
+settings.maintenance.queue_title,QUEUEING MAINTENANCE TASK
+settings.maintenance.queue_detail,Adding the selected maintenance step to the next boot checklist...
+settings.maintenance.reset_settings_title,Reset Nexus settings?
+settings.maintenance.reset_settings_message,This resets nexus_settings.json to default values.\nInstalled runtime files, backups, external ComfyUI folders, and external model libraries are not deleted.\nNexus will return to setup after the maintenance step.
+settings.maintenance.reset_settings_scheduled,Settings reset scheduled. Preparing maintenance recovery...
+settings.maintenance.purge_runtime_title,Reset local runtime?
+settings.maintenance.purge_runtime_message,"This removes Nexus-managed runtime files under:\n{0}\n\nDeleted data includes built-in ComfyUI, built-in Python/Git, the managed .venv, internal models, and managed custom_nodes stored in LocalRuntime/Installed.\n\nExternal ComfyUI folders and external model libraries are not deleted.\nBackups stored here are kept:\n{1}\n\nBack up internal models and custom_nodes first if you need to keep them."
+settings.maintenance.purge_runtime_queue_title,QUEUEING RUNTIME RESET
+settings.maintenance.purge_runtime_queue_detail,Preparing the maintenance recovery checklist...
+settings.maintenance.purge_runtime_scheduled,Local runtime reset scheduled. Preparing maintenance recovery...
+settings.venv.create_title,Create .venv?
+settings.venv.reset_title,Reset .venv?
+settings.venv.delete_title,Delete .venv?
+settings.venv.create_message_venv,This creates an isolated ComfyUI .venv folder.\nNexus will install requirements and CUDA PyTorch for VENV launch.\nThe change is applied before the next server boot.
+settings.venv.create_message_direct,This creates an isolated ComfyUI .venv folder and repairs its dependencies.\nDIRECT launch mode stays selected until you choose VENV.\nThe change is applied before the next server boot.
+settings.venv.reset_message_active,This deletes and recreates the ComfyUI .venv folder.\nInstalled packages inside .venv are removed, then requirements and CUDA PyTorch are repaired.\nRestart the server before using the rebuilt environment.
+settings.venv.reset_message_direct,This deletes and recreates the ComfyUI .venv folder.\nInstalled packages inside .venv are removed, then requirements and CUDA PyTorch are repaired.\nDIRECT launch mode stays selected.
+settings.venv.delete_message_active,This removes the ComfyUI .venv folder and switches server launch mode to DIRECT.\nPackages installed only inside .venv are deleted.\nRestart the server to apply the change.
+settings.venv.delete_message_direct,This removes the ComfyUI .venv folder.\nPackages installed only inside .venv are deleted.\nDIRECT launch mode stays selected.
+settings.venv.queue_create_title,QUEUEING VENV CREATE
+settings.venv.queue_rebuild_title,QUEUEING VENV REBUILD
+settings.venv.queue_delete_title,QUEUEING VENV DELETE
+settings.venv.queue_detail,Saving the selected runtime plan and updating the next boot checklist...
+settings.venv.create_scheduled,.venv creation scheduled. Restart the server to create it before boot.
+settings.venv.rebuild_scheduled,.venv rebuild scheduled. Restart the server to recreate it before boot.
+settings.venv.delete_scheduled,.venv delete scheduled. Restart the server to remove it before boot.
+views.overlays.settings_overlay_view.runtime_backup,Runtime backup
+views.overlays.settings_overlay_view.create_or_restore_manual_runtime_backups_before_risky_ma,Create or restore manual runtime backups before risky maintenance.
+views.overlays.settings_overlay_view.backup,BACKUP
+views.overlays.settings_overlay_view.restore,RESTORE
+views.overlays.settings_overlay_view.open_backups,OPEN BACKUPS
+views.overlays.settings_overlay_view.backups_can_be_large_delete_or_move_them_after_use_to_fr,Backups can be large. Delete or move them after use to free disk space.
+views.overlays.settings_overlay_view.settings_reset,Settings reset
+views.overlays.settings_overlay_view.reset_nexus_settings_to_defaults_installed_runtime_files,Reset Nexus settings to defaults. Installed runtime files are kept.
+views.overlays.settings_overlay_view.reset_settings,RESET SETTINGS
+views.overlays.settings_overlay_view.local_runtime_reset,Local runtime reset
+views.overlays.settings_overlay_view.deletes_localruntime_installed_on_next_boot_project_back,Deletes managed models and nodes on next boot. Project backups are kept.
+views.overlays.settings_overlay_view.reset_local_runtime,RESET LOCAL RUNTIME
+views.overlays.settings_overlay_view.dangerous_actions_ask_for_confirmation_before_running,Dangerous actions ask for confirmation before running.
+views.overlays.settings_overlay_view.maintenance_log,MAINTENANCE LOG
+views.overlays.settings_overlay_view.view_full_log,View full log
+views.overlays.settings_overlay_view.essential_custom_nodes,Essential custom nodes
+views.overlays.settings_overlay_view.scan,SCAN
+views.overlays.settings_overlay_view.sync_update,SYNC / UPDATE
+views.overlays.settings_overlay_view.reinstall,REINSTALL
+views.overlays.settings_overlay_view.hud_sample_workflows,HUD sample workflows
+views.overlays.settings_overlay_view.restore_hud_samples_description,Restore the tutorial workflows bundled with the installed ComfyUI-HUD.
+views.overlays.settings_overlay_view.restore_samples,RESTORE SAMPLES
+views.overlays.settings_overlay_view.restore_hud_samples_title,Restore HUD Samples
+views.overlays.settings_overlay_view.restore_hud_samples_message,"Copy the installed HUD sample workflows into your ComfyUI workflows folder.\n\nSource:\n{0}\n\nTarget:\n{1}"
+views.overlays.settings_overlay_view.restore_hud_samples_conflict_message,"The HUD sample folder already contains workflow files.\n\nChoose whether to restore only missing files or replace the bundled samples.\n\nSource:\n{0}\n\nTarget:\n{1}"
+views.overlays.settings_overlay_view.restore_missing,RESTORE MISSING
+views.overlays.settings_overlay_view.replace_samples,REPLACE SAMPLES
+views.overlays.settings_overlay_view.restoring_hud_samples,Restoring HUD sample workflows...
+views.overlays.settings_overlay_view.hud_samples_restored,HUD sample workflows restored.
+views.overlays.settings_overlay_view.hud_samples_restore_failed,HUD sample restore failed: {0}
+views.overlays.settings_overlay_view.custom_nodes_folder_status,Custom nodes folder: {0}
+views.overlays.settings_overlay_view.scanning_extensions_title,SCANNING CUSTOM NODES
+views.overlays.settings_overlay_view.scanning_extensions_detail,Checking installation state and Git revisions...
+views.overlays.settings_overlay_view.queueing_extension_update_title,QUEUEING EXTENSION UPDATE
+views.overlays.settings_overlay_view.queueing_extension_reinstall_title,QUEUEING EXTENSION REINSTALL
+views.overlays.settings_overlay_view.queueing_extensions_detail,Saving the selected custom-node tasks for the next boot...
+views.overlays.settings_overlay_view.extension_scan_failed,Custom-node scan failed: {0}
+settings.extensions.select_at_least_one,Select at least one Nexus-managed extension to fix.
+settings.extensions.confirm_sync_title,Sync selected extensions?
+settings.extensions.confirm_reinstall_title,Reinstall selected extensions?
+settings.extensions.confirm_sync_message,"Nexus will queue git sync/update and the install process for the selected extension(s) on the next boot.\n\nSelected:\n- {0}"
+settings.extensions.confirm_reinstall_message,"Nexus will queue folder delete, fresh clone, and install process for the selected extension(s) on the next boot.\n\nSelected:\n- {0}"
+settings.extensions.queue_sync,Queue Sync
+settings.extensions.queue_reinstall,Queue Reinstall
+settings.extensions.sync_scheduled,Selected extension sync/update scheduled. Restart the server to run it before boot.
+settings.extensions.reinstall_scheduled,Selected extension reinstall scheduled. Restart the server to run it before boot.
+settings.extensions.repair_queued,Managed extension repair is queued for the next boot.
+settings.extensions.scanning_status,Scanning Nexus-managed extensions...
+settings.extensions.scan_ready,All managed extensions are ready. Folder: {0}
+settings.extensions.scan_missing,Missing managed extension(s). Folder: {0}
+settings.extensions.scan_failed_status,Extension scan failed. Folder: {0}
+settings.extensions.pending_title_all,Fix managed extensions
+settings.extensions.pending_title_count,Fix {0} managed extension(s)
+settings.extensions.pending_detail_all,Sync and reinstall only Nexus-managed required custom nodes. Other custom nodes are left alone.
+settings.extensions.pending_detail_targets,{0}: {1}
+settings.extensions.action_reinstall,Reinstall
+settings.extensions.action_sync_update,Sync/update
+settings.pending_tasks.restart_reason,Queued boot tasks: {0}
+settings.pending_tasks.queued_for_next_boot,Queued for next boot: {0}
+settings.pending_tasks.queued_for_next_boot_heading,Queued for next boot
+settings.pending_tasks.queued_count,{0} QUEUED
+settings.pending_tasks.expand,EXPAND
+settings.pending_tasks.collapse,COLLAPSE
+settings.pending_tasks.running,RUNNING
+settings.pending_tasks.required,REQUIRED
+settings.pending_tasks.runtime_purge_title,Reset local runtime
+settings.pending_tasks.reset_setup_title,Reset setup choices
+settings.pending_tasks.reset_all_title,Reset settings
+settings.pending_tasks.comfy_update_title,Update ComfyUI
+settings.pending_tasks.venv_create_title,Create .venv
+settings.pending_tasks.venv_rebuild_title,Rebuild .venv
+settings.pending_tasks.venv_delete_title,Delete .venv
+settings.pending_tasks.runtime_repair_title,Repair runtime dependencies
+settings.pending_tasks.runtime_purge_detail,"Stop runtime processes, delete LocalRuntime/Installed and Nexus pip cache, then return to setup."
+settings.pending_tasks.reset_setup_detail,Restore setup path and runtime launch choices before setup resumes.
+settings.pending_tasks.reset_all_detail,Restore the settings file to defaults before setup resumes. Installed files are kept.
+settings.pending_tasks.comfy_update_detail,"Run git pull, sync requirements, and repair the selected Python runtime."
+settings.pending_tasks.venv_create_detail,Create the managed ComfyUI .venv and repair its dependencies before VENV launch.
+settings.pending_tasks.venv_rebuild_detail,"Delete and recreate the managed ComfyUI .venv, then repair dependencies."
+settings.pending_tasks.venv_delete_detail,Remove the managed ComfyUI .venv before launching with DIRECT Python.
+settings.pending_tasks.runtime_repair_detail,Sync requirements and CUDA PyTorch for the selected server runtime.
+settings.pending_tasks.generic_detail,This task will run before server boot.
+settings.operations.settings_operation,settings operation
+settings.operations.select_comfy_path,selecting ComfyUI path
+settings.operations.open_folder,opening folder
+settings.operations.check_comfy_updates,checking updates
+settings.operations.apply_comfy_update,updating ComfyUI
+settings.operations.repair_runtime,repairing runtime
+settings.operations.select_custom_git,selecting Git
+settings.operations.select_custom_python,selecting Python
+settings.operations.select_pip_cache,selecting pip cache
+settings.operations.open_pip_cache,opening pip cache
+settings.operations.clear_pip_cache,clearing pip cache
+settings.operations.venv_maintenance,.venv maintenance
+settings.operations.open_extensions_folder,opening extensions folder
+settings.operations.scan_extensions,scanning extensions
+settings.operations.repair_extensions,installing extensions
+settings.operations.clear_server_log,clearing server log
+settings.operations.reset_settings,resetting settings
+settings.operations.backup_runtime_data,backing up runtime data
+settings.operations.restore_runtime_data,restoring runtime data
+settings.operations.delete_runtime_backup,deleting runtime backup
+settings.operations.purge_local_runtime,purging runtime
+settings.status.working,WORKING
+settings.status.running_detail,Running: {0}
+settings.status.language_changed,LANGUAGE CHANGED
+settings.status.app_restart,APP RESTART
+settings.status.language_changed_detail,"Save language changes, then close and reopen Nexus to apply them everywhere."
+settings.status.app_restart_detail,Close and reopen Nexus to apply the saved language everywhere.
+settings.status.changed_restart,CHANGED + RESTART
+settings.status.restart_required,RESTART REQUIRED
+settings.status.changed_restart_detail,"Save changes, then restart the server to apply the runtime diff."
+settings.status.restart_required_detail,Restart required: {0}
+settings.status.changed,CHANGED
+settings.status.changed_detail,You have unsaved settings changes.
+settings.status.saved,SAVED
+settings.status.saved_detail,All settings are saved.
+settings.actions.save_restart,SAVE & RESTART
+settings.actions.run_tasks_restart,RUN TASKS & RESTART
+settings.actions.run_restart,Run & Restart
+settings.restart.save_restart_title,Save and restart server?
+settings.restart.save_restart_message,Restarting now will save your pending settings first, then relaunch ComfyUI with the saved configuration.{0}
+settings.restart.run_tasks_title,Run queued boot tasks?
+settings.restart.run_tasks_message,"Nexus will run these tasks before starting ComfyUI:\n\n- {0}"
+views.overlays.settings_overlay_view.discard,DISCARD
+views.overlays.settings_overlay_view.save_changes,SAVE CHANGES
+views.overlays.settings_overlay_view.queueing_task,QUEUEING TASK
+views.overlays.settings_overlay_view.applying_settings_safely,Applying settings safely...
+views.overlays.settings_overlay_view.comfyui_operation_log,COMFYUI OPERATION LOG
+views.overlays.settings_overlay_view.full_process_output_for_the_latest_settings_operation,Full process output for the latest settings operation.
+views.rail.rail_view.assets,Assets
+views.rail.rail_view.media_assets,Media Assets
+views.rail.rail_view.node_library,Node Library
+views.rail.rail_view.comfyui_assets,ComfyUI Media Assets
+views.rail.rail_view.toggle_apps,Toggle Apps
+views.rail.rail_view.templates,Templates
+views.rail.rail_view.settings,Settings
+views.rail.rail_view.main_menu,Main Menu
+views.rail.tools.apps.apps_view.apps,APPS
+views.rail.tools.apps.apps_view.workflow_designer,Workflow Designer
+views.rail.tools.apps.apps_view.advanced_node_graph_orchestration_and_management,Advanced node graph orchestration and management.
+views.rail.tools.apps.apps_view.asset_manager,Asset Manager
+views.rail.tools.apps.apps_view.centralized_control_for_all_your_models_and_outputs,Centralized control for all your models and outputs.
+views.rail.tools.assets.assets_browser_view.assets,ASSETS
+views.rail.tools.assets.assets_browser_view.current_location,CURRENT LOCATION
+views.rail.tools.assets.assets_browser_view.model_libraries,MODEL LIBRARIES
+views.rail.tools.assets.assets_browser_view.model_libraries_internal_only,Internal models only
+views.rail.tools.assets.assets_browser_view.model_libraries_external_count,Internal + {0} external library root(s)
+views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer,Open current folder in Explorer
+views.rail.tools.assets.assets_browser_view.search_assets,Search assets...
+views.rail.tools.assets.assets_browser_view.no_matching_assets_found,No matching assets found.
+views.rail.tools.assets.assets_browser_view.updating_assets,Updating Assets...
+views.rail.tools.media_assets.media_assets_view.title,MEDIA ASSETS
+views.rail.tools.media_assets.media_assets_view.refresh,Refresh media assets
+views.rail.tools.media_assets.media_assets_view.open_folder,Open active media folder
+views.rail.tools.media_assets.media_assets_view.open_folder_short,Folder
+views.rail.tools.media_assets.media_assets_view.output,Output
+views.rail.tools.media_assets.media_assets_view.input,Input
+views.rail.tools.media_assets.media_assets_view.output_feed_title,Generated results
+views.rail.tools.media_assets.media_assets_view.output_feed_description,Synced from ComfyUI Job Queue
+views.rail.tools.media_assets.media_assets_view.empty_title,No media assets yet
+views.rail.tools.media_assets.media_assets_view.empty_description,Generated or imported image files will appear here.
+views.rail.tools.media_assets.media_assets_view.loading_title,Preparing thumbnails
+views.rail.tools.media_assets.media_assets_view.loading_description,Scanning the active media folder...
+views.rail.tools.media_assets.media_assets_view.delete_selected_count,{0} selected media files
+views.rail.tools.media_assets.media_assets_view.delete_selected_message,Delete {0} selected media files?
+views.rail.tools.media_assets.media_assets_view.sort_recent_desc,Recent ↓
+views.rail.tools.media_assets.media_assets_view.sort_recent_asc,Recent ↑
+views.rail.tools.media_assets.media_assets_view.view_mode,Thumbnail columns
+views.rail.tools.media_assets.media_assets_view.search_results,Search results...
+views.rail.tools.media_assets.media_assets_view.deselect_all,Deselect all
+views.rail.tools.media_assets.media_assets_view.move_to,Move to...
+views.rail.tools.media_assets.media_assets_view.move_picker_title,Move Media Files
+views.rail.tools.media_assets.media_assets_view.move_confirm_title,Move Media Files
+views.rail.tools.media_assets.media_assets_view.move_confirm_message,"Move {0} selected media files?\nThe original files will be removed from their current location.\nTarget: {1}"
+views.rail.tools.media_assets.media_assets_view.move_conflict_title,Name Conflict
+views.rail.tools.media_assets.media_assets_view.move_conflict_message,Some files already exist in the destination.\nConflicting files will be renamed automatically before moving.
+views.rail.tools.media_assets.media_assets_view.move,Move
+views.rail.tools.node_library.node_library_view.expand_all,Expand All
+views.rail.tools.node_library.node_library_view.collapse_all,Collapse All
+views.rail.tools.node_library.node_library_view.add_to_stage,Add to Stage
+views.rail.tools.node_library.node_library_view.node_library,NODE LIBRARY
+views.rail.tools.node_library.node_library_view.search_nodes,Search nodes...
+views.rail.tools.node_library.node_library_view.include_desc,INCLUDE DESC
+views.rail.tools.node_library.node_library_view.updating_nodes,Updating Nodes...
+views.shell.header_toolbar_tray_view.enter_app_mode,Enter App Mode
+views.shell.header_toolbar_tray_view.workflow_actions,Workflow Actions
+views.shell.header_toolbar_tray_view.graph,Graph
+views.shell.header_toolbar_tray_view.jobs,JOBS
+views.shell.header_toolbar_tray_view.comfyui_manager,ComfyUI Manager
+views.shell.header_toolbar_tray_view.manager,Manager
+views.shell.header_toolbar_tray_view.show_favorite_custom_node_list,Show favorite custom node list
+views.shell.header_toolbar_tray_view.unload_models,Unload Models
+views.shell.header_toolbar_tray_view.free_model_and_node_cache,Free model and node cache
+views.shell.header_toolbar_tray_view.share,Share
+views.shell.header_toolbar_tray_view.toggle_properties_panel,Toggle Properties Panel
+views.shell.header_view.modified,MODIFIED
+views.shell.header_view.no_workflow_selected,No workflow selected
+views.overlays.settings_overlay_view.language,Language
+views.overlays.settings_overlay_view.choose_the_language_used_by_the_nexus_shell,Choose the language used by the Nexus shell.
+views.overlays.settings_overlay_view.select_language,Select language
+help.title,NEXUS HELP
+help.subtitle,"A practical field notebook for models, nodes, references, and links you actually revisit."
+help.section.practical.title,PRACTICAL GUIDES
+help.section.practical.description,Step-by-step notes for common model and resource tasks.
+help.item.huggingface.title,Hugging Face
+help.item.huggingface.hint,Search Model ➔ Download ➔ Use directly
+help.item.civitai.title,Civitai
+help.item.civitai.hint,Search Model ➔ Download ➔ Use directly
+help.section.field.title,FIELD NOTES
+help.section.field.description,Short reminders for the concepts you will look up again.
+help.item.gpu_hardware_guide.title,GPU Hardware Guide
+help.item.gpu_hardware_guide.hint,Explains why NVIDIA GPUs are preferred and why VRAM capacity matters.
+help.item.how_images_are_born.title,How Images Are Born
+help.item.how_images_are_born.hint,"If results feel off, check model choice, seed, CFG, sampler, steps, and image size first."
+help.item.how_nexus_work.title,What Nexus Runs On
+help.item.how_nexus_work.hint,"Mental model: Nexus launches, repairs, and frames the runtime; ComfyUI still owns the workflow graph."
+help.item.adding_a_model.title,Adding A Model
+help.item.adding_a_model.hint,"Common folders: checkpoints, loras, vae, controlnet, ipadapter."
+help.item.face_sync_identity.title,Face Sync / Identity
+help.item.face_sync_identity.hint,"If identity drifts: lower denoise, improve crop quality, and tune model weight."
+help.item.practical_workflow_checklist.title,Practical Workflow Checklist
+help.item.practical_workflow_checklist.hint,"Tip: Keep notes for folder maps, favorite model combos, and frequent error fixes."
+views.rail.rail_view.transition_loading_title,Preparing
+views.rail.rail_view.transition_loading_description,Stabilizing the active panel...
+views.overlays.media_viewer.delete_tooltip,Delete the current media file
+views.overlays.media_viewer.close_tooltip,Close media viewer
+views.overlays.media_viewer.zoom,zoom
+views.overlays.media_viewer.pan_while_zoomed,pan while zoomed
+views.overlays.media_viewer.left_right_keys,← / →
+views.overlays.media_viewer.arrow_keys,← ↑ ↓ →
+views.overlays.media_viewer.space_enter_keys,SPACE / ENTER
+views.overlays.media_viewer.space_key,SPACE
+views.overlays.media_viewer.click_key,CLICK
+views.overlays.media_viewer.esc_key,ESC
+views.overlays.media_viewer.drag_key,DRAG
+views.overlays.media_viewer.previous_next,previous / next
+views.overlays.media_viewer.move_image,move image
+views.overlays.media_viewer.pan_freely,pan freely
+views.overlays.media_viewer.play_pause,play / pause
+views.overlays.media_viewer.zoom_in,zoom in
+views.overlays.media_viewer.zoom_out,zoom out
+views.overlays.media_viewer.confirm_shortcut_hint,Enter confirms · Esc cancels
+views.overlays.media_viewer.delete_media_title,Delete media
+views.overlays.media_viewer.delete_media_message,Delete {0}?
+views.rail.tools.assets.file_operations.batch_rename_title,Batch Rename
+views.rail.tools.assets.file_operations.batch_rename_message,Enter a base name for selected items.
+views.rail.tools.assets.file_operations.batch_rename_empty_message,Enter a base name.
+views.rail.tools.assets.file_operations.rename_message,Enter a new name.
+views.rail.tools.assets.file_operations.rename_file_message,Enter a new name. Extension '{0}' will be preserved.
+views.rail.tools.assets.file_operations.paste_conflict_title,Name Conflict
+views.rail.tools.assets.file_operations.paste_conflict_message,"Some pasted items already exist in the destination.\nConflicting files will be renamed automatically."
+context_menu.reveal_in_explorer,Reveal in Explorer
+context_menu.open_model_folder,Open Model Folder
+context_menu.open_model_root,Open Model Root
+context_menu.add_model_thumbnail,Add Thumbnail Image
+context_menu.set_model_primary_thumbnail,Set Primary Thumbnail
+context_menu.copy_path,Copy Path
+context_menu.insert_workflow_into_graph,Insert into Current Workflow
+context_menu.add_workflow_bookmark,Add Workflow Bookmark
+asset_bookmark.add_asset_bookmark,Add Asset Bookmark
+context_menu.refresh_search,Refresh Search
+model_thumbnail.pick_image_title,Choose a thumbnail image
+model_thumbnail.pick_failed_title,Image Selection Failed
+model_thumbnail.unsupported_title,Unsupported Image
+model_thumbnail.unsupported_message,"Choose a PNG, JPG, JPEG, or WEBP image."
+model_thumbnail.model_not_found_title,Model File Not Found
+model_thumbnail.model_not_found_message,Nexus could not resolve the real model file for this item.
+model_thumbnail.add_failed_title,Thumbnail Add Failed
+model_thumbnail.add_complete_title,Thumbnail Added
+model_thumbnail.add_complete_message,Added thumbnail image: {0}
+model_thumbnail.set_primary_title,Set Primary Thumbnail
+model_thumbnail.set_primary_message,Choose the image to use as this model's primary thumbnail.
+model_thumbnail.set_primary_action,Set Primary
+model_thumbnail.primary_badge,PRIMARY
+model_thumbnail.page_indicator,Page {0} / {1} · {2} images
+model_thumbnail.no_selection_message,Choose a thumbnail image first.
+model_thumbnail.image_missing_title,Thumbnail Image Missing
+model_thumbnail.image_missing_message,The selected thumbnail image no longer exists. Choose another image and try again.
+model_thumbnail.set_primary_failed_title,Primary Thumbnail Failed
+model_thumbnail.set_primary_failed_message,Nexus could not set the selected image as the primary thumbnail.
+model_thumbnail.set_primary_complete_title,Primary Thumbnail Updated
+model_thumbnail.set_primary_complete_message,Primary thumbnail is now: {0}
+help.frequent_jumps.title,Frequent Jumps
+help.frequent_jumps.description,Quick links and notes you may revisit often.
+help.frequent_jumps.badge,BOOKMARK
+help.concept.runtime.title,What Nexus Runs On
+help.concept.runtime.body,"ComfyUI is the engine, Python runs the server and nodes, Git synchronizes sources, and WebView frames the canvas."
+help.concept.runtime.hint,Nexus manages the environment; ComfyUI still owns the workflow graph.
+help.concept.image_birth.title,How Images Are Born
+help.concept.image_birth.body,"Prompt guides intent, checkpoint provides intelligence, sampler refines noise, and VAE converts latents into pixels."
+help.concept.image_birth.hint,"If results feel off, check model choice, seed, CFG, sampler, steps, and image size first."
+help.concept.model_apply.title,Adding A Model
+help.concept.model_apply.body,"Download the model, place it in the matching folder, then refresh or restart so ComfyUI can detect it."
+help.concept.model_apply.hint,"Common folders: checkpoints, loras, vae, controlnet, ipadapter."
+help.concept.face_identity.title,Face Sync / Identity
+help.concept.face_identity.body,Use reference images with FaceID model weights and keep denoise values under control.
+help.concept.face_identity.hint,"If identity drifts: lower denoise, improve crop quality, and tune model weight."
+help.concept.workflow.title,Practical Workflow Checklist
+help.concept.workflow.body,"Start from a verified sample, change one thing at a time, and save useful versions."
+help.concept.workflow.hint,"Tip: Keep notes for folder maps, favorite model combos, and frequent error fixes."
+views.overlays.product_setup_view.vanguard,VANGUARD
+views.overlays.product_setup_view.architect,ARCHITECT
+views.overlays.product_setup_view.venv,VENV
+views.overlays.settings_overlay_view.python_source,Python Source
+views.overlays.settings_overlay_view.venv,VENV
+views.overlays.settings_overlay_view.direct,DIRECT
+workflow.dialog.workflow_missing_title,Workflow Missing
+workflow.dialog.tracked_workflow_missing_message,The tracked workflow file no longer exists.
+workflow.dialog.rename_file_title,Rename Workflow File
+workflow.dialog.rename_file_message,"Rename the tracked workflow file in:
+{0}"
+workflow.dialog.invalid_name_title,Invalid Name
+workflow.dialog.invalid_file_name_message,Enter a valid workflow file name.
+workflow.dialog.file_exists_title,File Exists
+workflow.dialog.file_exists_message,{0} already exists.
+workflow.dialog.workflow_path_not_found,{0} was not found.
+workflow.batch_operation.blocker_title,UPDATING WORKFLOWS
+workflow.batch_operation.blocker_detail,Processing {0} items. Please wait...
+workflow.bookmark_hud.bookmarked,BOOKMARKED
+workflow.bookmark_hud.available,AVAILABLE
+workflow.bookmark_hud.no_workflow_files,No workflow files were found in the configured ComfyUI workflows folder.
+workflow.bookmark_hud.no_filter_matches,No workflows matched the current filter.
+workflow.bookmark_hud.count,{0} BOOKMARKED // {1} KNOWN
+workflow.bookmark_hud.filtered_count,{0} SHOWN // {1} BOOKMARKED // {2} KNOWN
+workflow.bookmark_hud.pinned,PINNED
+workflow.bookmark_hud.known,KNOWN
+workflow.bookmark_hud.pin,PIN
+workflow.bookmark_hud.unpin,UNPIN
+views.rail.tools.assets.assets_browser_view.bookmarked_workflows,Bookmarked Workflows
+views.rail.tools.assets.assets_browser_view.searching_current_location,Searching current location...
+views.rail.tools.assets.assets_browser_view.search_failed,Search failed
+views.rail.tools.assets.assets_browser_view.search_failed_message,Search failed: {0}
+views.rail.tools.assets.assets_browser_view.search_results_count,{0} result(s) in current location
+views.rail.tools.assets.assets_browser_view.root_path_unavailable,Root path is unavailable.
+views.rail.tools.assets.assets_browser_view.folder_empty,This folder is empty.
+views.rail.tools.assets.assets_browser_view.rail_error,Rail error: {0}
+views.rail.tools.assets.file_operations.move_title,Move Files
+views.rail.tools.assets.file_operations.move_button,Move
+views.rail.tools.assets.file_operations.move_single_message,Move '{0}' to '{1}'?
+views.rail.tools.assets.file_operations.move_multiple_message,Move {0} items to '{1}'?
+views.rail.tools.assets.file_operations.move_multiple_file_message,Move {0} files to '{1}'?\n\n{2}
+views.rail.tools.assets.file_operations.move_more_items_message,...and {0} more file(s)
+views.rail.tools.assets.file_operations.new_folder_name,New Folder
+views.rail.tools.assets.file_operations.add_folder_title,Add Folder
+views.rail.tools.assets.file_operations.add_folder_prompt_message,"A folder will be added to this location:
+{0}"
+views.rail.tools.assets.file_operations.folder_name_placeholder,Folder name
+views.rail.tools.assets.file_operations.folder_name_required,Enter a folder name.
+views.rail.tools.assets.file_operations.folder_name_invalid,Folder names cannot contain path separators or invalid filename characters.
+views.rail.tools.assets.file_operations.folder_exists_message,A folder or file named '{0}' already exists.
+views.rail.tools.assets.file_operations.parent_folder_unavailable,Unable to resolve the parent folder.
+views.rail.tools.assets.file_operations.selected_item_missing,The selected item no longer exists.
+views.rail.tools.assets.file_operations.delete_message,Delete '{0}'?
+settings.model_libraries.title,Model Libraries
+settings.model_libraries.description,Connect model folders stored outside ComfyUI.\nEach library mirrors the current ComfyUI model folder structure.
+settings.model_libraries.add_library,ADD LIBRARY
+settings.model_libraries.sync_structure,SYNC STRUCTURE
+settings.model_libraries.library,External library {0}
+settings.model_libraries.not_connected,Not connected
+settings.model_libraries.unavailable,Unavailable: {0}
+settings.model_libraries.open,OPEN
+settings.model_libraries.connect,CONNECT
+settings.model_libraries.replace,REPLACE
+settings.model_libraries.remove,REMOVE
+settings.model_libraries.restart_hint,Changes apply on the next ComfyUI start.\nRestart the running server to reload model paths.
+settings.model_libraries.folder_picker_title,Select model library folder
+settings.model_libraries.duplicate,This model library is already registered.
+settings.model_libraries.settings_save_failed,The model paths were restored because Nexus settings could not be saved.
+settings.model_libraries.restart_reason,Model libraries
+settings.model_libraries.syncing_title,Syncing model library structure
+settings.model_libraries.syncing_detail,Reading the current ComfyUI model folders.\nUpdating the external library structure.
+settings.model_libraries.sync_complete,Model library structure synchronized.\nRestart ComfyUI to apply the updated paths.
+settings.model_libraries.sync_failed,Model library structure synchronization failed: {0}
+settings.model_duplicates.title,Model Duplicate Scan
+settings.model_duplicates.description,Find identical model files across internal and external libraries.\nNexus only opens locations; you choose what to remove.
+settings.model_duplicates.scan,SCAN DUPLICATES
+settings.model_duplicates.open_report,OPEN REPORT
+settings.model_duplicates.open_location_1,OPEN LOCATION 1
+settings.model_duplicates.open_location_2,OPEN LOCATION 2
+settings.model_duplicates.next,NEXT DUPLICATE
+settings.model_duplicates.ready,Scan model libraries to find exact duplicate files.
+settings.model_duplicates.scanning_title,Scanning model duplicates
+settings.model_duplicates.scanning_detail,Scanning duplicate model files...
+settings.model_duplicates.progress_discovering,"Collecting model files: {0} file(s), {1}"
+settings.model_duplicates.progress_preparing,"Preparing exact comparison: {0} candidate file(s), {1}"
+settings.model_duplicates.progress_hashing,"Comparing file contents: {0}/{1} file(s), {2}/{3}"
+settings.model_duplicates.progress_report,Writing duplicate scan report...
+settings.model_duplicates.cancelled,Model duplicate scan was cancelled.
+settings.model_duplicates.scan_failed,Model duplicate scan failed.\n{0}
+settings.model_duplicates.none_found,"No duplicate models found.\nScanned {0} file(s), {1}."
+settings.model_duplicates.found,"Duplicate {0}/{1}: {2}\nSize: {3} · {4} location(s)"
+settings.model_duplicates.found_many,"Duplicate {0}/{1}: {2}\nSize: {3} · {4} location(s) · {5} more in report"
+setup.model_library.title,External Model Libraries
+setup.model_library.description,Keep large model files outside ComfyUI when you want.\nThis makes reinstalling, backing up, and sharing models easier.
+setup.model_library.not_connected,No external model library is connected.\nThis is optional and can be added later in Settings.
+setup.model_library.connected_count,{0} external model library root(s) connected.\nApplies on the next ComfyUI start.
+setup.model_library.unchanged,The selected model library is already connected.
+setup.model_library.duplicate,This model library is already registered.
+setup.model_library.folder_picker_title,Select model library folder
+setup.model_library.remove_failed,The selected model library could not be removed.
+model_libraries.service.duplicate_path,Model library is already registered: {0}
+model_libraries.service.none_connected,No external model library is connected.
+model_libraries.service.unavailable,Model library is unavailable: {0}
+model_libraries.service.yaml_missing,External model libraries are configured but extra_model_paths.yaml is missing.
+model_libraries.service.connected_count,{0} external model library root(s) connected.
+model_libraries.service.out_of_sync,The Nexus model library section is out of sync.
+model_libraries.service.comfy_unavailable,The ComfyUI folder is unavailable.
+model_libraries.service.removed,External model libraries removed.
+model_libraries.service.applied_count,{0} external model library root(s) applied.
+model_libraries.service.update_failed,Unable to update extra_model_paths.yaml: {0}
+model_libraries.service.markers_invalid,The Nexus model path markers are duplicated or malformed.
+model_libraries.service.top_level_mapping,extra_model_paths.yaml must contain a top-level mapping.
+model_libraries.service.reserved_key,Reserved top-level key exists outside the Nexus section: {0}
+settings.runtime_backup.description,Create portable backups of the internal models and custom_nodes folders.\nChoose the destination and storage format before starting.
+settings.runtime_backup.destination,Backup destination
+settings.runtime_backup.change,CHANGE
+settings.runtime_backup.open,OPEN
+settings.runtime_backup.available_space,Available space: {0}
+settings.runtime_backup.space_unavailable,Free space unavailable: {0}
+settings.runtime_backup.format,FORMAT
+settings.runtime_backup.folder,FOLDER
+settings.runtime_backup.zip,ZIP
+settings.runtime_backup.include,INCLUDE
+settings.runtime_backup.models,MODELS
+settings.runtime_backup.custom_nodes,CUSTOM NODES
+settings.runtime_backup.ready_to_calculate,Choose the folders to include.\nNexus will calculate the required disk space before starting.
+settings.runtime_backup.external_libraries_excluded,External model libraries are not included in runtime backups.\nOpen a path below to review the separately stored files.
+settings.runtime_backup.calculating,Calculating backup size and available disk space...
+settings.runtime_backup.insufficient_space,Not enough free space.\nRequired: {0} · Available: {1}
+settings.runtime_backup.analysis_failed,Backup cannot start.\n{0}
+settings.runtime_backup.analysis_ready,"Source: {0} across {1} files.\nRequired: {2} · Available: {3}"
+settings.runtime_backup.confirm_title,Start runtime backup?
+settings.runtime_backup.confirm_message,"Included: {0}\nFormat: {1}\nSource size: {2}\nRequired space: {3}\nAvailable space: {4}\n\nDestination:\n{5}\n\nExternal model libraries are not included."
+settings.runtime_backup.start,START BACKUP
+settings.runtime_backup.browse_folder,Browse folder...
+settings.runtime_backup.browse_zip,Browse ZIP...
+settings.runtime_backup.restore_title,Restore Runtime Backup
+settings.runtime_backup.select_backup_folder,Select Nexus runtime backup folder
+settings.runtime_backup.select_backup_zip,Select Nexus runtime backup ZIP
+settings.runtime_backup.select_destination,Select runtime backup destination
+settings.runtime_backup.preference_save_failed,Nexus could not save the backup destination or format.\nThe previous setting is still active.
+settings.runtime_backup.destination_changed,Backup destination updated.\nRun the size calculation again before backup.
+settings.runtime_backup.format_changed,Backup format updated.\nRun the size calculation again before backup.
+settings.runtime_backup.operation_failed,Runtime backup failed.\n{0}
+settings.runtime_backup.backup_complete,Runtime backup completed.\n{0}
+settings.runtime_backup.restore_confirm_title,Restore runtime backup?
+settings.runtime_backup.restore_confirm_message,The selected backup will be copied into the active ComfyUI runtime.\nRestart the server after restore so ComfyUI reloads the files.
+settings.runtime_backup.restore_complete,Runtime backup restored.\nRestart the server to use the restored data.
+settings.runtime_backup.delete_title,Delete Runtime Backup
+settings.runtime_backup.delete_confirm_title,Delete runtime backup?
+settings.runtime_backup.delete_confirm_message,This permanently deletes the selected Nexus backup.\n\n{0}\n\nThe active ComfyUI runtime is not affected.
+settings.runtime_backup.delete_complete,Runtime backup deleted.
+settings.runtime_backup.status_complete,complete
+settings.runtime_backup.status_incomplete,incomplete
+settings.runtime_backup.ready_to_restore,Ready to restore the selected backup.
+settings.runtime_backup.none_selected,No runtime backup was selected.
+settings.runtime_backup.ready_to_delete,Selected {0} for deletion.
+settings.runtime_backup.open_failed,The runtime backup folder could not be opened.
+settings.runtime_backup.restore_analyzing_title,Analyzing runtime restore
+settings.runtime_backup.restore_analyzing_detail,Comparing the backup with the current ComfyUI files.\nIdentical files will be skipped.
+settings.runtime_backup.restore_analysis_ready,"Restore preview ready: {0} add · {1} replace · {2} identical · {3} retained."
+settings.runtime_backup.restore_analysis_message,"Backup:\n{0}\n\nDestination:\n{1}\n\nAdd: {2} · Replace: {3} · Identical: {4} · Retained: {5}\nCopy size: {6}\nRequired space: {7}\nAvailable space: {8}\n\nExisting-only files are retained. Changed paths will be replaced with the backup copy.\nReview the files before continuing.\n\nPreview:\n{9}\n\nMappings:\n{10}"
+settings.runtime_backup.open_change_list,OPEN CHANGE LIST
+settings.runtime_backup.start_restore,START RESTORE
+settings.runtime_backup.open_report_failed,The restore change report could not be opened.
+settings.runtime_backup.restore_handler_missing,The runtime restore handler is not available.
+settings.runtime_backup.restore_merge_complete,Runtime merge restore completed.\n{0} file(s) were added or replaced.
+settings.runtime_backup.restore_merge_complete_restarting,Runtime merge restore completed.\n{0} file(s) were added or replaced.\nServer restart continues in the loading screen.
+settings.runtime_backup.restore_merge_failed,Runtime merge restore failed.\n{0}
+settings.runtime_backup.blocker_title,RESTORING RUNTIME
+settings.runtime_backup.blocker_preparing,Preparing ComfyUI for a safe merge restore...
+settings.runtime_backup.blocker_stopping_server,Stopping the ComfyUI server safely...
+settings.runtime_backup.blocker_merging,Merging verified backup files...
+settings.runtime_backup.blocker_complete,Runtime restore completed.
+settings.runtime_backup.restore_no_changes_title,No restore changes
+settings.runtime_backup.restore_no_changes_message,The backup matches the current runtime.\n{0} identical file(s) were skipped and {1} existing-only file(s) remain untouched.
+settings.pip_cache.title,pip cache
+settings.pip_cache.description,Controls only the pip download/build cache.\nPackage install locations do not change.
+settings.pip_cache.pip_default_path,pip chooses the cache location
+settings.pip_cache.pip_default_detail,Active cache: bundled pip default.\nNexus does not set PIP_CACHE_DIR.
+settings.pip_cache.default_detail,Active cache: Nexus default under LocalRuntime.\nNexus sets PIP_CACHE_DIR for managed pip commands.
+settings.pip_cache.custom_detail,Active cache: custom location.\nNexus sets PIP_CACHE_DIR for managed pip commands.
+settings.pip_cache.use_pip_default,pip default
+settings.pip_cache.use_default,Nexus default
+settings.pip_cache.change,Custom
+settings.pip_cache.clear,Clear Cache
+settings.pip_cache.select_folder,Select pip cache folder
+settings.pip_cache.save_failed,The pip cache setting could not be saved.
+settings.pip_cache.clear_title,Clear pip cache?
+settings.pip_cache.clear_message,This deletes downloaded pip cache files only.\nInstalled Python packages are not removed.\nUse Repair runtime or Repair & Boot if packages are missing.
+settings.pip_cache.clear_complete,pip cache cleared.
+settings.pip_cache.clear_failed,Failed to clear pip cache.\n{0}
+setup.venv.title,Virtual Environment
+setup.venv.description,Recommended isolated Python workspace for ComfyUI packages.\nCreate it if you want Nexus to manage dependencies safely.
+setup.venv.checking,Checking ComfyUI Python environment...
+setup.venv.requires_python,Requires Python Runtime.\nOnce Python is ready, you can create an isolated .venv here.\nFresh setup usually takes 10-20 minutes and can use several GB for dependencies.
+setup.venv.keep_selected,Existing .venv selected for server launch.
+setup.venv.mode_selected,.venv mode selected for server launch.\nFresh setup usually takes 10-20 minutes.\nComfyUI requirements and CUDA PyTorch packages can use several GB of disk space.
+setup.venv.direct_active,Direct Python mode is active. Server Python: {0}.
+setup.venv.direct_existing,Existing .venv found.\nReset is recommended for a clean setup, or keep it if you trust this environment.
+setup.venv.direct_incomplete,Existing .venv folder is incomplete.\nReset is recommended.
+setup.venv.direct_missing,.venv is not created. Create is recommended.\nFresh setup usually takes 10-20 minutes.\nComfyUI requirements and CUDA PyTorch packages can use several GB of disk space.
+setup.venv.ready,.venv is ready.\nNexus can use this isolated environment for ComfyUI dependencies.
+setup.venv.incomplete,.venv folder exists, but Scripts\python.exe is missing.\nReset will recreate it cleanly.\nFresh setup usually takes 10-20 minutes.
+setup.venv.missing,.venv is not created. Create is recommended.\nFresh setup usually takes 10-20 minutes.\nAdvanced users can continue with direct Python.
+setup.venv.launch_mode_updated,Python launch mode updated.
+setup.venv.setup_failed,Python environment setup failed: {0}
+setup.venv.option_create,Create
+setup.venv.option_create_description,Create an isolated ComfyUI .venv. Recommended for most users.
+setup.venv.option_reset,Reset
+setup.venv.option_reset_description,Delete and recreate .venv for a clean setup.
+setup.venv.option_reset_incomplete_description,Delete and recreate the incomplete .venv.
+setup.venv.option_keep,Keep Existing
+setup.venv.option_keep_description,Use the existing .venv as-is.
+setup.pip_cache.title,pip cache
+setup.pip_cache.description,Controls where Nexus-managed pip downloads and build cache are stored.\nThis does not change installed Python package locations.
+setup.pip_cache.unsupported_option,Unsupported pip cache option.
+setup.pip_cache.invalid_folder,Select a valid pip cache folder.
+setup.pip_cache.details_pip_default,pip chooses the cache location.\nNexus will not set PIP_CACHE_DIR for managed pip commands.
+setup.pip_cache.details_nexus_default,Nexus default pip cache is active.
+setup.pip_cache.details_custom,Custom pip cache is active.
+setup.pip_cache.option_pip_default,pip default
+setup.pip_cache.option_pip_default_description,Let the selected Python or .venv pip choose its own cache.
+setup.pip_cache.option_nexus_default,Nexus default
+setup.pip_cache.option_nexus_default_description,Store pip cache under LocalRuntime.
+setup.pip_cache.option_custom,Custom
+setup.pip_cache.option_custom_description,Select a dedicated pip cache folder.
+setup.model_library.invalid_folder,Select a valid model library folder.
+setup.model_library.already_connected_selected,The selected model library is already connected.
+setup.model_library.already_connected,This model library is already connected.
+setup.model_library.option_connect,Connect Library
+setup.model_library.option_replace,Replace
+setup.model_library.option_replace_indexed,Replace Library {0}
+setup.model_library.option_remove,Remove
+setup.model_library.option_remove_indexed,Remove Library {0}
+setup.model_library.option_add,Add Library
+setup.model_library.restart_hint,Changes apply after the next ComfyUI start.
+setup.model_library.unavailable,One or more external model libraries are unavailable.
+setup.model_library.needs_sync,The external model library configuration needs synchronization.
+setup.status.label,STATUS
+setup.status.pending,PENDING
+setup.status.working,WORKING
+setup.status.ready,READY
+setup.status.setup,SETUP
+setup.status.optional,OPTIONAL
+setup.status.missing,MISSING
+setup.status.error,ERROR
+setup.status.probing,PROBING...
+setup.status.checking,CHECKING...
+setup.status.installing,INSTALLING...
+setup.status.install,INSTALL
+setup.status.config,CONFIG
+setup.status.edit,EDIT
+setup.common.probing,Probing system environment...
+setup.common.pending_detail,Pending...
+setup.common.option_install_builtin,Install Built-in
+setup.common.option_manual_selection,Manual Selection
+setup.common.option_keep_next,Keep Existing (Next)
+setup.common.install_service_missing,Install service is not initialized.
+setup.common.probe_failed,{0} probe failed: {1}
+setup.git.title,Git Core Engine
+setup.git.description,Version control system for syncing ComfyUI and custom nodes.
+setup.git.system_detected,System Git (v{0}) detected.
+setup.git.system_missing,System Git not found. Built-in installation required.
+setup.git.option_system,Use System Git
+setup.git.option_system_description,Use your system Git v{0}.
+setup.git.option_builtin_description,"Download an isolated, portable Git."
+setup.git.option_manual_description,Manually locate your git.exe path.
+setup.git.using_system,Using System Git v{0}
+setup.git.using_builtin,Using Built-in Git v{0}
+setup.git.custom_selected,Custom Git path selected.
+setup.git.using_custom,Using Custom Git: {0}
+setup.git.system_unavailable,System Git is missing or inaccessible. Please switch to Built-in mode or reinstall globally.
+setup.git.install_service_missing,Install service is not initialized. Cannot extract Git package at this stage.
+setup.git.extract_success,Git package extracted successfully.
+setup.git.extract_failed,Failed to extract Git: {0}
+setup.python.title,Python Runtime
+setup.python.description,Standalone Python engine for executing the ComfyUI backend.
+setup.python.system_detected,System Python (v{0}) detected.
+setup.python.system_missing,System Python not found. Built-in installation required.
+setup.python.option_system,Use System Python
+setup.python.option_system_description,Use your system Python v{0}.
+setup.python.option_builtin_description,Install an isolated Python runtime.
+setup.python.option_manual_description,Manually locate your python.exe path.
+setup.python.using_system,Using System Python v{0}
+setup.python.using_builtin,Using Built-in Python v{0}
+setup.python.custom_selected,Custom Python path selected.
+setup.python.using_custom,Using Custom Python: {0}
+setup.python.system_unavailable,System Python selected but unavailable. Switch to Built-in.
+setup.python.install_success,Python runtime installed successfully.
+setup.python.install_failed,Failed to install Python runtime: {0}
+setup.comfy_core.title,ComfyUI Core & Venv
+setup.comfy_core.description,Main backend source code and Python virtual environment.
+setup.comfy_core.ready_to_install,ComfyUI Core and .venv are ready to be installed.
+setup.comfy_core.option_default_path,Use Default Path
+setup.comfy_core.option_custom_path,Select Custom Path
+setup.comfy_core.recover_failed,Failed to recover ComfyUI Core: {0}
+setup.base_model.title,Base Model Checkpoint
+setup.base_model.description,Default Stable Diffusion model required to generate images.
+setup.base_model.present,Base model is present.
+setup.base_model.missing,Base model checkpoint is missing.
+setup.base_model.option_download,Download Model
+setup.base_model.option_skip,Skip for Now
+setup.base_model.skipped,Base model download skipped.
+setup.base_model.download_success,Base model downloaded successfully.
+setup.base_model.download_failed,Failed to download base model: {0}
+setup.extensions.title,ComfyUI Extensions
+setup.extensions.description,Required extensions for running Nexus.
+setup.extensions.item_installed,{0}: Installed
+setup.extensions.item_pending,{0}: Pending install
+setup.extensions.check_failed,Extension check failed: {0}
+setup.extensions.option_install,Install Extensions
+setup.extensions.prepare_success,Managed extensions prepared. Python install scripts will run before server boot.
+setup.extensions.install_failed,Failed to install Manager/Extensions: {0}
+common.next,NEXT
+setup.action.launch_nexus,LAUNCH NEXUS
+setup.status.requirements_pending,REQUIREMENTS PENDING
+setup.console.recover_boot_title,Recover runtime and boot?
+setup.console.recover_boot_message,This will sync ComfyUI requirements and repair the CUDA PyTorch wheel for the selected server runtime.\nThen Nexus will start the server. It can take several minutes.\n\nTarget: {0}
+setup.console.recover_boot,Recover & Boot
+setup.console.state_standby,STANDBY
+setup.console.state_initializing,INITIALIZING
+setup.console.state_booting,BOOTING
+setup.console.state_failed,FAILED
+setup.console.state_online,ONLINE
+setup.console.badge_ready,READY
+setup.console.badge_boot,BOOT
+setup.console.badge_fail,FAIL
+setup.console.badge_live,LIVE
+setup.console.preparing_detail,Preparing runtime checks before boot engagement.
+setup.console.standby_detail,Ready to start the ComfyUI backend.
+setup.console.booting_detail,Backend process is launching. Watching log stream and port probe.
+setup.console.failed_detail,Boot sequence failed. Review the console log and retry.
+setup.console.online_detail,ComfyUI backend is reachable and ready for Nexus hand-off.
+setup.steps.welcome.title,Welcome
+setup.steps.welcome.description,Initialize the Nexus setup deck and prepare the local command center.
+setup.steps.core_link.title,Core Link Check
+setup.steps.core_link.description,Initialize environment tools and prepare the local runtime foundation.
+setup.steps.comfy_core.title,ComfyUI Core
+setup.steps.comfy_core.description,Download or validate the ComfyUI core package and workspace folders.
+setup.steps.base_resources.title,Base Resources
+setup.steps.base_resources.description,Download the default Stable Diffusion checkpoint and essential assets.
+setup.steps.manager.title,ComfyUI-Manager
+setup.steps.manager.description,Install and verify the manager extension used for maintenance commands.
+setup.steps.hud_bridge.title,Nexus HUD Bridge
+setup.steps.hud_bridge.description,Patch the HUD bridge, native action relay, and embedded ComfyUI integration.
+setup.steps.dependencies.title,Dependencies
+setup.steps.dependencies.description,Repair the configured ComfyUI Python runtime and CUDA packages.
+setup.steps.server.title,Server Standby
+setup.steps.server.description,Start ComfyUI with configured server options and wait for the local port.
+setup.steps.launch.title,Launch Nexus
+setup.steps.launch.description,Hand off to the existing WebView login sequence once the server is ready.
+loading.bridge_online_title,Neural Bridge Online
+loading.bridge_online_detail,ComfyUI has answered the shell handshake.
+loading.bridge_online_status,WELCOME TO NEXUS
+loading.finalizing_title,Finalizing Workspace
+loading.finalizing_detail,"Mounting tools, syncing shell controls, and preparing the reveal."
+loading.finalizing_status,PLEASE STAND BY // PREPARING WORKSPACE...
+loading.comfy_unreachable_title,ComfyUI Core Unreachable
+loading.comfy_unreachable_status,COMFYUI CORE UNREACHABLE // RETRYING...
+loading.bridge_timeout_title,Bridge Handshake Timeout
+loading.bridge_timeout_detail,PROTOS did not answer before the retry budget was exhausted. The HUD bridge may be missing or incomplete.
+loading.bridge_timeout_status,PROTOS TIMEOUT // SETUP AVAILABLE
+toast.interrupting_job,Interrupting current job...
+setup.gpu.scanning,Scanning...
+setup.console.boot_canceled,Boot sequence was canceled before the server became ready.
+setup.console.boot_failed_with_message,Boot sequence failed: {0}
+setup.console.maintenance_completed,Setup maintenance completed. Continue setup before booting.

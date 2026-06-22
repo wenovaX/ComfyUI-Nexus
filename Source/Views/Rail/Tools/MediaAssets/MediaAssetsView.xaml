@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:local="clr-namespace:ComfyUI_Nexus.Views.Rail.Tools.MediaAssets"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+			 x:Class="ComfyUI_Nexus.Views.Rail.Tools.MediaAssets.MediaAssetsView">
+	<ContentView.Resources>
+		<Color x:Key="MediaRailSurfaceColor">#0d141d</Color>
+		<Color x:Key="MediaRailTitleColor">#8dbce0</Color>
+		<Color x:Key="MediaRailActiveTextColor">#ebf9ff</Color>
+		<Color x:Key="MediaRailInactiveTextColor">#7d96ad</Color>
+		<Color x:Key="MediaRailMutedTextColor">#5c7a99</Color>
+		<Color x:Key="MediaRailPathTextColor">#4c647a</Color>
+	</ContentView.Resources>
+
+	<Grid RowDefinitions="Auto,Auto,Auto,*">
+		<Border Grid.Row="0"
+				StrokeThickness="0"
+				Padding="12,20,12,20">
+			<Border.Background>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+					<GradientStop Color="#26ff86c8" Offset="0" />
+					<GradientStop Color="#101f1725" Offset="0.48" />
+					<GradientStop Color="#00000000" Offset="1" />
+				</LinearGradientBrush>
+			</Border.Background>
+			<Grid ColumnDefinitions="Auto,*"
+				  ColumnSpacing="8">
+				<Image Source="rail_media_assets.png"
+					   WidthRequest="18"
+					   HeightRequest="18"
+					   Opacity="0.92"
+					   VerticalOptions="Center" />
+				<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.title}"
+					   Grid.Column="1"
+					   TextColor="{StaticResource MediaRailTitleColor}"
+					   FontSize="13"
+					   FontAttributes="Bold"
+					   CharacterSpacing="1.2"
+					   LineBreakMode="TailTruncation"
+					   VerticalOptions="Center" />
+			</Grid>
+		</Border>
+
+		<VerticalStackLayout Grid.Row="1"
+							 Spacing="0"
+							 BackgroundColor="{StaticResource MediaRailSurfaceColor}">
+			<Grid ColumnDefinitions="*,*"
+				  ColumnSpacing="6"
+				  Padding="10,10,10,8">
+				<Border x:Name="OutputTabButton"
+						Grid.Column="0"
+						BackgroundColor="#101923"
+						Stroke="#1e3448"
+						StrokeThickness="1"
+						Padding="8,7"
+						MinimumHeightRequest="38">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="10" />
+					</Border.StrokeShape>
+					<HorizontalStackLayout Spacing="7"
+										   VerticalOptions="Center">
+						<Image Source="media_output.png"
+							   WidthRequest="15"
+							   HeightRequest="15"
+							   VerticalOptions="Center"
+							   Opacity="0.9" />
+						<Label x:Name="OutputTabLabel"
+							   Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.output}"
+							   TextColor="{StaticResource MediaRailActiveTextColor}"
+							   FontSize="11"
+							   FontAttributes="Bold"
+							   LineBreakMode="TailTruncation"
+							   VerticalOptions="Center" />
+					</HorizontalStackLayout>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnOutputTabTapped" />
+						<PointerGestureRecognizer PointerEntered="OnOutputTabPointerEntered"
+												  PointerExited="OnOutputTabPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border x:Name="InputTabButton"
+						Grid.Column="1"
+						BackgroundColor="#090e14"
+						Stroke="#142235"
+						StrokeThickness="1"
+						Padding="8,7"
+						MinimumHeightRequest="38">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="10" />
+					</Border.StrokeShape>
+					<HorizontalStackLayout Spacing="7"
+										   VerticalOptions="Center">
+						<Image Source="media_input.png"
+							   WidthRequest="15"
+							   HeightRequest="15"
+							   VerticalOptions="Center"
+							   Opacity="0.8" />
+						<Label x:Name="InputTabLabel"
+							   Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.input}"
+							   TextColor="{StaticResource MediaRailInactiveTextColor}"
+							   FontSize="11"
+							   FontAttributes="Bold"
+							   LineBreakMode="TailTruncation"
+							   VerticalOptions="Center" />
+					</HorizontalStackLayout>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnInputTabTapped" />
+						<PointerGestureRecognizer PointerEntered="OnInputTabPointerEntered"
+												  PointerExited="OnInputTabPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+			</Grid>
+		</VerticalStackLayout>
+
+		<Grid Grid.Row="2"
+			  RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+			<Grid Grid.Row="0"
+				  RowDefinitions="Auto,Auto"
+				  Padding="12,8,12,4"
+				  BackgroundColor="{StaticResource MediaRailSurfaceColor}">
+				<Label x:Name="MediaAssetsStatusTitleLabel"
+					   Text="{loc:Loc views.rail.tools.assets.assets_browser_view.current_location}"
+					   Grid.Column="0"
+					   TextColor="{StaticResource MediaRailMutedTextColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   CharacterSpacing="0.8"
+					   VerticalOptions="Center" />
+				<Label x:Name="MediaAssetsPathLabel"
+					   Grid.Row="1"
+					   Grid.Column="0"
+					   TextColor="{StaticResource MediaRailPathTextColor}"
+					   FontSize="10"
+					   LineBreakMode="HeadTruncation"
+					   Margin="0,4,0,0"
+					   VerticalOptions="Center" />
+			</Grid>
+
+			<Grid Grid.Row="1"
+				  ColumnDefinitions="Auto,Auto,*,Auto,Auto"
+				  ColumnSpacing="8"
+				  Padding="12,4,12,8"
+				  BackgroundColor="{StaticResource MediaRailSurfaceColor}">
+				<Border x:Name="SortRecentButton"
+						Grid.Column="0"
+						BackgroundColor="Transparent"
+						Padding="7"
+						WidthRequest="32"
+						HeightRequest="32"
+						StrokeThickness="0"
+						VerticalOptions="Center">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="8" />
+					</Border.StrokeShape>
+					<Image x:Name="SortRecentIcon"
+						   Source="media_sort_desc.png"
+						   Aspect="AspectFit"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center" />
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnSortRecentTapped" />
+						<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered"
+												  PointerExited="OnToolbarButtonPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border x:Name="ViewModeButton"
+						Grid.Column="1"
+						BackgroundColor="Transparent"
+						Padding="8,5"
+						StrokeThickness="0"
+						WidthRequest="50"
+						HeightRequest="32"
+						ToolTipProperties.Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.view_mode}"
+						VerticalOptions="Center">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="8" />
+					</Border.StrokeShape>
+					<Grid ColumnDefinitions="16,*,4">
+						<Image x:Name="ViewModeIcon"
+							   Source="media_columns_1.png"
+							   Aspect="AspectFit"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+						<Label x:Name="ViewModeColumnLabel"
+							   Grid.Column="1"
+							   Text="1"
+							   TextColor="#ebf9ff"
+							   FontSize="11"
+							   FontAttributes="Bold"
+							   HorizontalTextAlignment="End"
+							   VerticalTextAlignment="Center" />
+					</Grid>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnViewModeTapped" />
+						<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered"
+												  PointerExited="OnToolbarButtonPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border Grid.Column="3"
+						BackgroundColor="Transparent"
+						Padding="7"
+						StrokeThickness="0"
+						WidthRequest="32"
+						HeightRequest="32"
+						ToolTipProperties.Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.refresh}"
+						VerticalOptions="Center"
+						HorizontalOptions="End">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="8" />
+					</Border.StrokeShape>
+					<Image Source="media_refresh.png"
+						   Aspect="AspectFit"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center" />
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnRefreshTapped" />
+						<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered"
+												  PointerExited="OnToolbarButtonPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border Grid.Column="4"
+						BackgroundColor="Transparent"
+						Padding="7"
+						WidthRequest="32"
+						HeightRequest="32"
+						StrokeThickness="0"
+						ToolTipProperties.Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.open_folder}"
+						VerticalOptions="Center"
+						HorizontalOptions="End">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="8" />
+					</Border.StrokeShape>
+					<Image Source="media_open_folder.png"
+						   Aspect="AspectFit"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center" />
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnOpenFolderTapped" />
+						<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered"
+												  PointerExited="OnToolbarButtonPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+			</Grid>
+
+			<Border x:Name="MediaAssetsSearchBorder"
+					Grid.Row="2"
+					BackgroundColor="#090f17"
+					Padding="9,0,3,0"
+					Stroke="#142235"
+					StrokeThickness="1"
+					HeightRequest="32"
+					Margin="12,0,12,8"
+					VerticalOptions="Center">
+				<Border.StrokeShape>
+					<shapes:RoundRectangle CornerRadius="8" />
+				</Border.StrokeShape>
+				<Grid ColumnDefinitions="*,Auto"
+					  ColumnSpacing="4">
+					<Entry x:Name="MediaAssetsSearchEntry"
+						   Grid.Column="0"
+						   Placeholder="{loc:Loc views.rail.tools.media_assets.media_assets_view.search_results}"
+						   TextColor="#F2FBFF"
+						   PlaceholderColor="#7894A8"
+						   FontSize="12"
+						   HeightRequest="26"
+						   Margin="-6,-6,0,0"
+						   BackgroundColor="Transparent"
+						   ClearButtonVisibility="Never"
+						   VerticalOptions="Center"
+						   VerticalTextAlignment="Center"
+						   TextChanged="OnMediaAssetsSearchTextChanged"
+						   Focused="OnMediaAssetsSearchEntryFocused"
+						   Unfocused="OnMediaAssetsSearchEntryUnfocused" />
+					<Border x:Name="ClearMediaAssetsSearchButton"
+							Grid.Column="1"
+							IsVisible="False"
+							BackgroundColor="Transparent"
+							WidthRequest="24"
+							HeightRequest="24"
+							StrokeThickness="0"
+							VerticalOptions="Center"
+							HorizontalOptions="Center">
+						<Border.StrokeShape>
+							<shapes:RoundRectangle CornerRadius="7" />
+						</Border.StrokeShape>
+						<Label x:Name="ClearMediaAssetsSearchLabel"
+							   Text="×"
+							   FontSize="15"
+							   FontAttributes="Bold"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center"
+							   HorizontalTextAlignment="Center"
+							   VerticalTextAlignment="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnClearMediaAssetsSearchTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+				</Grid>
+				<Border.GestureRecognizers>
+					<PointerGestureRecognizer PointerEntered="OnMediaAssetsSearchPointerEntered"
+											  PointerExited="OnMediaAssetsSearchPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+
+			<HorizontalStackLayout Grid.Row="3"
+								   Spacing="14"
+								   Padding="13,0,13,5">
+				<Border BackgroundColor="Transparent"
+						Padding="5,2"
+						StrokeThickness="0">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="7" />
+					</Border.StrokeShape>
+					<Label Text="{loc:Loc common.select_all}"
+						   TextColor="#79a9c6"
+						   FontSize="10"
+						   FontAttributes="Bold"
+						   VerticalTextAlignment="Center" />
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnSelectAllMediaAssetsTapped" />
+						<PointerGestureRecognizer PointerEntered="OnTextActionPointerEntered"
+												  PointerExited="OnTextActionPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border BackgroundColor="Transparent"
+						Padding="5,2"
+						StrokeThickness="0">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="7" />
+					</Border.StrokeShape>
+					<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.deselect_all}"
+						   TextColor="#5c7a99"
+						   FontSize="10"
+						   FontAttributes="Bold"
+						   VerticalTextAlignment="Center" />
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnDeselectAllMediaAssetsTapped" />
+						<PointerGestureRecognizer PointerEntered="OnTextActionPointerEntered"
+												  PointerExited="OnTextActionPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+			</HorizontalStackLayout>
+
+			<BoxView Grid.Row="4"
+					 HeightRequest="1"
+					 BackgroundColor="#1a2740"
+					 Margin="12,4,12,4"
+					 Opacity="0.4" />
+		</Grid>
+
+		<Grid Grid.Row="3">
+			<ScrollView x:Name="OutputMediaAssetsScrollView"
+						Margin="10,4,2,10"
+						Scrolled="OnOutputMediaAssetsScrolled"
+						SizeChanged="OnOutputMediaAssetsViewportSizeChanged">
+				<Grid x:Name="OutputMediaAssetsVirtualSurface"
+					  HorizontalOptions="Start"
+					  VerticalOptions="Start">
+					<ContentView x:Name="OutputMediaAssetsVirtualSpacer"
+								 HeightRequest="0" />
+					<AbsoluteLayout x:Name="OutputMediaAssetsVirtualCanvas"
+									HorizontalOptions="Start"
+									VerticalOptions="Start" />
+				</Grid>
+			</ScrollView>
+
+			<ScrollView x:Name="InputMediaAssetsScrollView"
+						IsVisible="False"
+						Margin="10,4,2,10"
+						Scrolled="OnInputMediaAssetsScrolled"
+						SizeChanged="OnInputMediaAssetsViewportSizeChanged">
+				<Grid x:Name="InputMediaAssetsVirtualSurface"
+					  HorizontalOptions="Start"
+					  VerticalOptions="Start">
+					<ContentView x:Name="InputMediaAssetsVirtualSpacer"
+								 HeightRequest="0" />
+					<AbsoluteLayout x:Name="InputMediaAssetsVirtualCanvas"
+									HorizontalOptions="Start"
+									VerticalOptions="Start" />
+				</Grid>
+			</ScrollView>
+
+			<VerticalStackLayout x:Name="MediaAssetsEmptyView"
+								 IsVisible="False"
+								 ZIndex="1"
+								 Spacing="8"
+								 HorizontalOptions="Center"
+								 VerticalOptions="Center"
+								 Padding="24">
+				<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.empty_title}"
+					   TextColor="#8dbce0"
+					   FontSize="13"
+					   FontAttributes="Bold"
+					   HorizontalTextAlignment="Center" />
+				<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.empty_description}"
+					   TextColor="#5c7a99"
+					   FontSize="11"
+					   HorizontalTextAlignment="Center" />
+			</VerticalStackLayout>
+
+			<Grid x:Name="MediaAssetsLoadingOverlay"
+				  IsVisible="False"
+				  ZIndex="2"
+				  BackgroundColor="#CC050A10"
+				  InputTransparent="False"
+				  Margin="10,4,10,10">
+				<Border BackgroundColor="#111B29"
+						Stroke="#24445C"
+						StrokeThickness="1"
+						Padding="18,16"
+						WidthRequest="220"
+						HorizontalOptions="Center"
+						VerticalOptions="Center">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="18" />
+					</Border.StrokeShape>
+					<Border.Shadow>
+						<Shadow Brush="#000000" Offset="0,8" Radius="22" Opacity="0.45" />
+					</Border.Shadow>
+
+					<Grid ColumnDefinitions="Auto,*"
+						  ColumnSpacing="13">
+						<Grid WidthRequest="34"
+							  HeightRequest="34"
+							  VerticalOptions="Center">
+							<Ellipse Fill="#12354A"
+									 Stroke="#2E7595"
+									 StrokeThickness="1.2" />
+							<ActivityIndicator IsRunning="True"
+											   Color="#8de7ff"
+											   WidthRequest="24"
+											   HeightRequest="24"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center" />
+						</Grid>
+
+						<VerticalStackLayout Grid.Column="1"
+											 Spacing="3"
+											 VerticalOptions="Center">
+							<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.loading_title}"
+								   TextColor="#ebf9ff"
+								   FontSize="12"
+								   FontAttributes="Bold"
+								   LineBreakMode="TailTruncation" />
+							<Label Text="{loc:Loc views.rail.tools.media_assets.media_assets_view.loading_description}"
+								   TextColor="#8dbce0"
+								   FontSize="10"
+								   LineBreakMode="TailTruncation" />
+						</VerticalStackLayout>
+					</Grid>
+				</Border>
+			</Grid>
+		</Grid>
+	</Grid>
+</ContentView>

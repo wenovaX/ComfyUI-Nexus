@@ -1,0 +1,903 @@
+key,text
+command.menu.title,NEXUS 命令
+command.menu.subtitle,服务器、设置、身份
+command.menu.settings,设置
+command.menu.about,关于 NEXUS
+common.close,关闭
+common.save,保存
+common.cancel,取消
+common.delete,删除
+common.rename,重命名
+common.open,打开
+common.copy,复制
+common.cut,剪切
+common.paste,粘贴
+common.select_all,全选
+common.duplicate,复制副本
+common.refresh,刷新
+common.ok,确定
+common.help,帮助
+common.restart_server,重启服务器
+common.hand,移动画布
+common.select,选择节点
+common.standby,待机
+common.recover_boot,恢复并启动
+common.retry_boot,重试引导
+common.online,在线
+common.ready,就绪
+common.saved,已保存
+core_link.reset_title,系统重置
+core_link.reset_message,终止 Core Link 并重置配置？
+core_link.terminate,终止
+core_link.patch,补丁
+core_link.select_comfy_folder,选择 ComfyUI 文件夹
+core_link.platform_not_supported_title,平台不支持
+core_link.folder_selection_not_supported,此平台不支持文件夹选择。
+core_link.missing_title,缺少 Core Link
+core_link.comfy_root_not_configured,尚未配置 ComfyUI 根路径。
+core_link.folder_missing_title,文件夹缺失
+core_link.folder_missing_message,未找到 {0} 文件夹。
+core_link.hud_patch_unavailable_title,HUD 补丁不可用
+core_link.hud_patch_missing_local_project,"找不到有效的同级 ComfyUI-HUD 项目。\n需要 hud.manifest.json、__init__.py 和 js/。"
+core_link.patch_local_hud_title,补丁本地 HUD
+core_link.patch_local_hud_message,"要把本地 HUD 文件复制到当前 ComfyUI 自定义节点吗？\n\n源：\n{0}\n\n目标：\n{1}"
+core_link.hud_patch_complete_title,HUD 补丁完成
+core_link.hud_patch_failed_title,HUD 补丁失败
+core_link.bridge_patch_unavailable_title,Nexus Bridge 补丁不可用
+core_link.bridge_patch_missing_hud_message,"ComfyUI-HUD 未安装或不完整。\n\n目标：\n{0}"
+core_link.bridge_patch_missing_source_message,"找不到打包的 Nexus bridge 文件。\n\n源：\n{0}"
+core_link.patch_nexus_bridge_title,补丁 Nexus Bridge
+core_link.patch_nexus_bridge_message,"要把打包的 Nexus bridge 文件复制到当前 ComfyUI-HUD 安装中吗？\n\n源：\n{0}\n\n目标：\n{1}"
+core_link.bridge_patch_complete_title,Nexus Bridge 补丁完成
+core_link.bridge_patch_failed_title,Nexus Bridge 补丁失败
+server_config.host_title,ComfyUI 主机
+server_config.host_message,设置 Nexus 启动 ComfyUI 时使用的主机。
+server_config.port_title,ComfyUI 端口
+server_config.port_message,设置 Nexus 启动 ComfyUI 时使用的端口。
+server_config.invalid_host_title,主机无效
+server_config.invalid_host_message,请使用不含空格的简短主机值。
+server_config.invalid_port_title,端口无效
+server_config.invalid_port_message,请使用 1 到 65535 之间的端口。
+server_config.restart_failed_title,重启失败
+settings.validation.invalid_settings_title,设置无效
+app.shutdown_failed_title,关闭失败
+views.overlays.about_overlay_view.subtitle,运行时 Shell、本地桥接和 ComfyUI 启动上下文。
+views.overlays.about_overlay_view.version,版本
+views.overlays.about_overlay_view.comfyui_path,ComfyUI 路径
+views.overlays.about_overlay_view.server_url,服务器 URL
+views.overlays.about_overlay_view.python_mode,Python 模式
+app.app_shell.home,首页
+pages.main_page.main_page.model,模型
+pages.main_page.main_page.preparing_restart,准备重启
+pages.main_page.main_page.stopping_probes_and_server_process,正在停止探测和服务器进程...
+pages.main_page.main_page.input_is_locked_until_current_operation_completes,当前操作完成前，输入已锁定。
+views.components.folder_browser_view.browse_or_paste_folder_path,浏览或粘贴文件夹路径
+views.components.folder_browser_view.parent,上级
+views.components.folder_browser_view.drives,驱动器
+views.components.folder_browser_view.browse,浏览
+views.controls.option_deck.run_mode_option_deck_view.run,运行
+views.controls.option_deck.run_mode_option_deck_view.run_on_change,更改时运行
+views.controls.option_deck.run_mode_option_deck_view.run_instant,立即运行
+views.overlays.bookmark_hud_view.nexus_workflow_index,工作流索引
+views.overlays.bookmark_hud_view.search_workflows,搜索工作流...
+views.overlays.bookmark_hud_view.0_workflows_registered,未注册工作流
+views.overlays.canvas_toolbar_view.help_center,帮助中心
+views.overlays.canvas_toolbar_view.terminal,终端
+views.overlays.canvas_toolbar_view.shortcuts,快捷键
+views.overlays.canvas_toolbar_view.fit,适应画布
+views.overlays.canvas_toolbar_view.map,地图
+views.overlays.canvas_toolbar_view.links,链接
+views.overlays.command_input_view.console,控制台
+views.overlays.loading_overlay_view.nexus_shell,NEXUS 外壳
+views.overlays.loading_overlay_view.initializing_nexus_shell,正在初始化 NEXUS 外壳...
+views.overlays.loading_overlay_view.open_setup,打开设置
+views.overlays.loading_overlay_view.check_install,检查安装
+views.overlays.loading_overlay_view.nexus_server_boot,NEXUS 服务器启动
+views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service,配置已就绪。\n请启动后端服务以继续。
+views.overlays.loading_overlay_view.state,状态
+views.overlays.loading_overlay_view.engage_server,启动服务器
+views.overlays.loading_overlay_view.start_backend_link,启动后端链接
+views.overlays.loading_overlay_view.repair_cuda_runtime,修复 CUDA 运行环境
+views.overlays.loading_overlay_view.access_denied_core_link_not_found,访问被拒绝：未找到核心链接
+views.overlays.loading_overlay_view.nexus_shell_utilities_require_access_to_your_comfyui_roo,Nexus 工具需要访问您的 ComfyUI 根目录。\n请建立链接以继续。
+views.overlays.loading_overlay_view.select_comfyui_core_directory,选择 COMFYUI 核心目录
+views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal,未检测到 ComfyUI 核心？
+views.overlays.loading_overlay_view.get_official_launcher,获取官方启动器
+views.overlays.loading_overlay_view.clone_from_github,从 GitHub 克隆
+views.overlays.loading_overlay_view.nexus_maintenance,NEXUS 维护
+views.overlays.loading_overlay_view.backend_process_already_starting,后端进程已在启动。实时服务器日志如下。
+views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI 后端离线。请启动服务器以继续。
+views.overlays.loading_overlay_view.recover_runtime_and_boot_title,恢复运行环境并引导？
+views.overlays.loading_overlay_view.recover_runtime_and_boot_message,这将同步 ComfyUI 依赖，修复所选运行环境的 CUDA PyTorch 轮子，然后启动服务器。可能需要几分钟。\n\n目标: {0}
+views.overlays.loading_overlay_view.preparing_runtime_cleanup_recovery,正在准备运行环境清理恢复。\n在维护完成前，输入已被锁定。
+views.overlays.loading_overlay_view.stopping_runtime_processes,正在停止运行进程并清理 LocalRuntime，随后将恢复设置。
+views.overlays.loading_overlay_view.retry_cleanup,重试清理
+views.overlays.loading_overlay_view.runtime_cleanup_complete_setup,运行环境清理完成。现在将恢复设置。
+views.overlays.loading_overlay_view.backend_alive_waiting_for_port,后端进程已激活。\n正在等待 ComfyUI 端口接受连接。
+views.overlays.loading_overlay_view.repairing_runtime_before_backend_launch,正在启动后端前修复运行环境依赖。\n实时日志如下。
+views.overlays.loading_overlay_view.starting_backend_process,正在启动后端进程。实时服务器日志如下。
+views.overlays.loading_overlay_view.maintenance_completed_setup,维护已完成。现在将恢复设置。
+views.overlays.loading_overlay_view.backend_ready_handoff,后端已就绪。正在准备 Nexus 外壳接管。
+views.overlays.loading_overlay_view.backend_online_title,后端在线
+views.overlays.loading_overlay_view.comfyui_ready_loading_nexus_interface,ComfyUI 已就绪。正在加载 Nexus 界面。
+views.overlays.loading_overlay_view.finalizing_nexus_link,正在完成 NEXUS 链接...
+views.overlays.loading_overlay_view.nexus_app_entry_not_connected,Nexus App Entry 未连接。
+views.overlays.loading_overlay_view.booting,正在引导
+views.overlays.loading_overlay_view.engaging,正在启动
+views.overlays.loading_overlay_view.awaiting_port,等待端口
+views.overlays.loading_overlay_view.waiting,等待中
+views.overlays.loading_overlay_view.failed,失败
+views.overlays.loading_overlay_view.cleaning,清理中
+views.overlays.loading_overlay_view.recovery_failed,恢复失败
+views.overlays.loading_overlay_view.clean,清理
+views.overlays.loading_overlay_view.continue_cleanup,继续清理
+views.overlays.loading_overlay_view.set_host_used_when_nexus_starts_comfyui,设置 Nexus 启动 ComfyUI 时使用的主机。
+views.overlays.loading_overlay_view.use_compact_host_without_spaces,请使用不含空格的紧凑主机值。
+views.overlays.loading_overlay_view.set_port_used_when_nexus_starts_comfyui,设置 Nexus 启动 ComfyUI 时使用的端口。
+views.overlays.loading_overlay_view.use_port_between_1_and_65535,请使用 1 到 65535 之间的端口。
+views.overlays.loading_overlay_view.launching_nexus,正在启动 Nexus
+views.overlays.loading_overlay_view.setup_complete_initializing_nexus_shell,设置已完成。正在初始化 Nexus 外壳。
+views.overlays.loading_overlay_view.system_booting,系统引导中...
+views.overlays.loading_overlay_view.launch_link_missing,缺少启动链接
+views.overlays.loading_overlay_view.launch_failed,启动失败
+views.overlays.loading_overlay_view.launch_failed_title,启动失败
+views.overlays.product_setup_view.select_your_deployment_strategy,选择部署策略
+views.overlays.product_setup_view.deploy_new_environment,部署新环境
+views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit,从零开始构建一个完整、隔离的 ComfyUI 环境。
+views.overlays.product_setup_view.connect_existing_path,连接现有路径
+views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu,链接您的本地 ComfyUI 文件夹并与 Nexus 同步。
+views.overlays.product_setup_view.initiation_sequence,启动序列
+views.overlays.product_setup_view.0_0_ready,0/0 就绪
+views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s,按顺序检查所需系统。\n可选模块不会中断启动，并可在下方继续设置。
+views.overlays.product_setup_view.optional_setup,可选设置
+views.overlays.product_setup_view.workspace_link,工作区链接
+views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins,指定您现有 ComfyUI 安装的根目录。
+views.overlays.product_setup_view.nexus_core_command_center,NEXUS 核心指挥中心
+views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus,系统运行监控 // 内核 v4.2.0-NEXUS
+views.overlays.product_setup_view.boot_matrix,启动矩阵
+views.overlays.product_setup_view.cuda_device,CUDA 设备
+views.overlays.product_setup_view.scanning,正在扫描...
+views.overlays.product_setup_view.boot_channel,启动通道
+views.overlays.product_setup_view.probe,探测
+views.overlays.product_setup_view.server_state,服务器状态
+views.overlays.product_setup_view.ready_to_start_backend,准备好启动后端。
+views.overlays.product_setup_view.engage_boot,开始引导
+views.overlays.product_setup_view.back,返回
+views.overlays.product_setup_view.start,开始
+views.overlays.settings_overlay_view.nexus_settings,NEXUS 设置
+views.overlays.settings_overlay_view.comfyui_runtime_toolchain_server_launch_and_maintenance,ComfyUI 运行环境、服务器启动和维护控制。
+views.overlays.settings_overlay_view.restart_required_to_apply_pending_changes,需要重启以应用更改。
+views.overlays.settings_overlay_view.next_boot_checklist,下次启动清单
+views.overlays.settings_overlay_view.expand,展开
+views.overlays.settings_overlay_view.tools,工具
+views.overlays.settings_overlay_view.server,服务器
+views.overlays.settings_overlay_view.maintenance,维护
+views.overlays.settings_overlay_view.extensions,扩展
+views.overlays.settings_overlay_view.about,关于
+views.overlays.settings_overlay_view.runtime_source,运行环境源
+views.overlays.settings_overlay_view.local,本地
+views.overlays.settings_overlay_view.custom,自定义
+views.overlays.settings_overlay_view.open_folder,打开文件夹
+views.overlays.settings_overlay_view.change_path,更改路径
+views.overlays.settings_overlay_view.check_updates,检查更新
+views.overlays.settings_overlay_view.update_now,立即更新
+views.overlays.settings_overlay_view.check_repository_status_to_see_whether_this_comfyui_chec,检查存储库状态以查看是否有可用更新。
+views.overlays.settings_overlay_view.system,系统
+views.overlays.settings_overlay_view.built_in,内置
+views.overlays.settings_overlay_view.runtime_mode,运行环境模式
+views.overlays.settings_overlay_view.virtual_environment,虚拟环境
+views.overlays.settings_overlay_view.create,创建
+views.overlays.settings_overlay_view.reset,重置
+views.overlays.settings_overlay_view.delete,删除
+views.overlays.settings_overlay_view.host,主机
+views.overlays.settings_overlay_view.port,端口
+views.overlays.settings_overlay_view.detecting_gpu,正在检测 GPU...
+views.overlays.settings_overlay_view.select_gpu,选择 GPU
+views.overlays.settings_overlay_view.runtime_recovery,运行环境恢复
+views.overlays.settings_overlay_view.clear_the_current_server_log_runtime_repair_is_available,清除当前日志。可通过指挥中心执行运行环境修复。
+views.overlays.settings_overlay_view.clear_log,清除日志
+settings.logs.clear_title,清除服务器日志？
+settings.logs.clear_message,清空最新的 ComfyUI 服务器日志，并在可用时清空当前服务器会话日志。\n带时间戳的历史日志会保留用于诊断。
+settings.logs.clear_complete,服务器日志已清除。
+settings.logs.clear_complete_count,已清除 {0} 个服务器日志文件。
+settings.logs.clear_already_empty,服务器日志已经为空。
+settings.logs.clear_locked,已清除 {0} 个服务器日志文件。\n{1} 个活动日志文件被锁定。请停止服务器后再次运行清除日志。
+settings.logs.clear_failed,清除服务器日志失败。\n{0}
+settings.maintenance.continue,继续
+settings.maintenance.prepare,准备
+settings.maintenance.prepare_reset,准备重置
+settings.maintenance.queue_title,正在加入维护任务
+settings.maintenance.queue_detail,正在把所选维护步骤加入下一次启动检查清单...
+settings.maintenance.reset_settings_title,重置 Nexus 设置？
+settings.maintenance.reset_settings_message,这会将 nexus_settings.json 恢复为默认值。\n已安装的运行环境文件、备份、外部 ComfyUI 文件夹和外部模型库不会被删除。\n维护步骤完成后，Nexus 会返回设置流程。
+settings.maintenance.reset_settings_scheduled,已计划重置设置。正在准备维护恢复...
+settings.maintenance.purge_runtime_title,重置本地运行环境？
+settings.maintenance.purge_runtime_message,"这会删除 Nexus 管理的运行环境文件：\n{0}\n\n删除内容包括 built-in ComfyUI、built-in Python/Git、托管 .venv、内部 models，以及 LocalRuntime/Installed 中的托管 custom_nodes。\n\n外部 ComfyUI 文件夹和外部模型库不会被删除。\n以下位置中的备份会保留：\n{1}\n\n如果需要保留内部 models 或 custom_nodes，请先进行备份。"
+settings.maintenance.purge_runtime_queue_title,正在准备运行环境重置
+settings.maintenance.purge_runtime_queue_detail,正在准备维护恢复检查清单...
+settings.maintenance.purge_runtime_scheduled,已计划重置本地运行环境。正在准备维护恢复...
+settings.venv.create_title,创建 .venv？
+settings.venv.reset_title,重置 .venv？
+settings.venv.delete_title,删除 .venv？
+settings.venv.create_message_venv,这会创建隔离的 ComfyUI .venv 文件夹。\nNexus 会为 VENV 启动安装 requirements 和 CUDA PyTorch。\n该更改会在下次服务器启动前应用。
+settings.venv.create_message_direct,这会创建隔离的 ComfyUI .venv 文件夹并修复其依赖。\n在你选择 VENV 前，DIRECT 启动模式会保持不变。\n该更改会在下次服务器启动前应用。
+settings.venv.reset_message_active,这会删除并重新创建 ComfyUI .venv 文件夹。\n.venv 内安装的软件包会被删除，然后重新修复 requirements 和 CUDA PyTorch。\n请重启服务器后再使用重建后的环境。
+settings.venv.reset_message_direct,这会删除并重新创建 ComfyUI .venv 文件夹。\n.venv 内安装的软件包会被删除，然后重新修复 requirements 和 CUDA PyTorch。\nDIRECT 启动模式会保持不变。
+settings.venv.delete_message_active,这会移除 ComfyUI .venv 文件夹，并将服务器启动模式切换为 DIRECT。\n仅安装在 .venv 内的软件包会被删除。\n请重启服务器以应用更改。
+settings.venv.delete_message_direct,这会移除 ComfyUI .venv 文件夹。\n仅安装在 .venv 内的软件包会被删除。\nDIRECT 启动模式会保持不变。
+settings.venv.queue_create_title,正在加入 VENV 创建
+settings.venv.queue_rebuild_title,正在加入 VENV 重建
+settings.venv.queue_delete_title,正在加入 VENV 删除
+settings.venv.queue_detail,正在保存所选运行环境计划并更新下一次启动检查清单...
+settings.venv.create_scheduled,已计划创建 .venv。重启服务器后会在启动前创建。
+settings.venv.rebuild_scheduled,已计划重建 .venv。重启服务器后会在启动前重新创建。
+settings.venv.delete_scheduled,已计划删除 .venv。重启服务器后会在启动前删除。
+views.overlays.settings_overlay_view.runtime_backup,运行环境备份
+views.overlays.settings_overlay_view.create_or_restore_manual_runtime_backups_before_risky_ma,在执行维护前创建或还原运行环境备份。
+views.overlays.settings_overlay_view.backup,备份
+views.overlays.settings_overlay_view.restore,还原
+views.overlays.settings_overlay_view.open_backups,打开备份文件夹
+views.overlays.settings_overlay_view.backups_can_be_large_delete_or_move_them_after_use_to_fr,备份文件可能较大，使用后请及时清理以释放空间。
+views.overlays.settings_overlay_view.settings_reset,设置重置
+views.overlays.settings_overlay_view.reset_nexus_settings_to_defaults_installed_runtime_files,将 Nexus 设置重置为默认值（保留已安装文件）。
+views.overlays.settings_overlay_view.reset_settings,重置设置
+views.overlays.settings_overlay_view.local_runtime_reset,本地运行环境重置
+views.overlays.settings_overlay_view.deletes_localruntime_installed_on_next_boot_project_back,在下次启动时删除管理环境中的模型和插件。
+views.overlays.settings_overlay_view.reset_local_runtime,重置本地运行环境
+views.overlays.settings_overlay_view.dangerous_actions_ask_for_confirmation_before_running,执行危险操作前将请求确认。
+views.overlays.settings_overlay_view.maintenance_log,维护日志
+views.overlays.settings_overlay_view.view_full_log,查看完整日志
+views.overlays.settings_overlay_view.essential_custom_nodes,核心自定义节点
+views.overlays.settings_overlay_view.scan,扫描
+views.overlays.settings_overlay_view.sync_update,同步 / 更新
+views.overlays.settings_overlay_view.reinstall,重新安装
+views.overlays.settings_overlay_view.hud_sample_workflows,HUD 示例工作流
+views.overlays.settings_overlay_view.restore_hud_samples_description,恢复已安装 ComfyUI-HUD 中附带的教程工作流。
+views.overlays.settings_overlay_view.restore_samples,恢复示例
+views.overlays.settings_overlay_view.restore_hud_samples_title,恢复 HUD 示例
+views.overlays.settings_overlay_view.restore_hud_samples_message,"将已安装的 HUD 示例工作流复制到 ComfyUI workflows 文件夹。\n\n来源：\n{0}\n\n目标：\n{1}"
+views.overlays.settings_overlay_view.restore_hud_samples_conflict_message,"HUD 示例文件夹中已存在工作流文件。\n\n请选择仅恢复缺失文件，或替换全部内置示例。\n\n来源：\n{0}\n\n目标：\n{1}"
+views.overlays.settings_overlay_view.restore_missing,恢复缺失文件
+views.overlays.settings_overlay_view.replace_samples,替换示例
+views.overlays.settings_overlay_view.restoring_hud_samples,正在恢复 HUD 示例工作流...
+views.overlays.settings_overlay_view.hud_samples_restored,HUD 示例工作流已恢复。
+views.overlays.settings_overlay_view.hud_samples_restore_failed,HUD 示例恢复失败：{0}
+views.overlays.settings_overlay_view.custom_nodes_folder_status,Custom nodes 文件夹：{0}
+views.overlays.settings_overlay_view.scanning_extensions_title,正在扫描自定义节点
+views.overlays.settings_overlay_view.scanning_extensions_detail,正在检查安装状态和 Git 修订版本...
+views.overlays.settings_overlay_view.queueing_extension_update_title,正在安排扩展更新
+views.overlays.settings_overlay_view.queueing_extension_reinstall_title,正在安排扩展重新安装
+views.overlays.settings_overlay_view.queueing_extensions_detail,正在将所选自定义节点任务保存到下次启动列表...
+views.overlays.settings_overlay_view.extension_scan_failed,自定义节点扫描失败：{0}
+settings.extensions.select_at_least_one,请选择至少一个由 Nexus 管理的扩展进行修复。
+settings.extensions.confirm_sync_title,同步所选扩展？
+settings.extensions.confirm_reinstall_title,重新安装所选扩展？
+settings.extensions.confirm_sync_message,"Nexus 会在下次启动时排队执行所选扩展的 Git 同步/更新和安装流程。\n\n已选择：\n- {0}"
+settings.extensions.confirm_reinstall_message,"Nexus 会在下次启动时排队删除所选扩展文件夹、重新 clone，并执行安装流程。\n\n已选择：\n- {0}"
+settings.extensions.queue_sync,排队同步
+settings.extensions.queue_reinstall,排队重新安装
+settings.extensions.sync_scheduled,已安排所选扩展同步/更新。重启服务器后会在启动前执行。
+settings.extensions.reinstall_scheduled,已安排所选扩展重新安装。重启服务器后会在启动前执行。
+settings.extensions.repair_queued,托管扩展修复已安排到下次启动。
+settings.extensions.scanning_status,正在扫描 Nexus 托管扩展...
+settings.extensions.scan_ready,所有托管扩展已准备就绪。文件夹：{0}
+settings.extensions.scan_missing,存在缺失的托管扩展。文件夹：{0}
+settings.extensions.scan_failed_status,扩展扫描失败。文件夹：{0}
+settings.extensions.pending_title_all,修复托管扩展
+settings.extensions.pending_title_count,修复 {0} 个托管扩展
+settings.extensions.pending_detail_all,只同步并重新安装 Nexus 托管的必需自定义节点。其他自定义节点不会被修改。
+settings.extensions.pending_detail_targets,{0}：{1}
+settings.extensions.action_reinstall,重新安装
+settings.extensions.action_sync_update,同步/更新
+settings.pending_tasks.restart_reason,已排队的启动任务：{0}
+settings.pending_tasks.queued_for_next_boot,下次启动将执行：{0}
+settings.pending_tasks.queued_for_next_boot_heading,下次启动将执行
+settings.pending_tasks.queued_count,已排队 {0} 项
+settings.pending_tasks.expand,展开
+settings.pending_tasks.collapse,收起
+settings.pending_tasks.running,运行中
+settings.pending_tasks.required,必需
+settings.pending_tasks.runtime_purge_title,重置本地运行环境
+settings.pending_tasks.reset_setup_title,重置设置流程选择
+settings.pending_tasks.reset_all_title,重置设置
+settings.pending_tasks.comfy_update_title,更新 ComfyUI
+settings.pending_tasks.venv_create_title,创建 .venv
+settings.pending_tasks.venv_rebuild_title,重建 .venv
+settings.pending_tasks.venv_delete_title,删除 .venv
+settings.pending_tasks.runtime_repair_title,修复运行环境依赖
+settings.pending_tasks.runtime_purge_detail,"停止运行环境进程，删除 LocalRuntime/Installed 和 Nexus pip 缓存，然后返回设置流程。"
+settings.pending_tasks.reset_setup_detail,恢复设置路径和运行环境启动选择，然后继续设置流程。
+settings.pending_tasks.reset_all_detail,将设置文件恢复为默认值。已安装文件会保留。
+settings.pending_tasks.comfy_update_detail,"执行 git pull、同步 requirements，并修复所选 Python 运行环境。"
+settings.pending_tasks.venv_create_detail,创建 Nexus 管理的 ComfyUI .venv，并在 VENV 启动前修复依赖。
+settings.pending_tasks.venv_rebuild_detail,"删除并重新创建 Nexus 管理的 ComfyUI .venv，然后修复依赖。"
+settings.pending_tasks.venv_delete_detail,在使用 DIRECT Python 启动前移除 Nexus 管理的 ComfyUI .venv。
+settings.pending_tasks.runtime_repair_detail,同步所选服务器运行环境的 requirements 和 CUDA PyTorch。
+settings.pending_tasks.generic_detail,此任务会在服务器启动前执行。
+settings.operations.settings_operation,设置操作
+settings.operations.select_comfy_path,正在选择 ComfyUI 路径
+settings.operations.open_folder,正在打开文件夹
+settings.operations.check_comfy_updates,正在检查更新
+settings.operations.apply_comfy_update,正在更新 ComfyUI
+settings.operations.repair_runtime,正在修复运行环境
+settings.operations.select_custom_git,正在选择 Git
+settings.operations.select_custom_python,正在选择 Python
+settings.operations.select_pip_cache,正在选择 pip 缓存
+settings.operations.open_pip_cache,正在打开 pip 缓存
+settings.operations.clear_pip_cache,正在清理 pip 缓存
+settings.operations.venv_maintenance,正在维护 .venv
+settings.operations.open_extensions_folder,正在打开扩展文件夹
+settings.operations.scan_extensions,正在扫描扩展
+settings.operations.repair_extensions,正在安装扩展
+settings.operations.clear_server_log,正在清理服务器日志
+settings.operations.reset_settings,正在重置设置
+settings.operations.backup_runtime_data,正在备份运行环境数据
+settings.operations.restore_runtime_data,正在恢复运行环境数据
+settings.operations.delete_runtime_backup,正在删除运行环境备份
+settings.operations.purge_local_runtime,正在重置运行环境
+settings.status.working,工作中
+settings.status.running_detail,正在运行：{0}
+settings.status.language_changed,语言已更改
+settings.status.app_restart,需要重启应用
+settings.status.language_changed_detail,保存语言更改后，关闭并重新打开 Nexus 以完整应用。
+settings.status.app_restart_detail,关闭并重新打开 Nexus 以完整应用已保存的语言。
+settings.status.changed_restart,已更改 + 需重启
+settings.status.restart_required,需要重启
+settings.status.changed_restart_detail,保存更改后重启服务器，以应用运行环境差异。
+settings.status.restart_required_detail,需要重启：{0}
+settings.status.changed,已更改
+settings.status.changed_detail,存在尚未保存的设置更改。
+settings.status.saved,已保存
+settings.status.saved_detail,所有设置已保存。
+settings.actions.save_restart,保存并重启
+settings.actions.run_tasks_restart,运行任务并重启
+settings.actions.run_restart,运行并重启
+settings.restart.save_restart_title,保存并重启服务器？
+settings.restart.save_restart_message,现在重启会先保存待处理设置，然后使用已保存配置重新启动 ComfyUI。{0}
+settings.restart.run_tasks_title,运行已排队的启动任务？
+settings.restart.run_tasks_message,"Nexus 会在启动 ComfyUI 前运行这些任务：\n\n- {0}"
+views.overlays.settings_overlay_view.discard,丢弃
+views.overlays.settings_overlay_view.save_changes,保存更改
+views.overlays.settings_overlay_view.queueing_task,正在排队任务
+views.overlays.settings_overlay_view.applying_settings_safely,正在安全应用设置...
+views.overlays.settings_overlay_view.comfyui_operation_log,操作日志
+views.overlays.settings_overlay_view.full_process_output_for_the_latest_settings_operation,最新操作的完整详细日志。
+views.rail.rail_view.assets,资产
+views.rail.rail_view.media_assets,媒体资源
+views.rail.rail_view.node_library,节点库
+views.rail.rail_view.comfyui_assets,ComfyUI 媒体资源
+views.rail.rail_view.toggle_apps,应用切换
+views.rail.rail_view.templates,模板
+views.rail.rail_view.settings,设置
+views.rail.rail_view.main_menu,主菜单
+views.rail.tools.apps.apps_view.apps,应用
+views.rail.tools.apps.apps_view.workflow_designer,工作流设计器
+views.rail.tools.apps.apps_view.advanced_node_graph_orchestration_and_management,高级节点图编排与管理。
+views.rail.tools.apps.apps_view.asset_manager,资产管理器
+views.rail.tools.apps.apps_view.centralized_control_for_all_your_models_and_outputs,模型与输出的集中化管理。
+views.rail.tools.assets.assets_browser_view.assets,资产
+views.rail.tools.assets.assets_browser_view.current_location,当前位置
+views.rail.tools.assets.assets_browser_view.model_libraries,模型库
+views.rail.tools.assets.assets_browser_view.model_libraries_internal_only,仅使用内部模型
+views.rail.tools.assets.assets_browser_view.model_libraries_external_count,内部 + {0} 个外部模型库根目录
+views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer,在资源管理器中打开
+views.rail.tools.assets.assets_browser_view.search_assets,搜索资产...
+views.rail.tools.assets.assets_browser_view.no_matching_assets_found,未找到匹配资产。
+views.rail.tools.assets.assets_browser_view.updating_assets,正在更新资产...
+views.rail.tools.media_assets.media_assets_view.title,媒体资源
+views.rail.tools.media_assets.media_assets_view.refresh,刷新媒体资源
+views.rail.tools.media_assets.media_assets_view.open_folder,打开当前媒体文件夹
+views.rail.tools.media_assets.media_assets_view.open_folder_short,文件夹
+views.rail.tools.media_assets.media_assets_view.output,Output
+views.rail.tools.media_assets.media_assets_view.input,Input
+views.rail.tools.media_assets.media_assets_view.output_feed_title,生成结果
+views.rail.tools.media_assets.media_assets_view.output_feed_description,已从 ComfyUI Job Queue 同步
+views.rail.tools.media_assets.media_assets_view.empty_title,暂无媒体资源
+views.rail.tools.media_assets.media_assets_view.empty_description,生成或导入的图像文件会显示在这里。
+views.rail.tools.media_assets.media_assets_view.loading_title,准备缩略图
+views.rail.tools.media_assets.media_assets_view.loading_description,正在扫描当前媒体文件夹...
+views.rail.tools.media_assets.media_assets_view.delete_selected_count,已选择 {0} 个媒体文件
+views.rail.tools.media_assets.media_assets_view.delete_selected_message,删除已选择的 {0} 个媒体文件？
+views.rail.tools.media_assets.media_assets_view.sort_recent_desc,最新 ↓
+views.rail.tools.media_assets.media_assets_view.sort_recent_asc,最旧 ↑
+views.rail.tools.media_assets.media_assets_view.view_mode,缩略图列数
+views.rail.tools.media_assets.media_assets_view.search_results,搜索结果...
+views.rail.tools.media_assets.media_assets_view.deselect_all,取消全选
+views.rail.tools.media_assets.media_assets_view.move_to,移动到...
+views.rail.tools.media_assets.media_assets_view.move_picker_title,移动媒体文件
+views.rail.tools.media_assets.media_assets_view.move_confirm_title,移动媒体文件
+views.rail.tools.media_assets.media_assets_view.move_confirm_message,"移动选中的 {0} 个媒体文件？\n原始文件会从当前位置移除。\n目标：{1}"
+views.rail.tools.media_assets.media_assets_view.move_conflict_title,名称冲突
+views.rail.tools.media_assets.media_assets_view.move_conflict_message,目标位置已存在同名文件。\n冲突的文件会自动重命名后移动。
+views.rail.tools.media_assets.media_assets_view.move,移动
+views.rail.tools.node_library.node_library_view.expand_all,全部展开
+views.rail.tools.node_library.node_library_view.collapse_all,全部折叠
+views.rail.tools.node_library.node_library_view.add_to_stage,添加
+views.rail.tools.node_library.node_library_view.node_library,节点库
+views.rail.tools.node_library.node_library_view.search_nodes,搜索节点...
+views.rail.tools.node_library.node_library_view.include_desc,包含描述
+views.rail.tools.node_library.node_library_view.updating_nodes,正在更新节点...
+views.shell.header_toolbar_tray_view.enter_app_mode,应用模式
+views.shell.header_toolbar_tray_view.workflow_actions,工作流操作
+views.shell.header_toolbar_tray_view.graph,图表
+views.shell.header_toolbar_tray_view.jobs,任务
+views.shell.header_toolbar_tray_view.comfyui_manager,管理器
+views.shell.header_toolbar_tray_view.manager,管理器
+views.shell.header_toolbar_tray_view.show_favorite_custom_node_list,查看收藏节点
+views.shell.header_toolbar_tray_view.unload_models,卸载模型
+views.shell.header_toolbar_tray_view.free_model_and_node_cache,释放缓存
+views.shell.header_toolbar_tray_view.share,分享
+views.shell.header_toolbar_tray_view.toggle_properties_panel,属性面板
+views.shell.header_view.modified,已修改
+views.shell.header_view.no_workflow_selected,未选择工作流
+views.overlays.settings_overlay_view.language,语言
+views.overlays.settings_overlay_view.choose_the_language_used_by_the_nexus_shell,选择界面语言。
+views.overlays.settings_overlay_view.select_language,选择语言
+help.title,NEXUS 帮助
+help.subtitle,面向模型、节点和参考资源的实用现场笔记。
+help.section.practical.title,实用指南
+help.section.practical.description,常见模型和资源任务的分步说明。
+help.item.huggingface.title,Hugging Face
+help.item.huggingface.hint,搜索模型 ➔ 下载 ➔ 直接使用
+help.item.civitai.title,Civitai
+help.item.civitai.hint,搜索模型 ➔ 下载 ➔ 直接使用
+help.section.field.title,实战笔记
+help.section.field.description,简短整理你会反复查阅的概念。
+help.item.gpu_hardware_guide.title,GPU 硬件指南
+help.item.gpu_hardware_guide.hint,说明为什么 NVIDIA 显卡更有优势，以及 VRAM 容量为什么重要。
+help.item.how_images_are_born.title,图像生成原理
+help.item.how_images_are_born.hint,如果结果看起来不自然，请先检查模型、seed、CFG、sampler 和图像尺寸。
+help.item.how_nexus_work.title,Nexus 运行环境
+help.item.how_nexus_work.hint,Nexus 负责管理环境；工作流控制权仍然属于 ComfyUI。
+help.item.adding_a_model.title,添加模型
+help.item.adding_a_model.hint,文件夹示例：checkpoints、loras、vae、controlnet、ipadapter。
+help.item.face_sync_identity.title,人脸同步 / 身份一致性
+help.item.face_sync_identity.hint,如果身份偏移：降低 denoise、改善裁剪质量，并调整模型权重。
+help.item.practical_workflow_checklist.title,工作流检查清单
+help.item.practical_workflow_checklist.hint,建议记录文件夹映射、常用模型组合和高频错误解决方法。
+views.rail.rail_view.transition_loading_title,准备中
+views.rail.rail_view.transition_loading_description,正在稳定当前面板...
+views.overlays.media_viewer.delete_tooltip,删除当前媒体文件
+views.overlays.media_viewer.close_tooltip,关闭媒体查看器
+views.overlays.media_viewer.zoom,缩放
+views.overlays.media_viewer.pan_while_zoomed,缩放时拖动
+views.overlays.media_viewer.left_right_keys,← / →
+views.overlays.media_viewer.arrow_keys,← ↑ ↓ →
+views.overlays.media_viewer.space_enter_keys,SPACE / ENTER
+views.overlays.media_viewer.space_key,SPACE
+views.overlays.media_viewer.click_key,CLICK
+views.overlays.media_viewer.esc_key,ESC
+views.overlays.media_viewer.drag_key,DRAG
+views.overlays.media_viewer.previous_next,上一张 / 下一张
+views.overlays.media_viewer.move_image,移动图像
+views.overlays.media_viewer.pan_freely,自由拖动
+views.overlays.media_viewer.play_pause,播放 / 暂停
+views.overlays.media_viewer.zoom_in,放大
+views.overlays.media_viewer.zoom_out,缩小
+views.overlays.media_viewer.confirm_shortcut_hint,Enter 确认 · Esc 取消
+views.overlays.media_viewer.delete_media_title,删除媒体
+views.overlays.media_viewer.delete_media_message,删除 {0}？
+views.rail.tools.assets.file_operations.batch_rename_title,批量重命名
+views.rail.tools.assets.file_operations.batch_rename_message,输入所选项目的基础名称。
+views.rail.tools.assets.file_operations.batch_rename_empty_message,请输入基础名称。
+views.rail.tools.assets.file_operations.rename_message,请输入新名称。
+views.rail.tools.assets.file_operations.rename_file_message,请输入新名称。扩展名 '{0}' 将保留。
+views.rail.tools.assets.file_operations.paste_conflict_title,名称冲突
+views.rail.tools.assets.file_operations.paste_conflict_message,目标位置已存在同名项目。\n冲突的文件会自动重命名后粘贴。
+context_menu.reveal_in_explorer,在资源管理器中显示
+context_menu.open_model_folder,打开模型文件夹
+context_menu.open_model_root,打开模型根目录
+context_menu.add_model_thumbnail,添加缩略图
+context_menu.set_model_primary_thumbnail,设为主缩略图
+context_menu.copy_path,复制路径
+context_menu.insert_workflow_into_graph,插入到当前工作流
+context_menu.add_workflow_bookmark,添加工作流书签
+asset_bookmark.add_asset_bookmark,添加资源书签
+context_menu.refresh_search,刷新搜索
+model_thumbnail.pick_image_title,选择缩略图
+model_thumbnail.pick_failed_title,图片选择失败
+model_thumbnail.unsupported_title,不支持的图片
+model_thumbnail.unsupported_message,"请选择 PNG、JPG、JPEG 或 WEBP 图片。"
+model_thumbnail.model_not_found_title,找不到模型文件
+model_thumbnail.model_not_found_message,Nexus 无法解析此项目对应的真实模型文件。
+model_thumbnail.add_failed_title,添加缩略图失败
+model_thumbnail.add_complete_title,缩略图已添加
+model_thumbnail.add_complete_message,已添加缩略图：{0}
+model_thumbnail.set_primary_title,设为主缩略图
+model_thumbnail.set_primary_message,选择要作为此模型主缩略图的图片。
+model_thumbnail.set_primary_action,设为主缩略图
+model_thumbnail.primary_badge,主缩略图
+model_thumbnail.page_indicator,第 {0} / {1} 页 · {2} 张图片
+model_thumbnail.no_selection_message,请先选择一张缩略图。
+model_thumbnail.image_missing_title,缩略图不存在
+model_thumbnail.image_missing_message,所选缩略图已不存在。请选择其他图片后重试。
+model_thumbnail.set_primary_failed_title,设置主缩略图失败
+model_thumbnail.set_primary_failed_message,Nexus 无法将所选图片设为主缩略图。
+model_thumbnail.set_primary_complete_title,主缩略图已更新
+model_thumbnail.set_primary_complete_message,当前主缩略图：{0}
+help.frequent_jumps.title,常用跳转
+help.frequent_jumps.description,在构建或调试工作流时，快速跳转到重要位置。
+help.frequent_jumps.badge,书签
+help.concept.runtime.title,Nexus 运行环境
+help.concept.runtime.body,ComfyUI 是引擎，Python 运行服务器/节点，Git 保持同步，WebView 托管画布。
+help.concept.runtime.hint,Nexus 负责管理环境，而工作流的控制权仍在 ComfyUI 手中。
+help.concept.image_birth.title,图像生成原理
+help.concept.image_birth.body,提示词是引导，检查点是视觉大脑，采样器精炼噪声，VAE 将结果转为像素。
+help.concept.image_birth.hint,如果结果不理想，请先检查模型选择、种子、CFG、采样器和步数。
+help.concept.model_apply.title,添加模型
+help.concept.model_apply.body,下载模型并放入对应文件夹，然后刷新或重启以便系统识别。
+help.concept.model_apply.hint,常用文件夹：checkpoints
+help.concept.face_identity.title,人脸同步 / 身份
+help.concept.face_identity.body,利用参考图像，配合 FaceID 模型权重，并保持适度的去噪强度。
+help.concept.face_identity.hint,身份偏移时：尝试降低去噪，提升裁剪质量，并检查模型权重。
+help.concept.workflow.title,工作流检查清单
+help.concept.workflow.body,从已知良好的工作流开始，一次只改动一项，并保存有用的版本。
+help.concept.workflow.hint,建议：记录文件夹映射、常用模型组合及常见错误修复方法。
+views.overlays.product_setup_view.vanguard,先锋
+views.overlays.product_setup_view.architect,建筑师
+views.overlays.product_setup_view.venv,VENV
+views.overlays.settings_overlay_view.python_source,Python 源
+views.overlays.settings_overlay_view.venv,VENV
+views.overlays.settings_overlay_view.direct,直接
+workflow.dialog.workflow_missing_title,工作流缺失
+workflow.dialog.tracked_workflow_missing_message,正在跟踪的工作流文件已不存在。
+workflow.dialog.rename_file_title,重命名工作流文件
+workflow.dialog.rename_file_message,"重命名正在跟踪的工作流文件。
+{0}"
+workflow.dialog.invalid_name_title,名称无效
+workflow.dialog.invalid_file_name_message,请输入有效的工作流文件名。
+workflow.dialog.file_exists_title,文件已存在
+workflow.dialog.file_exists_message,{0} 已存在。
+workflow.dialog.workflow_path_not_found,未找到 {0}。
+workflow.batch_operation.blocker_title,正在更新工作流
+workflow.batch_operation.blocker_detail,正在处理 {0} 个项目。请稍候...
+workflow.bookmark_hud.bookmarked,已收藏
+workflow.bookmark_hud.available,可用
+workflow.bookmark_hud.no_workflow_files,在配置的 ComfyUI workflows 文件夹中未找到工作流文件。
+workflow.bookmark_hud.no_filter_matches,没有工作流匹配当前筛选条件。
+workflow.bookmark_hud.count,{0} 已收藏 // {1} 已知
+workflow.bookmark_hud.filtered_count,{0} 显示 // {1} 已收藏 // {2} 已知
+workflow.bookmark_hud.pinned,已固定
+workflow.bookmark_hud.known,已知
+workflow.bookmark_hud.pin,固定
+workflow.bookmark_hud.unpin,取消固定
+views.rail.tools.assets.assets_browser_view.bookmarked_workflows,已收藏的工作流
+views.rail.tools.assets.assets_browser_view.searching_current_location,正在搜索当前位置...
+views.rail.tools.assets.assets_browser_view.search_failed,搜索失败
+views.rail.tools.assets.assets_browser_view.search_failed_message,搜索失败：{0}
+views.rail.tools.assets.assets_browser_view.search_results_count,当前位置有 {0} 个结果
+views.rail.tools.assets.assets_browser_view.root_path_unavailable,根路径不可用。
+views.rail.tools.assets.assets_browser_view.folder_empty,此文件夹为空。
+views.rail.tools.assets.assets_browser_view.rail_error,侧栏错误：{0}
+views.rail.tools.assets.file_operations.move_title,移动文件
+views.rail.tools.assets.file_operations.move_button,移动
+views.rail.tools.assets.file_operations.move_single_message,是否将“{0}”移动到“{1}”？
+views.rail.tools.assets.file_operations.move_multiple_message,是否将 {0} 个项目移动到“{1}”？
+views.rail.tools.assets.file_operations.move_multiple_file_message,是否将 {0} 个文件移动到“{1}”？\n\n{2}
+views.rail.tools.assets.file_operations.move_more_items_message,...还有 {0} 个文件
+views.rail.tools.assets.file_operations.new_folder_name,新建文件夹
+views.rail.tools.assets.file_operations.add_folder_title,添加文件夹
+views.rail.tools.assets.file_operations.add_folder_prompt_message,"文件夹将添加到以下位置：
+{0}"
+views.rail.tools.assets.file_operations.folder_name_placeholder,文件夹名称
+views.rail.tools.assets.file_operations.folder_name_required,请输入文件夹名称。
+views.rail.tools.assets.file_operations.folder_name_invalid,文件夹名称不能包含路径分隔符或无效文件名字符。
+views.rail.tools.assets.file_operations.folder_exists_message,已存在名为“{0}”的文件夹或文件。
+views.rail.tools.assets.file_operations.parent_folder_unavailable,无法解析父文件夹。
+views.rail.tools.assets.file_operations.selected_item_missing,所选项目已不存在。
+views.rail.tools.assets.file_operations.delete_message,是否删除“{0}”？
+settings.model_libraries.title,模型库
+settings.model_libraries.description,连接存储在 ComfyUI 外部的模型文件夹。\n每个模型库都会镜像当前的 ComfyUI 模型目录结构。
+settings.model_libraries.add_library,添加模型库
+settings.model_libraries.sync_structure,同步结构
+settings.model_libraries.library,外部模型库 {0}
+settings.model_libraries.not_connected,未连接
+settings.model_libraries.unavailable,不可用：{0}
+settings.model_libraries.open,打开
+settings.model_libraries.connect,连接
+settings.model_libraries.replace,替换
+settings.model_libraries.remove,移除
+settings.model_libraries.restart_hint,更改将在下次启动 ComfyUI 时生效。\n正在运行的服务器需要重启才能重新加载模型路径。
+settings.model_libraries.folder_picker_title,选择模型库文件夹
+settings.model_libraries.duplicate,此模型库已注册。
+settings.model_libraries.settings_save_failed,由于无法保存 Nexus 设置，模型路径已恢复到先前状态。
+settings.model_libraries.restart_reason,模型库
+settings.model_libraries.syncing_title,正在同步模型库结构
+settings.model_libraries.syncing_detail,正在读取当前的 ComfyUI 模型文件夹。\n正在更新外部模型库结构。
+settings.model_libraries.sync_complete,模型库结构已同步。\n请重启 ComfyUI 以应用更新后的路径。
+settings.model_libraries.sync_failed,模型库结构同步失败：{0}
+settings.model_duplicates.title,模型重复扫描
+settings.model_duplicates.description,在内部和外部模型库中查找内容相同的模型文件。\nNexus 只打开位置，是否删除由你决定。
+settings.model_duplicates.scan,扫描重复项
+settings.model_duplicates.open_report,打开报告
+settings.model_duplicates.open_location_1,打开位置 1
+settings.model_duplicates.open_location_2,打开位置 2
+settings.model_duplicates.next,下一个重复项
+settings.model_duplicates.ready,扫描模型库以查找完全相同的文件。
+settings.model_duplicates.scanning_title,正在扫描模型重复项
+settings.model_duplicates.scanning_detail,正在扫描重复模型文件...
+settings.model_duplicates.progress_discovering,"正在收集模型文件：{0} 个，{1}"
+settings.model_duplicates.progress_preparing,"正在准备精确比较：候选 {0} 个，{1}"
+settings.model_duplicates.progress_hashing,"正在比较文件内容：{0}/{1} 个，{2}/{3}"
+settings.model_duplicates.progress_report,正在写入重复扫描报告...
+settings.model_duplicates.cancelled,模型重复扫描已取消。
+settings.model_duplicates.scan_failed,模型重复扫描失败。\n{0}
+settings.model_duplicates.none_found,"未找到重复模型。\n已扫描 {0} 个文件，{1}。"
+settings.model_duplicates.found,"重复 {0}/{1}：{2}\n大小：{3} · {4} 个位置"
+settings.model_duplicates.found_many,"重复 {0}/{1}：{2}\n大小：{3} · {4} 个位置 · 报告中还有 {5} 个"
+setup.model_library.title,外部模型库
+setup.model_library.description,可以将大型模型文件保存在 ComfyUI 外部。\n这样重装、备份和多个 ComfyUI 共享模型会更方便。
+setup.model_library.not_connected,尚未连接外部模型库。\n这是可选设置，也可以稍后在设置中添加。
+setup.model_library.connected_count,已连接 {0} 个外部模型库根目录。\n将在下次启动 ComfyUI 时生效。
+setup.model_library.unchanged,所选模型库已连接。
+setup.model_library.duplicate,此模型库已注册。
+setup.model_library.folder_picker_title,选择模型库文件夹
+setup.model_library.remove_failed,无法移除所选模型库。
+model_libraries.service.duplicate_path,此模型库已注册：{0}
+model_libraries.service.none_connected,尚未连接外部模型库。
+model_libraries.service.unavailable,模型库不可用：{0}
+model_libraries.service.yaml_missing,已配置外部模型库，但缺少 extra_model_paths.yaml。
+model_libraries.service.connected_count,已连接 {0} 个外部模型库根目录。
+model_libraries.service.out_of_sync,Nexus 模型库区段与设置不同步。
+model_libraries.service.comfy_unavailable,ComfyUI 文件夹不可用。
+model_libraries.service.removed,已移除外部模型库。
+model_libraries.service.applied_count,已应用 {0} 个外部模型库根目录。
+model_libraries.service.update_failed,无法更新 extra_model_paths.yaml：{0}
+model_libraries.service.markers_invalid,Nexus 模型路径标记重复或格式错误。
+model_libraries.service.top_level_mapping,extra_model_paths.yaml 必须包含顶层映射。
+model_libraries.service.reserved_key,Nexus 管理区段外存在保留的顶层键：{0}
+settings.runtime_backup.description,为内部 models 和 custom_nodes 文件夹创建便携式备份。\n开始前请选择保存位置和格式。
+settings.runtime_backup.destination,备份保存位置
+settings.runtime_backup.change,更改
+settings.runtime_backup.open,打开
+settings.runtime_backup.available_space,可用空间：{0}
+settings.runtime_backup.space_unavailable,无法读取可用空间：{0}
+settings.runtime_backup.format,格式
+settings.runtime_backup.folder,文件夹
+settings.runtime_backup.zip,ZIP
+settings.runtime_backup.include,包含
+settings.runtime_backup.models,模型
+settings.runtime_backup.custom_nodes,自定义节点
+settings.runtime_backup.ready_to_calculate,请选择要包含的文件夹。\nNexus 会在开始前计算所需磁盘空间。
+settings.runtime_backup.external_libraries_excluded,外部模型库不包含在运行环境备份中。\n可打开下方路径查看单独存储的文件。
+settings.runtime_backup.calculating,正在计算备份大小和磁盘可用空间...
+settings.runtime_backup.insufficient_space,磁盘可用空间不足。\n需要：{0} · 可用：{1}
+settings.runtime_backup.analysis_failed,无法开始备份。\n{0}
+settings.runtime_backup.analysis_ready,"源数据：{1} 个文件，共 {0}\n需要：{2} · 可用：{3}"
+settings.runtime_backup.confirm_title,开始运行环境备份？
+settings.runtime_backup.confirm_message,"包含：{0}\n格式：{1}\n源数据大小：{2}\n所需空间：{3}\n可用空间：{4}\n\n保存位置：\n{5}\n\n不包含外部模型库。"
+settings.runtime_backup.start,开始备份
+settings.runtime_backup.browse_folder,浏览文件夹...
+settings.runtime_backup.browse_zip,浏览 ZIP...
+settings.runtime_backup.restore_title,恢复运行环境备份
+settings.runtime_backup.select_backup_folder,选择 Nexus 运行环境备份文件夹
+settings.runtime_backup.select_backup_zip,选择 Nexus 运行环境备份 ZIP
+settings.runtime_backup.select_destination,选择运行环境备份保存位置
+settings.runtime_backup.preference_save_failed,Nexus 无法保存备份位置或格式。\n将继续使用之前的设置。
+settings.runtime_backup.destination_changed,备份保存位置已更新。\n备份前将重新计算空间。
+settings.runtime_backup.format_changed,备份格式已更新。\n备份前将重新计算空间。
+settings.runtime_backup.operation_failed,运行环境备份失败。\n{0}
+settings.runtime_backup.backup_complete,运行环境备份已完成。\n{0}
+settings.runtime_backup.restore_confirm_title,恢复运行环境备份？
+settings.runtime_backup.restore_confirm_message,所选备份将复制到当前 ComfyUI 运行环境。\n恢复后请重启服务器以重新加载文件。
+settings.runtime_backup.restore_complete,运行环境备份已恢复。\n请重启服务器以使用恢复的数据。
+settings.runtime_backup.delete_title,删除运行环境备份
+settings.runtime_backup.delete_confirm_title,删除运行环境备份？
+settings.runtime_backup.delete_confirm_message,这将永久删除所选 Nexus 备份。\n\n{0}\n\n不会影响当前 ComfyUI 运行环境。
+settings.runtime_backup.delete_complete,运行环境备份已删除。
+settings.runtime_backup.status_complete,已完成
+settings.runtime_backup.status_incomplete,未完成
+settings.runtime_backup.ready_to_restore,已准备恢复所选备份。
+settings.runtime_backup.none_selected,未选择运行环境备份。
+settings.runtime_backup.ready_to_delete,已选择 {0} 作为删除目标。
+settings.runtime_backup.open_failed,无法打开运行环境备份文件夹。
+settings.runtime_backup.restore_analyzing_title,正在分析运行环境恢复
+settings.runtime_backup.restore_analyzing_detail,正在比较备份与当前 ComfyUI 文件。\n内容相同的文件将被跳过。
+settings.runtime_backup.restore_analysis_ready,"恢复预览已就绪：新增 {0} · 替换 {1} · 相同 {2} · 保留 {3}"
+settings.runtime_backup.restore_analysis_message,"备份：\n{0}\n\n恢复位置：\n{1}\n\n新增：{2} · 替换：{3} · 相同：{4} · 保留：{5}\n复制大小：{6}\n所需空间：{7}\n可用空间：{8}\n\n仅存在于当前位置的文件会保留。路径相同但内容不同的文件会由备份副本替换。\n继续前请检查变更文件。\n\n预览：\n{9}\n\n路径映射：\n{10}"
+settings.runtime_backup.open_change_list,打开变更列表
+settings.runtime_backup.start_restore,开始恢复
+settings.runtime_backup.open_report_failed,无法打开恢复变更报告。
+settings.runtime_backup.restore_handler_missing,运行环境恢复处理程序不可用。
+settings.runtime_backup.restore_merge_complete,运行环境合并恢复已完成。\n已新增或替换 {0} 个文件。
+settings.runtime_backup.restore_merge_complete_restarting,运行环境合并恢复已完成。\n已新增或替换 {0} 个文件。\n服务器重启会在加载界面继续进行。
+settings.runtime_backup.restore_merge_failed,运行环境合并恢复失败。\n{0}
+settings.runtime_backup.blocker_title,正在恢复运行环境
+settings.runtime_backup.blocker_preparing,正在为安全的合并恢复准备 ComfyUI...
+settings.runtime_backup.blocker_stopping_server,正在安全停止 ComfyUI 服务器...
+settings.runtime_backup.blocker_merging,正在合并已验证的备份文件...
+settings.runtime_backup.blocker_complete,运行环境恢复已完成。
+settings.runtime_backup.restore_no_changes_title,没有需要恢复的变更
+settings.runtime_backup.restore_no_changes_message,备份与当前运行环境内容一致。\n已跳过 {0} 个相同文件，并保留 {1} 个仅存在于当前位置的文件。
+settings.pip_cache.title,pip cache
+settings.pip_cache.description,只控制 pip 下载/构建缓存。\n不会改变包的安装位置。
+settings.pip_cache.pip_default_path,pip 自行选择缓存位置
+settings.pip_cache.pip_default_detail,当前缓存：Python/venv 自带 pip 默认值。\nNexus 不设置 PIP_CACHE_DIR。
+settings.pip_cache.default_detail,当前缓存：LocalRuntime 下的 Nexus 默认位置。\nNexus 会为托管的 pip 命令设置 PIP_CACHE_DIR。
+settings.pip_cache.custom_detail,当前缓存：自定义位置。\nNexus 会为托管的 pip 命令设置 PIP_CACHE_DIR。
+settings.pip_cache.use_pip_default,pip default
+settings.pip_cache.use_default,Nexus default
+settings.pip_cache.change,Custom
+settings.pip_cache.clear,清除缓存
+settings.pip_cache.select_folder,选择 pip cache 文件夹
+settings.pip_cache.save_failed,无法保存 pip cache 设置。
+settings.pip_cache.clear_title,清除 pip cache？
+settings.pip_cache.clear_message,只删除已下载的 pip 缓存文件。\n不会移除已安装的 Python 包。\n如果缺少包，请使用 Repair runtime 或 Repair & Boot。
+settings.pip_cache.clear_complete,pip cache 已清除。
+settings.pip_cache.clear_failed,清除 pip cache 失败。\n{0}
+setup.venv.title,Virtual Environment
+setup.venv.description,用于隔离管理 ComfyUI 包的 Python 工作区。\n如果希望 Nexus 安全管理依赖，请创建它。
+setup.venv.checking,正在检查 ComfyUI Python 环境...
+setup.venv.requires_python,需要 Python Runtime。\nPython 准备好后，可在这里创建隔离的 .venv。\n首次设置通常需要 10-20 分钟，依赖项可能占用数 GB 空间。
+setup.venv.keep_selected,已选择现有 .venv 作为服务器运行环境。
+setup.venv.mode_selected,已选择 .venv 模式作为服务器运行环境。\n首次设置通常需要 10-20 分钟。\nComfyUI requirements 和 CUDA PyTorch 包可能占用数 GB 磁盘空间。
+setup.venv.direct_active,Direct Python 模式已启用。服务器 Python：{0}。
+setup.venv.direct_existing,检测到现有 .venv。\n建议 Reset 以获得干净设置；如果信任此环境，也可以保留。
+setup.venv.direct_incomplete,现有 .venv 文件夹不完整。\n建议 Reset。
+setup.venv.direct_missing,.venv 尚未创建。建议 Create。\n首次设置通常需要 10-20 分钟。\nComfyUI requirements 和 CUDA PyTorch 包可能占用数 GB 磁盘空间。
+setup.venv.ready,.venv 已就绪。\nNexus 可以使用此隔离环境管理 ComfyUI 依赖。
+setup.venv.incomplete,.venv 文件夹存在，但缺少 Scripts\python.exe。\nReset 会重新创建干净环境。\n首次设置通常需要 10-20 分钟。
+setup.venv.missing,.venv 尚未创建。建议 Create。\n首次设置通常需要 10-20 分钟。\n高级用户可以继续使用 Direct Python。
+setup.venv.launch_mode_updated,Python 启动模式已更新。
+setup.venv.setup_failed,Python 环境设置失败：{0}
+setup.venv.option_create,Create
+setup.venv.option_create_description,创建隔离的 ComfyUI .venv。推荐大多数用户使用。
+setup.venv.option_reset,Reset
+setup.venv.option_reset_description,删除并重新创建 .venv，以获得干净设置。
+setup.venv.option_reset_incomplete_description,删除并重新创建不完整的 .venv。
+setup.venv.option_keep,Keep Existing
+setup.venv.option_keep_description,按原样使用现有 .venv。
+setup.pip_cache.title,pip cache
+setup.pip_cache.description,控制 Nexus 托管 pip 下载/构建缓存的保存位置。\n不会改变已安装 Python 包的位置。
+setup.pip_cache.unsupported_option,不支持的 pip cache 选项。
+setup.pip_cache.invalid_folder,请选择有效的 pip cache 文件夹。
+setup.pip_cache.details_pip_default,pip 自行选择缓存位置。\nNexus 不会为托管的 pip 命令设置 PIP_CACHE_DIR。
+setup.pip_cache.details_nexus_default,Nexus default pip cache 已启用。
+setup.pip_cache.details_custom,Custom pip cache 已启用。
+setup.pip_cache.option_pip_default,pip default
+setup.pip_cache.option_pip_default_description,让所选 Python 或 .venv 的 pip 自行选择缓存。
+setup.pip_cache.option_nexus_default,Nexus default
+setup.pip_cache.option_nexus_default_description,将 pip cache 存储在 LocalRuntime 下。
+setup.pip_cache.option_custom,Custom
+setup.pip_cache.option_custom_description,选择专用的 pip cache 文件夹。
+setup.model_library.invalid_folder,请选择有效的模型库文件夹。
+setup.model_library.already_connected_selected,所选模型库已连接。
+setup.model_library.already_connected,此模型库已连接。
+setup.model_library.option_connect,连接库
+setup.model_library.option_replace,替换
+setup.model_library.option_replace_indexed,替换库 {0}
+setup.model_library.option_remove,移除
+setup.model_library.option_remove_indexed,移除库 {0}
+setup.model_library.option_add,添加库
+setup.model_library.restart_hint,更改将在下次启动 ComfyUI 后生效。
+setup.model_library.unavailable,一个或多个外部模型库不可用。
+setup.model_library.needs_sync,需要同步外部模型库配置。
+setup.status.label,状态
+setup.status.pending,等待
+setup.status.working,处理中
+setup.status.ready,就绪
+setup.status.setup,设置
+setup.status.optional,可选
+setup.status.missing,缺失
+setup.status.error,错误
+setup.status.probing,检测中...
+setup.status.checking,检查中...
+setup.status.installing,安装中...
+setup.status.install,安装
+setup.status.config,配置
+setup.status.edit,编辑
+setup.common.probing,正在检测系统环境...
+setup.common.pending_detail,等待中...
+setup.common.option_install_builtin,安装内置
+setup.common.option_manual_selection,手动选择
+setup.common.option_keep_next,保留现有（下一步）
+setup.common.install_service_missing,安装服务尚未初始化。
+setup.common.probe_failed,{0} 检测失败：{1}
+setup.git.title,Git Core Engine
+setup.git.description,用于同步 ComfyUI 和 custom nodes 的版本控制系统。
+setup.git.system_detected,已检测到 System Git (v{0})。
+setup.git.system_missing,未找到 System Git。需要安装内置版本。
+setup.git.option_system,使用 System Git
+setup.git.option_system_description,使用系统 Git v{0}。
+setup.git.option_builtin_description,"安装隔离的 portable Git。"
+setup.git.option_manual_description,手动定位 git.exe 路径。
+setup.git.using_system,正在使用 System Git v{0}
+setup.git.using_builtin,正在使用内置 Git v{0}
+setup.git.custom_selected,已选择 Custom Git 路径。
+setup.git.using_custom,正在使用 Custom Git：{0}
+setup.git.system_unavailable,System Git 缺失或无法访问。请切换到 Built-in 模式或重新全局安装。
+setup.git.install_service_missing,安装服务尚未初始化，当前阶段无法解压 Git 包。
+setup.git.extract_success,Git 包已成功解压。
+setup.git.extract_failed,解压 Git 失败：{0}
+setup.python.title,Python Runtime
+setup.python.description,用于执行 ComfyUI backend 的独立 Python 引擎。
+setup.python.system_detected,已检测到 System Python (v{0})。
+setup.python.system_missing,未找到 System Python。需要安装内置版本。
+setup.python.option_system,使用 System Python
+setup.python.option_system_description,使用系统 Python v{0}。
+setup.python.option_builtin_description,安装隔离的 Python runtime。
+setup.python.option_manual_description,手动定位 python.exe 路径。
+setup.python.using_system,正在使用 System Python v{0}
+setup.python.using_builtin,正在使用内置 Python v{0}
+setup.python.custom_selected,已选择 Custom Python 路径。
+setup.python.using_custom,正在使用 Custom Python：{0}
+setup.python.system_unavailable,已选择 System Python，但不可用。请切换到 Built-in。
+setup.python.install_success,Python runtime 已安装。
+setup.python.install_failed,安装 Python runtime 失败：{0}
+setup.comfy_core.title,ComfyUI Core & Venv
+setup.comfy_core.description,主 backend 源代码和 Python virtual environment。
+setup.comfy_core.ready_to_install,ComfyUI Core 和 .venv 已准备安装。
+setup.comfy_core.option_default_path,使用默认路径
+setup.comfy_core.option_custom_path,选择 Custom 路径
+setup.comfy_core.recover_failed,恢复 ComfyUI Core 失败：{0}
+setup.base_model.title,Base Model Checkpoint
+setup.base_model.description,生成图像所需的默认 Stable Diffusion 模型。
+setup.base_model.present,Base model 已存在。
+setup.base_model.missing,缺少 Base model checkpoint。
+setup.base_model.option_download,下载模型
+setup.base_model.option_skip,暂时跳过
+setup.base_model.skipped,已跳过 Base model 下载。
+setup.base_model.download_success,Base model 已下载。
+setup.base_model.download_failed,下载 Base model 失败：{0}
+setup.extensions.title,ComfyUI Extensions
+setup.extensions.description,运行 Nexus 所需的必要扩展。
+setup.extensions.item_installed,{0}: 已安装
+setup.extensions.item_pending,{0}: 等待安装
+setup.extensions.check_failed,Extension 检查失败：{0}
+setup.extensions.option_install,安装 Extensions
+setup.extensions.prepare_success,托管 extensions 已准备好。Python 安装脚本将在服务器启动前运行。
+setup.extensions.install_failed,安装 Manager/Extensions 失败：{0}
+common.next,下一步
+setup.action.launch_nexus,启动 NEXUS
+setup.status.requirements_pending,必要项等待中
+setup.console.recover_boot_title,修复 runtime 并启动？
+setup.console.recover_boot_message,将同步 ComfyUI requirements，并为所选服务器 runtime 修复 CUDA PyTorch wheel。\n随后 Nexus 会启动服务器。可能需要几分钟。\n\n目标：{0}
+setup.console.recover_boot,修复并启动
+setup.console.state_standby,待机
+setup.console.state_initializing,初始化中
+setup.console.state_booting,启动中
+setup.console.state_failed,失败
+setup.console.state_online,在线
+setup.console.badge_ready,就绪
+setup.console.badge_boot,启动
+setup.console.badge_fail,失败
+setup.console.badge_live,在线
+setup.console.preparing_detail,正在准备启动前 runtime 检查。
+setup.console.standby_detail,已准备启动 ComfyUI backend。
+setup.console.booting_detail,Backend process 正在启动。正在监视日志流和端口探测。
+setup.console.failed_detail,启动流程失败。请查看 console log 后重试。
+setup.console.online_detail,ComfyUI backend 可访问，已准备交给 Nexus。
+setup.steps.welcome.title,开始
+setup.steps.welcome.description,初始化 Nexus setup deck，并准备本地 command center。
+setup.steps.core_link.title,Core Link 检查
+setup.steps.core_link.description,初始化环境工具并准备本地 runtime 基础。
+setup.steps.comfy_core.title,ComfyUI Core
+setup.steps.comfy_core.description,下载或验证 ComfyUI core 包和 workspace 文件夹。
+setup.steps.base_resources.title,Base Resources
+setup.steps.base_resources.description,下载默认 Stable Diffusion checkpoint 和必要 asset。
+setup.steps.manager.title,ComfyUI-Manager
+setup.steps.manager.description,安装并验证用于维护命令的 manager extension。
+setup.steps.hud_bridge.title,Nexus HUD Bridge
+setup.steps.hud_bridge.description,修补 HUD bridge、native action relay 和内置 ComfyUI 集成。
+setup.steps.dependencies.title,Dependencies
+setup.steps.dependencies.description,修复已配置的 ComfyUI Python runtime 和 CUDA 包。
+setup.steps.server.title,Server Standby
+setup.steps.server.description,使用配置的服务器选项启动 ComfyUI，并等待本地端口。
+setup.steps.launch.title,启动 Nexus
+setup.steps.launch.description,服务器就绪后交给现有 WebView login sequence。
+loading.bridge_online_title,Neural Bridge Online
+loading.bridge_online_detail,ComfyUI 已响应 shell handshake。
+loading.bridge_online_status,WELCOME TO NEXUS
+loading.finalizing_title,正在完成工作区
+loading.finalizing_detail,"正在挂载工具、同步 shell controls，并准备显示界面。"
+loading.finalizing_status,PLEASE STAND BY // PREPARING WORKSPACE...
+loading.comfy_unreachable_title,无法连接 ComfyUI Core
+loading.comfy_unreachable_status,COMFYUI CORE UNREACHABLE // RETRYING...
+loading.bridge_timeout_title,Bridge Handshake Timeout
+loading.bridge_timeout_detail,PROTOS 未在重试预算耗尽前响应。HUD bridge 可能缺失或不完整。
+loading.bridge_timeout_status,PROTOS TIMEOUT // SETUP AVAILABLE
+toast.interrupting_job,正在中断当前任务...
+setup.gpu.scanning,扫描中...
+setup.console.boot_canceled,服务器就绪前启动流程已取消。
+setup.console.boot_failed_with_message,启动流程失败：{0}
+setup.console.maintenance_completed,Setup maintenance 已完成。启动前请继续完成设置。

@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:local="clr-namespace:ComfyUI_Nexus.Views.Overlays"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.LoadingOverlayView">
+	<ContentView.Resources>
+		<Color x:Key="LoadingShellColor">#0b0f19</Color>
+		<Color x:Key="LoadingWhiteColor">#ffffff</Color>
+		<Color x:Key="LoadingAccentColor">#31d8ff</Color>
+		<Color x:Key="LoadingNeonColor">#00e5ff</Color>
+		<Color x:Key="LoadingAccentWashColor">#1431d8ff</Color>
+		<Color x:Key="LoadingSuccessColor">#00ff88</Color>
+		<Color x:Key="LoadingSuccessTextColor">#eafff4</Color>
+		<Color x:Key="LoadingTitleTextColor">#e8fbff</Color>
+		<Color x:Key="LoadingDescriptionTextColor">#7894aa</Color>
+		<Color x:Key="LoadingProgressTrackColor">#162135</Color>
+		<Color x:Key="LoadingActionSurfaceColor">#0Affffff</Color>
+		<Color x:Key="LoadingHintTextColor">#667fa0b8</Color>
+		<Color x:Key="ServerBootPanelColor">#A80A101C</Color>
+		<Color x:Key="ServerBootTextMutedColor">#7fa0b8</Color>
+	</ContentView.Resources>
+
+	<Grid x:Name="LoadingOverlayGrid"
+		  BackgroundColor="{StaticResource LoadingShellColor}"
+		  ZIndex="1000">
+		<BoxView x:Name="ScanLine"
+				 BackgroundColor="{StaticResource LoadingWhiteColor}"
+				 Opacity="0.02"
+				 HeightRequest="1"
+				 VerticalOptions="Start" />
+
+		<StackLayout x:Name="LoadingStackLayout"
+					 VerticalOptions="Center"
+					 HorizontalOptions="Center"
+					 Spacing="20"
+					 IsVisible="False">
+			<Grid WidthRequest="220"
+				  HeightRequest="170">
+				<Grid x:Name="LoadingOrbitHost"
+					  WidthRequest="158"
+					  HeightRequest="102"
+					  Rotation="-12"
+					  HorizontalOptions="Center"
+					  VerticalOptions="Center"
+					  InputTransparent="True">
+					<Ellipse x:Name="LoadingRingEllipse"
+							 Fill="{StaticResource LoadingAccentWashColor}"
+							 Opacity="0.06">
+						<Ellipse.Shadow>
+							<Shadow Brush="{StaticResource LoadingNeonColor}"
+									Offset="0,0"
+									Radius="18"
+									Opacity="0.7" />
+						</Ellipse.Shadow>
+					</Ellipse>
+					<Ellipse x:Name="LoadingOrbitMarker"
+							 WidthRequest="7"
+							 HeightRequest="7"
+							 Fill="{StaticResource LoadingAccentColor}"
+							 HorizontalOptions="Center"
+							 VerticalOptions="Start"
+							 TranslationY="-3">
+						<Ellipse.Shadow>
+							<Shadow Brush="{StaticResource LoadingAccentColor}"
+									Offset="0,0"
+									Radius="14"
+									Opacity="0.85" />
+						</Ellipse.Shadow>
+					</Ellipse>
+				</Grid>
+				<Image x:Name="LoadingLogoImage"
+					   Source="logo_neon_glass.png"
+					   WidthRequest="62"
+					   HeightRequest="62"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center">
+					<Image.Shadow>
+						<Shadow Brush="{StaticResource LoadingNeonColor}"
+								Offset="0,0"
+								Radius="32"
+								Opacity="0.75" />
+					</Image.Shadow>
+				</Image>
+				<Grid x:Name="SuccessIconHost"
+					  WidthRequest="104"
+					  HeightRequest="104"
+					  HorizontalOptions="Center"
+					  VerticalOptions="Center"
+					  Opacity="0"
+					  Scale="0"
+					  Rotation="-10">
+					<Label Text="✓"
+						   TextColor="{StaticResource LoadingSuccessTextColor}"
+						   FontSize="56"
+						   FontAttributes="Bold"
+						   HorizontalTextAlignment="Center"
+						   VerticalTextAlignment="Center"
+						   HorizontalOptions="Center"
+						   VerticalOptions="Center">
+						<Label.Shadow>
+							<Shadow Brush="{StaticResource LoadingSuccessColor}"
+									Offset="0,0"
+									Radius="8"
+									Opacity="0.38" />
+						</Label.Shadow>
+					</Label>
+				</Grid>
+				<Label x:Name="SuccessIconLabel"
+					   Text="X"
+					   TextColor="{StaticResource LoadingSuccessColor}"
+					   FontSize="38"
+					   FontAttributes="Bold"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   Opacity="0"
+					   Scale="0"
+					   Rotation="-10">
+					<Label.Shadow>
+						<Shadow Brush="{StaticResource LoadingSuccessColor}"
+								Offset="0,0"
+								Radius="15"
+								Opacity="0.9" />
+					</Label.Shadow>
+				</Label>
+			</Grid>
+
+			<VerticalStackLayout Spacing="6"
+								 HorizontalOptions="Center"
+								 WidthRequest="520">
+				<Label x:Name="LoadingTitleLabel"
+					   Text="{loc:Loc views.overlays.loading_overlay_view.nexus_shell}"
+					   TextColor="{StaticResource LoadingTitleTextColor}"
+					   FontSize="18"
+					   FontAttributes="Bold"
+					   HorizontalTextAlignment="Center"
+					   HorizontalOptions="Center"
+					   IsVisible="False" />
+
+				<Label x:Name="LoadingDescriptionLabel"
+					   Text=""
+					   TextColor="{StaticResource LoadingDescriptionTextColor}"
+					   FontSize="12"
+					   HorizontalTextAlignment="Center"
+					   LineBreakMode="WordWrap"
+					   HorizontalOptions="Fill"
+					   IsVisible="False" />
+			</VerticalStackLayout>
+
+			<Label x:Name="LoadingStatusLabel"
+				   Text="{loc:Loc views.overlays.loading_overlay_view.initializing_nexus_shell}"
+				   TextColor="{StaticResource LoadingNeonColor}"
+				   FontSize="14"
+				   FontAttributes="Bold"
+				   HorizontalOptions="Center"
+				   Opacity="0.95">
+				<Label.Shadow>
+					<Shadow Brush="{StaticResource LoadingNeonColor}"
+							Offset="0,0"
+							Radius="10"
+							Opacity="0.8" />
+				</Label.Shadow>
+			</Label>
+
+			<Border x:Name="LoadingProgressHost"
+					HeightRequest="5"
+					WidthRequest="360"
+					StrokeThickness="0"
+					BackgroundColor="{StaticResource LoadingProgressTrackColor}"
+					IsVisible="False">
+				<Border.StrokeShape>
+					<RoundRectangle CornerRadius="5" />
+				</Border.StrokeShape>
+				<Grid>
+					<BoxView x:Name="LoadingProgressFill"
+							 Color="{StaticResource LoadingNeonColor}"
+							 HorizontalOptions="Start"
+							 WidthRequest="0" />
+				</Grid>
+			</Border>
+
+			<Border x:Name="LoadingSetupActionButton"
+					BackgroundColor="{StaticResource LoadingActionSurfaceColor}"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 16"
+					WidthRequest="176"
+					HeightRequest="46"
+					IsVisible="False"
+					Opacity="0">
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnLoadingSetupActionClicked" />
+					<PointerGestureRecognizer PointerEntered="OnLoadingSetupActionHovered" PointerExited="OnLoadingSetupActionUnhovered" />
+				</Border.GestureRecognizers>
+				<Grid ColumnDefinitions="Auto,Auto"
+					  ColumnSpacing="9"
+					  HorizontalOptions="Center"
+					  VerticalOptions="Center"
+					  InputTransparent="True">
+					<Image Source="logo_neon_glass.png"
+						   WidthRequest="24"
+						   HeightRequest="24"
+						   VerticalOptions="Center" />
+					<VerticalStackLayout Grid.Column="1"
+										 Spacing="0"
+										 VerticalOptions="Center">
+						<Label Text="{loc:Loc views.overlays.loading_overlay_view.open_setup}"
+							   TextColor="{StaticResource LoadingAccentColor}"
+							   FontSize="12"
+							   FontAttributes="Bold"
+							   CharacterSpacing="1.2" />
+						<Label Text="{loc:Loc views.overlays.loading_overlay_view.check_install}"
+							   TextColor="{StaticResource LoadingHintTextColor}"
+							   FontSize="8"
+							   FontAttributes="Bold"
+							   CharacterSpacing="1.1" />
+					</VerticalStackLayout>
+				</Grid>
+			</Border>
+		</StackLayout>
+
+		<Grid x:Name="ServerBootLayout"
+			  VerticalOptions="Center"
+			  HorizontalOptions="Center"
+			  WidthRequest="760"
+			  IsVisible="False"
+			  Opacity="0">
+			<Border StrokeThickness="0"
+					StrokeShape="RoundRectangle 28"
+					BackgroundColor="{StaticResource ServerBootPanelColor}"
+					Padding="28">
+				<Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="10">
+					<Grid Grid.Row="0"
+						  WidthRequest="164"
+						  HeightRequest="126"
+						  HorizontalOptions="Center">
+						<Grid x:Name="ServerBootOuterRingHost"
+							  WidthRequest="158"
+							  HeightRequest="102"
+							  Rotation="-12"
+							  HorizontalOptions="Center"
+							  VerticalOptions="Center"
+							  InputTransparent="True">
+							<Ellipse x:Name="ServerBootOuterRingEllipse"
+									 Fill="{StaticResource LoadingAccentWashColor}"
+									 Opacity="0" />
+							<Ellipse x:Name="ServerBootOuterRingMarker"
+									 WidthRequest="7"
+									 HeightRequest="7"
+									 Fill="{StaticResource LoadingAccentColor}"
+									 HorizontalOptions="Center"
+									 VerticalOptions="Start"
+									 TranslationY="-3">
+								<Ellipse.Shadow>
+									<Shadow Brush="{StaticResource LoadingAccentColor}"
+											Offset="0,0"
+											Radius="14"
+											Opacity="0.85" />
+								</Ellipse.Shadow>
+							</Ellipse>
+						</Grid>
+						<Image x:Name="ServerBootLogoImage"
+							   Source="logo_neon_glass.png"
+							   WidthRequest="62"
+							   HeightRequest="62"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+					</Grid>
+
+					<VerticalStackLayout Grid.Row="1"
+										 HorizontalOptions="Center"
+										 Spacing="5">
+						<Label x:Name="ServerBootTitleLabel"
+							   Text="{loc:Loc views.overlays.loading_overlay_view.nexus_server_boot}"
+							   TextColor="{StaticResource LoadingAccentColor}"
+							   FontSize="22"
+							   FontAttributes="Bold"
+							   CharacterSpacing="2"
+							   HorizontalTextAlignment="Center" />
+						<Label x:Name="ServerBootDescriptionLabel"
+							   Text="{loc:Loc views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service}"
+							   TextColor="{StaticResource ServerBootTextMutedColor}"
+							   FontSize="13"
+							   HorizontalTextAlignment="Center"
+							   WidthRequest="580" />
+					</VerticalStackLayout>
+
+					<Grid x:Name="ServerBootStatusRowGrid"
+						  Padding="0,18,0,0"
+						  Grid.Row="2"
+						  ColumnDefinitions="*,Auto"
+						  ColumnSpacing="10">
+						<Border StrokeThickness="0"
+								StrokeShape="RoundRectangle 16"
+								BackgroundColor="#10000000"
+								Padding="16,0">
+							<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+								<Label Text="{loc:Loc views.overlays.loading_overlay_view.state}"
+									   TextColor="#4D7fa0b8"
+									   FontSize="10"
+									   FontAttributes="Bold"
+									   VerticalOptions="Center" />
+								<Label x:Name="ServerBootStateLabel"
+									   Grid.Column="1"
+									   Text="{loc:Loc common.standby}"
+									   TextColor="#31d8ff"
+									   FontSize="13"
+									   FontAttributes="Bold"
+									   VerticalOptions="Center" />
+								<HorizontalStackLayout Grid.Column="2"
+													   Spacing="8"
+													   VerticalOptions="Center">
+									<Border x:Name="ServerBootPythonModePill"
+											StrokeThickness="0"
+											StrokeShape="RoundRectangle 10"
+											BackgroundColor="#0A31d8ff"
+											Padding="10,5">
+										<HorizontalStackLayout Spacing="6" InputTransparent="True">
+											<Label Text="PY"
+												   TextColor="#557fa0b8"
+												   FontSize="9"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+											<Label x:Name="ServerBootPythonModeLabel"
+												   Text="VENV"
+												   TextColor="#31d8ff"
+												   FontSize="11"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+										</HorizontalStackLayout>
+									</Border>
+
+									<Border x:Name="ServerBootHostButton"
+											StrokeThickness="0"
+											StrokeShape="RoundRectangle 10"
+											BackgroundColor="#0A31d8ff"
+											Padding="10,5">
+										<Border.GestureRecognizers>
+											<TapGestureRecognizer Tapped="OnServerBootHostEditClicked" />
+											<PointerGestureRecognizer PointerEntered="OnServerBootConfigHovered" PointerExited="OnServerBootConfigUnhovered" />
+										</Border.GestureRecognizers>
+										<HorizontalStackLayout Spacing="6" InputTransparent="True">
+											<Label Text="HOST"
+												   TextColor="#557fa0b8"
+												   FontSize="9"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+											<Label x:Name="ServerBootHostLabel"
+												   Text="127.0.0.1"
+												   TextColor="#9fb8c8"
+												   FontSize="11"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+										</HorizontalStackLayout>
+									</Border>
+
+									<Border x:Name="ServerBootPortButton"
+											StrokeThickness="0"
+											StrokeShape="RoundRectangle 10"
+											BackgroundColor="#0A31d8ff"
+											Padding="10,5">
+										<Border.GestureRecognizers>
+											<TapGestureRecognizer Tapped="OnServerBootPortEditClicked" />
+											<PointerGestureRecognizer PointerEntered="OnServerBootConfigHovered" PointerExited="OnServerBootConfigUnhovered" />
+										</Border.GestureRecognizers>
+										<HorizontalStackLayout Spacing="6" InputTransparent="True">
+											<Label Text="PORT"
+												   TextColor="#557fa0b8"
+												   FontSize="9"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+											<Label x:Name="ServerBootPortLabel"
+												   Text="8188"
+												   TextColor="#9fb8c8"
+												   FontSize="11"
+												   FontAttributes="Bold"
+												   VerticalOptions="Center" />
+										</HorizontalStackLayout>
+									</Border>
+								</HorizontalStackLayout>
+							</Grid>
+						</Border>
+
+						<Border x:Name="ServerBootSetupButton"
+								Grid.Column="1"
+								BackgroundColor="#0Affffff"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 10"
+								WidthRequest="100"
+								HeightRequest="26"
+								VerticalOptions="Center">
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnServerBootSetupClicked" />
+								<PointerGestureRecognizer PointerEntered="OnServerBootButtonHovered" PointerExited="OnServerBootButtonUnhovered" />
+							</Border.GestureRecognizers>
+							<Label Text="{loc:Loc views.overlays.loading_overlay_view.open_setup}"
+								   TextColor="#7fa0b8"
+								   FontSize="11"
+								   FontAttributes="Bold"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center"
+								   InputTransparent="True" />
+						</Border>
+					</Grid>
+
+					<Border Grid.Row="3"
+							StrokeThickness="0"
+							StrokeShape="RoundRectangle 18"
+							BackgroundColor="#A0050A14"
+							Padding="18"
+							HeightRequest="230"
+							MaximumHeightRequest="230"
+							VerticalOptions="Fill">
+						<Grid>
+							<ScrollView x:Name="ServerBootLogScrollView"
+										HeightRequest="194"
+										MaximumHeightRequest="194"
+										VerticalOptions="Fill"
+										Orientation="Vertical">
+								<VerticalStackLayout x:Name="ServerBootLogList"
+													 Spacing="5"
+													 VerticalOptions="Start" />
+							</ScrollView>
+
+							<Border x:Name="ServerBootCopyLogButton"
+									BackgroundColor="#E6081018"
+									Stroke="#2231d8ff"
+									StrokeThickness="0"
+									StrokeShape="RoundRectangle 9"
+									Padding="10,5"
+									HorizontalOptions="End"
+									VerticalOptions="Start"
+									ZIndex="2">
+								<Border.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnServerBootCopyLogTapped" />
+									<PointerGestureRecognizer PointerEntered="OnServerBootCopyLogHovered" PointerExited="OnServerBootCopyLogUnhovered" />
+								</Border.GestureRecognizers>
+								<Label x:Name="ServerBootCopyLogLabel"
+									   Text="{loc:Loc common.copy}"
+									   TextColor="{StaticResource LoadingAccentColor}"
+									   FontSize="10"
+									   FontAttributes="Bold"
+									   HorizontalOptions="Center"
+									   VerticalOptions="Center"
+									   InputTransparent="True" />
+							</Border>
+						</Grid>
+					</Border>
+
+					<Grid Grid.Row="4" ColumnDefinitions="Auto,Auto" ColumnSpacing="12" HorizontalOptions="Center">
+						<Border x:Name="ServerBootPrimaryActionButton"
+								BackgroundColor="#1A31d8ff"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 22"
+								WidthRequest="244"
+								HeightRequest="66">
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnServerBootPrimaryActionClicked" />
+								<PointerGestureRecognizer PointerEntered="OnServerBootButtonHovered" PointerExited="OnServerBootButtonUnhovered" />
+							</Border.GestureRecognizers>
+							<Grid ColumnDefinitions="Auto,Auto"
+								  ColumnSpacing="12"
+								  HorizontalOptions="Center"
+								  VerticalOptions="Center"
+								  InputTransparent="True">
+								<Image Source="logo_neon_glass.png"
+									   WidthRequest="34"
+									   HeightRequest="34"
+									   VerticalOptions="Center" />
+								<VerticalStackLayout Grid.Column="1"
+													 Spacing="1"
+													 VerticalOptions="Center">
+									<Label x:Name="ServerBootPrimaryActionLabel"
+										   Text="{loc:Loc views.overlays.loading_overlay_view.engage_server}"
+										   TextColor="#31d8ff"
+										   FontSize="14"
+										   FontAttributes="Bold"
+										   CharacterSpacing="1.3" />
+									<Label Text="{loc:Loc views.overlays.loading_overlay_view.start_backend_link}"
+										   TextColor="#667fa0b8"
+										   FontSize="9"
+										   FontAttributes="Bold"
+										   CharacterSpacing="1.2" />
+								</VerticalStackLayout>
+							</Grid>
+						</Border>
+
+						<Border x:Name="ServerBootRecoverActionButton"
+								Grid.Column="1"
+								BackgroundColor="#1Affaa00"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 22"
+								WidthRequest="244"
+								HeightRequest="66">
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnServerBootRecoverActionClicked" />
+								<PointerGestureRecognizer PointerEntered="OnServerBootButtonHovered" PointerExited="OnServerBootButtonUnhovered" />
+							</Border.GestureRecognizers>
+							<Grid ColumnDefinitions="Auto,Auto"
+								  ColumnSpacing="12"
+								  HorizontalOptions="Center"
+								  VerticalOptions="Center"
+								  InputTransparent="True">
+								<Image Source="logo_neon_glass.png"
+									   WidthRequest="34"
+									   HeightRequest="34"
+									   VerticalOptions="Center" />
+								<VerticalStackLayout Grid.Column="1"
+													 Spacing="1"
+													 VerticalOptions="Center">
+									<Label Text="{loc:Loc common.recover_boot}"
+										   TextColor="#ffaa00"
+										   FontSize="14"
+										   FontAttributes="Bold"
+										   CharacterSpacing="1.3" />
+									<Label Text="{loc:Loc views.overlays.loading_overlay_view.repair_cuda_runtime}"
+										   TextColor="#667fa0b8"
+										   FontSize="9"
+										   FontAttributes="Bold"
+										   CharacterSpacing="1.2" />
+								</VerticalStackLayout>
+							</Grid>
+						</Border>
+					</Grid>
+				</Grid>
+			</Border>
+		</Grid>
+
+		<VerticalStackLayout x:Name="ConfigStackLayout"
+							 VerticalOptions="Center"
+							 HorizontalOptions="Center"
+							 Spacing="30"
+							 IsVisible="False"
+							 WidthRequest="450">
+			<Label Text="{loc:Loc views.overlays.loading_overlay_view.access_denied_core_link_not_found}"
+				   TextColor="#ff0055"
+				   FontSize="22"
+				   FontAttributes="Bold"
+				   HorizontalOptions="Center" />
+
+			<Label Text="{loc:Loc views.overlays.loading_overlay_view.nexus_shell_utilities_require_access_to_your_comfyui_roo}"
+				   TextColor="#6688aa"
+				   FontSize="14"
+				   HorizontalTextAlignment="Center" />
+
+			<Button Text="{loc:Loc views.overlays.loading_overlay_view.select_comfyui_core_directory}"
+					Clicked="OnSelectCoreClicked"
+					BackgroundColor="#1a2235"
+					TextColor="#00e5ff"
+					BorderColor="#00e5ff"
+					BorderWidth="1.5"
+					HeightRequest="55"
+					CornerRadius="4"
+					FontSize="14"
+					FontAttributes="Bold">
+				<VisualStateManager.VisualStateGroups>
+					<VisualStateGroupList>
+						<VisualStateGroup x:Name="CommonStates">
+							<VisualState x:Name="Normal" />
+							<VisualState x:Name="PointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#222e44" />
+									<Setter Property="BorderColor" Value="#ffffff" />
+									<Setter Property="Scale" Value="1.02" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateGroupList>
+				</VisualStateManager.VisualStateGroups>
+			</Button>
+
+			<BoxView HeightRequest="1"
+					 Color="#222e44"
+					 Margin="0,10" />
+
+			<VerticalStackLayout Spacing="12">
+				<Label Text="{loc:Loc views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal}"
+					   TextColor="#445566"
+					   FontSize="12"
+					   HorizontalOptions="Center" />
+				<HorizontalStackLayout HorizontalOptions="Center"
+									   Spacing="25">
+					<Label Text="{loc:Loc views.overlays.loading_overlay_view.get_official_launcher}"
+						   TextColor="#88e4ff"
+						   FontSize="13"
+						   TextDecorations="Underline">
+						<Label.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnGetComfyTapped" />
+						</Label.GestureRecognizers>
+					</Label>
+					<Label Text="{loc:Loc views.overlays.loading_overlay_view.clone_from_github}"
+						   TextColor="#88e4ff"
+						   FontSize="13"
+						   TextDecorations="Underline">
+						<Label.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnGetGitHubTapped" />
+						</Label.GestureRecognizers>
+					</Label>
+				</HorizontalStackLayout>
+			</VerticalStackLayout>
+		</VerticalStackLayout>
+
+		<local:ProductSetupView x:Name="ProductSetupControl"
+								HorizontalOptions="Fill"
+								VerticalOptions="Fill"
+								IsVisible="False" />
+
+	</Grid>
+</ContentView>

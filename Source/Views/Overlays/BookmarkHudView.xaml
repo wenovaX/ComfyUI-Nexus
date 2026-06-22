@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.BookmarkHudView">
+	<Grid BackgroundColor="#CC050a14"
+		  IsVisible="False"
+		  ZIndex="2000">
+		<Border BackgroundColor="#0a0e1a"
+				Stroke="#00e5ff"
+				StrokeThickness="2"
+				WidthRequest="500"
+				HeightRequest="600"
+				VerticalOptions="Center"
+				HorizontalOptions="Center"
+				Padding="0">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="12" />
+			</Border.StrokeShape>
+			<Border.Shadow>
+				<Shadow Brush="#00e5ff"
+						Opacity="0.4"
+						Radius="30"
+						Offset="0,0" />
+			</Border.Shadow>
+
+			<Grid RowDefinitions="Auto, Auto, *, Auto">
+				<Border Grid.Row="0"
+						BackgroundColor="#0b121c"
+						Padding="20,15"
+						StrokeThickness="0">
+					<Grid ColumnDefinitions="*, Auto">
+						<Label Text="{loc:Loc views.overlays.bookmark_hud_view.nexus_workflow_index}"
+							   TextColor="#00e5ff"
+							   FontSize="14"
+							   FontAttributes="Bold"
+							   CharacterSpacing="2"
+							   VerticalOptions="Center" />
+						<Button Grid.Column="1"
+								Text="X"
+								Clicked="OnCloseClicked"
+								BackgroundColor="Transparent"
+								TextColor="#6688aa"
+								FontSize="18"
+								Padding="10,0" />
+					</Grid>
+				</Border>
+
+				<Border Grid.Row="1"
+						Margin="20,10"
+						Padding="10,2"
+						BackgroundColor="#121826"
+						Stroke="#1a2244"
+						StrokeThickness="1">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="6" />
+					</Border.StrokeShape>
+					<Entry x:Name="BookmarkSearchEntry"
+						   Placeholder="{loc:Loc views.overlays.bookmark_hud_view.search_workflows}"
+						   PlaceholderColor="#445566"
+						   TextColor="#ffffff"
+						   FontSize="13"
+						   TextChanged="OnSearchChanged" />
+				</Border>
+
+				<ScrollView x:Name="BookmarkHudScrollView"
+							Grid.Row="2"
+							Margin="10,0,10,10">
+					<VerticalStackLayout x:Name="BookmarkListStack"
+										 Spacing="2"
+										 Padding="10" />
+				</ScrollView>
+
+				<Border Grid.Row="3"
+						BackgroundColor="#0b121c"
+						Padding="15,10"
+						StrokeThickness="0">
+					<Label x:Name="BookmarkCountLabel"
+						   Text="{loc:Loc views.overlays.bookmark_hud_view.0_workflows_registered}"
+						   TextColor="#445566"
+						   FontSize="10"
+						   HorizontalOptions="Center" />
+				</Border>
+			</Grid>
+		</Border>
+	</Grid>
+</ContentView>

@@ -1,0 +1,116 @@
+---
+
+[h]制作你的第一张图：实战指南[/h]
+
+模型原材料准备好了的话，现在是时候启动引擎了。
+
+[img:asset_workflows.png|360]
+
+[accent]想快速开始？请在 Asset 面板的 [b]Workflows[/b] 标签中
+打开 [b]sample/checkpoint.json[/b]。
+下面说明的基本结构已经为你搭建完成。[/accent]
+
+如果想从零开始自己搭建，请跟着下面的步骤来。
+
+---
+
+[h]第1步：放置节点[/h]
+
+[copy:复制文本|将文本另存并逐步尝试。|将教程块复制到剪贴板。|已复制|已复制到剪贴板。]
+在空白画布上打开 [b]右键 → Add Node[/b] 菜单，
+逐个放置以下节点。
+
+→  [b]loader → Load Checkpoint[/b]
+选择你下载好的 Checkpoint 模型的地方。
+这一个节点中包含了 [b]MODEL[/b]、[b]CLIP[/b]、[b]VAE[/b] 所有信息。
+
+→  [b]conditioning → CLIP Text Encode (Prompt)[/b] — 放置 [b]2个[/b]
+一个用于 [b]Positive[/b]（想画的内容），一个用于 [b]Negative[/b]（想排除的内容）。
+
+→  [b]sampling → KSampler[/b]
+实际生成图像的核心步骤。
+
+→  [b]latent → Empty Latent Image[/b]
+设定之前文章中比喻过的"泥块"大小的地方。
+在这里设置 Width/Height。
+初次使用请选择 [b]512×512（SD1.5）[/b] 或 [b]1024×1024（SDXL）[/b]。
+
+→  [b]latent → VAE Decode[/b]
+将潜在空间（Latent）的结果转换为人眼可见的图像。
+
+→  [b]image → Save Image[/b]
+保存完成的图像。
+[/copy]
+
+---
+
+[h]第2步：连接（理解流程）[/h]
+
+[copy:复制文本|将文本另存并逐步尝试。|将连接顺序块复制到剪贴板。|已复制|已复制到剪贴板。]
+节点全部放好后，将相同颜色的点（插槽）用线连接起来即可。
+整体流程如下：
+
+[img:checkpoint_connection.png|360]
+
+一切从 [b]Load Checkpoint[/b] 开始，向三个方向分支。
+
+→  [b]CLIP → CLIP Text Encode (Prompt)[/b]
+将 CLIP 输出分别连接到 Positive 和 Negative 两个文本编码器。
+编码后的结果注入到 KSampler 的 [b]positive[/b] 和 [b]negative[/b] 输入。
+
+→  [b]MODEL → KSampler[/b]
+将模型信息传递给 KSampler。
+这个连接决定了"由哪位雕刻家来雕刻"。
+
+→  [b]Empty Latent Image → KSampler[/b]
+将泥块（Latent）的大小和形状传递给 KSampler。
+相当于决定"在多大的画布上工作"。
+
+→  [b]KSampler → VAE Decode[/b]
+将采样完成的 Latent 结果发送到 VAE Decode，转换为人眼可见的图像。
+
+→  [b]Load Checkpoint (VAE) → VAE Decode[/b]
+将 Checkpoint 中包含的 VAE 信息连接到 VAE Decode。
+必须有这条通路，Latent → 图像的转换才能完成。
+
+→  [b]VAE Decode → Save Image[/b]
+保存最终图像。
+[/copy]
+
+---
+
+[h]第3步：输入提示词并运行[/h]
+
+在 [b]Positive[/b] 文本编码器中用英文写下你想画的内容。
+例如：[b]"a beautiful sunset over the ocean"[/b]
+
+在 [b]Negative[/b] 中写下你想排除的元素。
+例如：[b]"blurry, low quality, watermark"[/b]
+
+确认没有红色错误标记的节点后，
+点击右上角的 [b]Queue Prompt[/b] 按钮。
+稍等片刻，AI 绘制的你的第一张图就会出现！
+
+[accent]结果保存在 [b]output[/b] 文件夹中。
+如果在 Save Image 节点的 filename_prefix 中输入类似 [b]folder/result[/b] 的路径，
+可以在 output 下创建文件夹进行整理。[/accent]
+
+[accent]提示：如果图像看起来很奇怪，请检查模型是 SD 1.5 还是 SDXL，
+并确认分辨率（Width/Height）是否符合模型推荐规格。[/accent]
+
+→  [b]输出文件夹快捷方式：[/b] [folder:ComfyUI/output|output]
+
+---
+
+[h]想玩得更开心？试试 HUD 工作流[/h]
+
+熟悉基本结构后，试试 Nexus 提供的 HUD 便捷功能吧。
+
+[accent]在 Asset 面板的 [b]Workflows[/b] 标签中
+打开 [b]sample/checkpoint_hud.json[/b]。
+
+这是相同的 Checkpoint 工作流，但添加了 HUD 控制，
+让你能更直观地调整设置。
+现在你已经理解了基本节点结构，一定能马上感受到这个工作流有多方便。[/accent]
+
+---

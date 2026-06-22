@@ -1,0 +1,88 @@
+---
+
+[h]Hugging Face: 날것의 AI 보물창고[/h]
+
+[img:huggingface_homepage_minimal.png|360]
+
+
+[link:Hugging Face|https://huggingface.co/]에 처음 접속하면 쏟아지는 영어 텍스트와 생소한 개념들에 숨이 턱 막힐지도 모릅니다.
+하지만 AI의 원리를 조금씩 이해하고 '더 새로운 것'에 목마를 즈음 이곳에 오면,
+마치 코스트코나 이케아 같은 [b]거대한 창고형 만물상[/b]을 발견한 듯한 짜릿함을 느끼게 될 것입니다.
+
+[accent]이곳은 전 세계의 AI 개발자들이 자신의 최신 기술과 작품을 뽐내는 놀이터이며, 대부분 무료로 개방되어 있습니다.
+다만, 상업적으로 사용할 때는 각 모델의 라이선스를 꼭 확인해야 한다는 점만 기억하세요!
+
+
+[b]빠른 접근:[/b]
+
+→  [link:Hugging Face 홈|https://huggingface.co/]
+→  [link:Text-to-Image 모델|https://huggingface.co/models?pipeline_tag=text-to-image][/accent]
+
+---
+
+[h]언젠가 당신이 탐내게 될 보물들[/h]
+
+지금은 필요 없더라도, 결국 찾게 될 모델들입니다.
+어떤 원석들이 묻혀 있는지 미리 구경해 보세요.
+
+→  [link:IP-Adapter 공식 저장소|https://huggingface.co/h94/IP-Adapter]
+→  [link:ControlNet 공식 저장소|https://huggingface.co/lllyasviel]
+→  [link:LoRA 모델 모음|https://huggingface.co/models?library=diffusers]
+
+---
+
+[h]권장 다운로드 방법[/h]
+
+[img:huggingface_downloand_guide.png|360]
+
+1. 모델 페이지 열기
+2. "Files and versions" 탭으로 이동
+3. 필요한 파일 탐색 (.safetensors / .bin)
+4. 파일 우측의 다운로드 아이콘 클릭
+
+[accent]파일 이름이 아닌 우측의 다운로드 아이콘(↓)을 클릭하세요.[/accent]
+
+---
+
+[h]보물찾기 실전 팁[/h]
+
+→ 다운로드 전, 파일 확장자(.safetensors, .bin 등)를 꼭 확인하세요.
+  - 보통 .safetensors 파일이 보안상 훨씬 안전합니다.
+→ 같은 모델이라도 여러 버전(fp16, fp32 등)이 존재할 수 있습니다.
+  - VRAM을 아끼려면 fp16 버전을, 원본 퀄리티가 필요하면 fp32를 선택하세요.
+
+---
+
+[h]고급 사용자용 (Git / CLI)[/h]
+
+Git에 익숙하다면 파일을 하나씩 받는 대신 전체 저장소를 복제할 수 있습니다.
+전체 설정(모델 + 설정 파일 등)이 모두 필요할 때 유용하며, 파일을 일일이 받는 수고를 덜어줍니다.
+
+[h]Git 사용하기[/h]
+
+[code]git lfs install
+git clone https://huggingface.co/<repo>[/code]
+
+- 대용량 파일이 포함된 저장소 전체를 통째로 복제합니다.
+- 수많은 파일이나 모델 세트를 한 번에 다운로드할 때 가장 좋습니다.
+
+[h]Hugging Face CLI 사용하기[/h]
+
+[code]huggingface-cli download[/code]
+
+- 명령어를 통해 특정 파일이나 전체 저장소를 다운로드합니다.
+- Git보다 유연하게 골라 받을 수 있고 자동화 작업에 유용합니다.
+
+---
+
+[h]언제 무엇을 사용하나요?[/h]
+
+[b]웹 UI 사용[/b]
+- 단일 파일 다운로드 시
+
+[b]Git / CLI 사용[/b]
+- 여러 개의 파일이 필요할 때
+- 대량의 모델이나 세트를 한 번에 받을 때
+- 재현 가능한 환경 구성 시
+
+---

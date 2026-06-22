@@ -1,0 +1,116 @@
+---
+
+[h]내 첫 이미지 만들기: 실전 가이드[/h]
+
+모델 재료가 준비되었다면, 이제 첫 시동을 걸어볼 차례입니다.
+
+[img:asset_workflows.png|360]
+
+[accent]빠르게 시작하고 싶다면, Asset 패널의 [b]Workflows[/b] 탭에서
+[b]sample/checkpoint.json[/b]을 열어보세요.
+아래에서 설명하는 기본 구조가 이미 완성되어 있습니다.[/accent]
+
+직접 처음부터 만들어보고 싶다면 아래를 따라가세요.
+
+---
+
+[h]1단계: 노드 꺼내기[/h]
+
+[copy:텍스트 복사하기|텍스트 별도로 저장하고 스탭 바이 스탭으로 시도해 보세요.|튜토리얼 블록을 클립보드에 복사합니다.|복사됨|클립보드에 복사되었습니다.]
+빈 화면에서 [b]우클릭 → Add Node[/b] 메뉴를 열고,
+아래 노드들을 하나씩 꺼내세요.
+
+→  [b]loader → Load Checkpoint[/b]
+내가 받아둔 체크포인트 모델을 선택하는 곳입니다.
+이 노드 하나에 [b]MODEL[/b], [b]CLIP[/b], [b]VAE[/b] 정보가 모두 담겨 있습니다.
+
+→  [b]conditioning → CLIP Text Encode (Prompt)[/b] — [b]2개[/b] 꺼내세요
+하나는 [b]Positive[/b] (그리고 싶은 것), 하나는 [b]Negative[/b] (빼고 싶은 것)입니다.
+
+→  [b]sampling → KSampler[/b]
+이미지를 실제로 만들어내는 핵심 단계입니다.
+
+→  [b]latent → Empty Latent Image[/b]
+이전 글에서 비유했던 '진흙 덩어리'의 크기를 정하는 곳입니다.
+여기서 Width/Height를 설정합니다.
+처음에는 [b]512×512(SD1.5)[/b] 또는 [b]1024×1024(SDXL)[/b]을 사용하세요.
+
+→  [b]latent → VAE Decode[/b]
+잠재 공간(Latent)의 결과물을 사람이 볼 수 있는 이미지로 변환합니다.
+
+→  [b]image → Save Image[/b]
+완성된 이미지를 저장합니다.
+[/copy]
+
+---
+
+[h]2단계: 연결하기 (흐름 이해하기)[/h]
+
+[copy:텍스트 복사하기|텍스트 별도로 저장하고 스탭 바이 스탭으로 시도해 보세요.|연결 순서 블록을 클립보드에 복사합니다.|복사됨|클립보드에 복사되었습니다.]
+노드를 다 꺼냈다면, 이제 같은 색상의 점(슬롯)끼리 선으로 이어주면 됩니다.
+전체 흐름은 이렇습니다:
+
+[img:checkpoint_connection.png|360]
+
+[b]Load Checkpoint[/b]에서 시작해서 세 갈래로 뻗어나갑니다.
+
+→  [b]CLIP → CLIP Text Encode (Prompt)[/b]
+CLIP 출력을 Positive, Negative 두 개의 텍스트 인코더에 각각 연결합니다.
+인코딩된 결과는 KSampler의 [b]positive[/b], [b]negative[/b] 입력에 주입됩니다.
+
+→  [b]MODEL → KSampler[/b]
+모델 정보를 KSampler에 전달합니다.
+"어떤 조각가가 깎을 것인가"를 결정하는 연결입니다.
+
+→  [b]Empty Latent Image → KSampler[/b]
+진흙 덩어리(Latent)의 크기와 형태를 KSampler에 넘겨줍니다.
+"얼마나 큰 캔버스에 작업할 것인가"를 정하는 셈입니다.
+
+→  [b]KSampler → VAE Decode[/b]
+샘플링이 끝난 Latent 결과물을 VAE Decode에 보내 사람이 볼 수 있는 이미지로 변환합니다.
+
+→  [b]Load Checkpoint (VAE) → VAE Decode[/b]
+체크포인트에 포함된 VAE 정보를 VAE Decode에 연결합니다.
+이 통로가 있어야 Latent → 이미지 변환이 가능합니다.
+
+→  [b]VAE Decode → Save Image[/b]
+최종 이미지를 저장합니다.
+[/copy]
+
+---
+
+[h]3단계: 프롬프트 입력하고 실행하기[/h]
+
+[b]Positive[/b] 텍스트 인코더에 그리고 싶은 내용을 영어로 적어보세요.
+예: [b]"a beautiful sunset over the ocean"[/b]
+
+[b]Negative[/b]에는 빼고 싶은 요소를 적으세요.
+예: [b]"blurry, low quality, watermark"[/b]
+
+빨간색으로 오류 표시된 노드가 없는지 확인한 뒤,
+오른쪽 상단의 [b]Queue Prompt[/b] 버튼을 누르세요.
+잠시 기다리면 AI가 그린 당신의 첫 이미지가 나타납니다!
+
+[accent]결과물은 [b]output[/b] 폴더에 저장됩니다.
+Save Image 노드의 filename_prefix에 [b]folder/result[/b] 같은 경로를 입력하면,
+output 아래에 폴더를 만들어 정리할 수도 있습니다.[/accent]
+
+[accent]팁: 이미지가 이상하게 나온다면 모델이 SD 1.5인지 SDXL인지 다시 확인하고,
+해상도(Width/Height)를 모델 권장 사양에 맞췄는지 체크해 보세요.[/accent]
+
+→  [b]출력 폴더 바로가기:[/b] [folder:ComfyUI/output|output]  
+
+---
+
+[h]더 재밌게 쓰고 싶다면: HUD 워크플로우[/h]
+
+기본 구조에 익숙해졌다면, Nexus가 제공하는 HUD 편의 기능도 한번 써보세요.
+
+[accent]Asset 패널의 [b]Workflows[/b] 탭에서
+[b]sample/checkpoint_hud.json[/b]을 열어보세요.
+
+같은 체크포인트 워크플로우이지만,
+HUD 컨트롤이 추가되어 훨씬 직관적으로 설정을 조절할 수 있습니다.
+기본 노드 구조를 이해한 지금이라면, 이 워크플로우가 얼마나 편한지 바로 체감될 것입니다.[/accent]
+
+---

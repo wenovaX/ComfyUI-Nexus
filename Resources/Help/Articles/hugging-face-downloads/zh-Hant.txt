@@ -1,0 +1,85 @@
+---
+
+[h]Hugging Face：原生態的 AI 寶庫[/h]
+
+[img:huggingface_homepage_minimal.png|360]
+
+
+初次造訪 [link:Hugging Face|https://huggingface.co/] 時，海量的英文文字和生僻的概念可能會讓你感到窒息。
+但當你開始理解 AI 的原理，並渴望探索「更多新事物」時，來到這裡，你會體驗到如同發現 Costco 或 IKEA 那樣 [b]巨大倉儲式百貨[/b] 的興奮感。
+
+[accent]這裡是全球 AI 開發者炫耀其最新技術和作品的遊樂場，並且幾乎所有內容都是免費開放的。
+只需記住一點：如果打算用於商業用途，請務必留意各個模型的授權條款！
+
+[b]快速存取：[/b]
+→  [link:Hugging Face 首頁|https://huggingface.co/]
+→  [link:Text-to-Image 模型|https://huggingface.co/models?pipeline_tag=text-to-image][/accent]
+
+---
+
+[h]你遲早會渴望得到的寶物[/h]
+
+現在不需要也沒關係，你早晚會回來找它們的。
+先來看看這裡埋藏了哪些原石吧。
+
+→  [link:IP-Adapter 官方倉庫|https://huggingface.co/h94/IP-Adapter]
+→  [link:ControlNet 官方倉庫|https://huggingface.co/lllyasviel]
+→  [link:LoRA 模型集合|https://huggingface.co/models?library=diffusers]
+
+---
+
+[h]推薦下載方法[/h]
+
+[img:huggingface_downloand_guide.png|360]
+
+1. 打開模型頁面
+2. 導覽至「Files and versions」標籤頁
+3. 尋找所需的檔案（.safetensors / .bin）
+4. 點擊檔案右側的下載圖示
+
+[accent]請點擊右側的下載圖示 (↓)，而非檔案名稱。[/accent]
+
+---
+
+[h]尋寶實戰技巧[/h]
+
+→ 下載前，請務必確認檔案副檔名（.safetensors、.bin 等）。
+  - 通常，.safetensors 檔案在安全性上要可靠得多。
+→ 即使是同一個模型，也可能存在多個版本（fp16、fp32 等）。
+  - 如果想節省 VRAM，請選擇 fp16 版本；如果需要原始品質，請選擇 fp32。
+
+---
+
+[h]進階使用者專用（Git / CLI）[/h]
+
+如果你熟悉 Git，可以直接複製整個倉庫，而無需逐一下載檔案。
+這在你需要完整設定（模型 + 設定檔等）時非常有用，可以省去挨個下載檔案的麻煩。
+
+[h]使用 Git[/h]
+
+[code]git lfs install
+git clone https://huggingface.co/<repo>[/code]
+
+- 完整複製包含大檔案的整個倉庫。
+- 最適合一次性下載大量檔案或一整套模型。
+
+[h]使用 Hugging Face CLI[/h]
+
+[code]huggingface-cli download[/code]
+
+- 透過指令下載特定檔案或整個倉庫。
+- 比 Git 更靈活，可以挑選下載，非常適合自動化任務。
+
+---
+
+[h]何時使用哪種方法？[/h]
+
+[b]使用 Web UI[/b]
+- 下載單一檔案時
+
+[b]使用 Git / CLI[/b]
+- 需要下載多個檔案時
+- 一次性下載大量模型或套裝時
+- 建立可重複配置的環境時
+
+---

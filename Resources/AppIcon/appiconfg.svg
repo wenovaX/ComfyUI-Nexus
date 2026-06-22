@@ -1,0 +1,54 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="neon" x1="162" y1="142" x2="862" y2="884" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F7FCFF"/>
+      <stop offset="0.22" stop-color="#63D7FF"/>
+      <stop offset="0.50" stop-color="#8A7CFF"/>
+      <stop offset="0.77" stop-color="#C06BFF"/>
+      <stop offset="1" stop-color="#49F2B0"/>
+    </linearGradient>
+    <linearGradient id="core" x1="432" y1="432" x2="592" y2="592" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.52" stop-color="#DDF5FF"/>
+      <stop offset="1" stop-color="#B6B8FF"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="190" y1="150" x2="760" y2="720" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.78"/>
+      <stop offset="0.38" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect x="36" y="36" width="952" height="952" rx="206" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2"/>
+  <g fill="url(#neon)">
+
+    <g transform="translate(-34 -34)">
+      <path d="M224 178 H496 Q526 178 526 208 V294 Q526 324 496 324 H342 Q324 324 324 342 V428 Q324 458 294 458 H224 Q178 458 178 412 V224 Q178 178 224 178 Z"/>
+    </g>
+    <g transform="translate(34 -34)">
+      <path d="M600 178 H802 Q846 178 846 222 V536 Q846 580 802 580 H730 Q700 580 700 550 V352 Q700 334 682 334 H600 Q570 334 570 304 V208 Q570 178 600 178 Z"/>
+    </g>
+    <g transform="translate(34 34)">
+      <path d="M700 620 Q700 590 730 590 H802 Q846 590 846 634 V802 Q846 846 802 846 H516 Q486 846 486 816 V730 Q486 700 516 700 H670 Q700 700 700 670 V620 Z"/>
+    </g>
+    <g transform="translate(-34 34)">
+      <path d="M178 508 Q178 478 208 478 H296 Q328 478 328 510 V680 Q328 700 348 700 H424 Q454 700 454 730 V816 Q454 846 424 846 H224 Q178 846 178 800 V508 Z"/>
+    </g>
+  </g>
+  <g fill="url(#shine)" opacity="0.42">
+
+    <g transform="translate(-34 -34)">
+      <path d="M224 178 H496 Q526 178 526 208 V294 Q526 324 496 324 H342 Q324 324 324 342 V428 Q324 458 294 458 H224 Q178 458 178 412 V224 Q178 178 224 178 Z"/>
+    </g>
+    <g transform="translate(34 -34)">
+      <path d="M600 178 H802 Q846 178 846 222 V536 Q846 580 802 580 H730 Q700 580 700 550 V352 Q700 334 682 334 H600 Q570 334 570 304 V208 Q570 178 600 178 Z"/>
+    </g>
+    <g transform="translate(34 34)">
+      <path d="M700 620 Q700 590 730 590 H802 Q846 590 846 634 V802 Q846 846 802 846 H516 Q486 846 486 816 V730 Q486 700 516 700 H670 Q700 700 700 670 V620 Z"/>
+    </g>
+    <g transform="translate(-34 34)">
+      <path d="M178 508 Q178 478 208 478 H296 Q328 478 328 510 V680 Q328 700 348 700 H424 Q454 700 454 730 V816 Q454 846 424 846 H224 Q178 846 178 800 V508 Z"/>
+    </g>
+  </g>
+  <rect x="432" y="432" width="160" height="160" rx="36" fill="url(#core)"/>
+  <rect x="450" y="450" width="124" height="124" rx="27" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="3"/>
+</svg>

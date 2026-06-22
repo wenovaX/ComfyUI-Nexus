@@ -1,0 +1,72 @@
+---
+
+[h]Adding a Model: The Very First Thing to Do[/h]
+
+This page is not meant to be read in order.
+It is a [b]reference page[/b] you can come back to whenever you get stuck during your work.
+
+---
+
+[h]When a Model Is Missing / When You're Not Sure Where to Put It[/h]
+
+AI needs 'ingredients' to create images.
+Just place the downloaded model file into the right folder, and the AI will find and use it automatically.
+
+→  [b]models (Model Collection):[/b] [folder:ComfyUI/models|models]
+→  [b]Checkpoint (Core Model):[/b] [folder:ComfyUI/models/checkpoints|models/checkpoints]
+→  [b]LoRA (Character/Style):[/b] [folder:ComfyUI/models/loras|models/loras]
+→  [b]VAE (Color Correction):[/b] [folder:ComfyUI/models/vae|models/vae]
+→  [b]ControlNet (Pose Control):[/b] [folder:ComfyUI/models/controlnet|models/controlnet]
+
+[accent]If you placed a file but it doesn't show up in the list,
+press [b]F5 to refresh the list[/b] or [b]restart[/b] the app.[/accent]
+
+---
+
+[h]When You Need a Model (Where to Get One?)[/h]
+
+If you're just starting out, begin with [b]Civitai[/b].  [article:Learn About Civitai|civitai]
+You can browse preview images and pick models you like, just like shopping at a market — the most intuitive way.
+
+Once you're comfortable, check out [b]Hugging Face[/b] too.  [article:Learn About Hugging Face|hugging-face-downloads]
+It's a massive treasure trove like Costco, where you can unearth hidden gems that haven't hit the market yet.
+
+---
+
+[h]Check These Before Downloading[/h]
+
+Just checking these three things on the model detail page will help you avoid most mistakes.
+
+1. [b]Verify the Base Model Version[/b]
+→ Make sure it's either [b]SD 1.5[/b] or [b]SDXL[/b].
+→ Any LoRA or ControlNet you use later must match this version.
+
+2. [b]Read the Creator's Description[/b]
+→ Recommended VAE, trigger words, recommended resolution, and sampler settings may be listed.
+→ Models that require a separate VAE usually mention it in the description or download info.
+
+3. [b]Organize Your Filenames[/b]
+→ Rename files intuitively when downloading.
+→ Example: sdxl_real_modelname_v1.safetensors / sd15_anime_modelname.safetensors
+→ Distinguishing SD1.5 / SDXL / style / version saves a lot of time searching later.
+
+---
+
+[h]A Roadmap for Your Future Self (Come Back Later)[/h]
+
+For now, a single checkpoint is more than enough.
+But when moments like these come, just remember to revisit this page.
+
+1. [b]"The colors look washed out!"[/b]
+→ It's time you need a [b]VAE[/b].
+([folder:ComfyUI/models/vae|models/vae])
+
+2. [b]"I want to create this character!"[/b]
+→ It's time you need a [b]LoRA[/b].
+([folder:ComfyUI/models/loras|models/loras])
+
+3. [b]"I want to lock the pose!"[/b]
+→ It's time you need [b]ControlNet[/b].
+([folder:ComfyUI/models/controlnet|models/controlnet])
+
+---

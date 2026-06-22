@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+show_help() {
+	cat <<'EOF'
+ComfyUI-Nexus portable release builder
+
+Usage:
+  ./build-as-binary [configuration] <folder|single> [clean]
+
+Arguments:
+  configuration   Build configuration. Defaults to Release.
+                  Common values: Release, Debug
+
+  folder          Required package mode.
+                  Produces root launcher + App folder + LocalRuntime.
+
+  single          Required package mode.
+                  Produces the older compact single-file app layout.
+
+  clean           Optional. Runs dotnet clean before publishing.
+                  Use this when SDK build outputs look stale.
+                  Omit it for repeatable release hashes between builds.
+
+Examples:
+  ./build-as-binary Release folder
+  ./build-as-binary Release single
+  ./build-as-binary Release folder clean
+  ./build-as-binary Release single clean
+  ./build-as-binary Debug folder
+
+Notes:
+  This script is an MSYS2/Git Bash wrapper around build-as-binary.bat.
+  Release staging folders are still cleaned every run.
+EOF
+}
+
+case "${1:-}" in
+	-h|--help|help)
+		show_help
+		exit 0
+		;;
+esac
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+bat_path="$script_dir/build-as-binary.bat"
+
+if [[ ! -f "$bat_path" ]]; then
+	echo "[Nexus] ERROR: build-as-binary.bat was not found next to this script." >&2
+	exit 1
+fi
+
+configuration="${1:-Release}"
+arg2="${2:-}"
+arg3="${3:-}"
+package_arg=""
+clean_arg=""
+
+for arg in "$arg2" "$arg3"; do
+	[[ -z "$arg" ]] && continue
+	case "${arg,,}" in
+		folder|single)
+			package_arg="$arg"
+			;;
+		clean)
+			clean_arg="clean"
+			;;
+		*)
+			echo "[Nexus] ERROR: unknown argument: $arg" >&2
+			echo >&2
+			show_help >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ -z "$package_arg" ]]; then
+	echo "[Nexus] ERROR: package mode is required." >&2
+	echo >&2
+	show_help >&2
+	exit 1
+fi
+
+if command -v cygpath >/dev/null 2>&1; then
+	bat_path="$(cygpath -w "$bat_path")"
+fi
+
+if [[ -n "$clean_arg" ]]; then
+	cmd.exe //d //c call "$bat_path" "$configuration" "$package_arg" clean
+else
+	cmd.exe //d //c call "$bat_path" "$configuration" "$package_arg"
+fi
