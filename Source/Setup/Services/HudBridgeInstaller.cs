@@ -28,8 +28,8 @@ internal sealed class HudBridgeInstaller
 		bool overwriteExisting,
 		CancellationToken cancellationToken)
 	{
-		string sourcePath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD", "hud_sample");
-		string targetPath = Path.Combine(ComfyInstallService.ComfyPath, "user", "default", "workflows", "hud_sample");
+		string sourcePath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), "ComfyUI-HUD", "hud_sample");
+		string targetPath = Path.Combine(ComfyPathResolver.ResolveActiveWorkflowsPath(), "hud_sample");
 		try
 		{
 			int copied = await Task.Run(
@@ -100,7 +100,7 @@ internal sealed class HudBridgeInstaller
 				return Task.FromResult(new SetupStepResult(false, validationError, 0));
 			}
 
-			string hudPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD");
+			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), "ComfyUI-HUD");
 			Directory.CreateDirectory(hudPath);
 
 			int copied = CopyWorktreeFiles(localHudPath, hudPath, cancellationToken);
@@ -125,7 +125,7 @@ internal sealed class HudBridgeInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			string hudPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD");
+			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), "ComfyUI-HUD");
 			string hudInitPath = Path.Combine(hudPath, "__init__.py");
 			if (!Directory.Exists(hudPath) || !File.Exists(hudInitPath))
 			{
@@ -148,7 +148,7 @@ internal sealed class HudBridgeInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			string hudPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD");
+			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), "ComfyUI-HUD");
 			string hudInitPath = Path.Combine(hudPath, "__init__.py");
 			string hudGitPath = Path.Combine(hudPath, ".git");
 			_log($"{BridgeTag} Deploying Nexus Agent...");
@@ -223,7 +223,7 @@ internal sealed class HudBridgeInstaller
 	{
 		if (!Directory.Exists(hudPath)) return true;
 
-		string parent = Directory.GetParent(hudPath)?.FullName ?? Path.GetDirectoryName(hudPath) ?? ComfyInstallService.ComfyPath;
+		string parent = Directory.GetParent(hudPath)?.FullName ?? Path.GetDirectoryName(hudPath) ?? ComfyPathResolver.ResolveActiveComfyPath();
 		for (int attempt = 1; attempt <= HudFolderOperationRetries; attempt++)
 		{
 			cancellationToken.ThrowIfCancellationRequested();

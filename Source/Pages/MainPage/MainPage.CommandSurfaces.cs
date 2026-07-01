@@ -467,7 +467,7 @@ public partial class MainPage
 		string serverUrl = GetBrowsableServerUrl(settings.ListenAddress, settings.ServerPort);
 		AboutOverlayControl.SetDetails(
 			AppInfo.Current.VersionString,
-			ComfyInstallService.ComfyPath,
+			ComfyPathResolver.ResolveConfiguredComfyPath(),
 			serverUrl,
 			settings.ServerPythonMode);
 		await SetAboutOverlayVisible(true);

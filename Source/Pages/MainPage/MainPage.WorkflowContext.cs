@@ -118,6 +118,12 @@ public partial class MainPage
 		}
 	}
 
+	private void SynchronizeConfiguredComfyPathSurfaces()
+	{
+		InitializeComfyPaths();
+		RailControl?.RefreshConfiguredComfyRoots();
+	}
+
 	private void EnsureComfyWorkspaceDirectories(string comfyPath, string workflowsPath)
 	{
 		if (string.IsNullOrWhiteSpace(comfyPath) || !Directory.Exists(comfyPath))

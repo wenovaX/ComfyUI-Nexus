@@ -472,6 +472,13 @@ public partial class RailView : ContentView
 				: path);
 	}
 
+	internal void RefreshConfiguredComfyRoots()
+	{
+		string comfyRootPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+		AssetsToolView?.RefreshConfiguredRoots();
+		MediaAssetsToolView?.SetComfyRootPath(comfyRootPath);
+	}
+
 	internal void RefreshTree()
 	{
 		AssetsToolView?.RefreshTree();

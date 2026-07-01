@@ -90,14 +90,14 @@ public partial class MainPage
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		string comfyPath = ComfyInstallService.ComfyPath;
+		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
 		if (!Directory.Exists(comfyPath))
 		{
 			throw new DirectoryNotFoundException($"ComfyUI install path was not found: {comfyPath}");
 		}
 
 		PortablePreferences.Set(PreferenceKeys.ComfyUIPath, comfyPath);
-		UpdateComfyManagerAvailability(comfyPath);
+		SynchronizeConfiguredComfyPathSurfaces();
 		Log($"SYSTEM: Nexus App Entry launching from {comfyPath}");
 
 		await _loginSequence.RunStartupAsync(
@@ -136,7 +136,7 @@ public partial class MainPage
 				return;
 			}
 
-			string targetHudPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD");
+			string targetHudPath = Path.Combine(GetConfiguredCoreLinkPath(), "custom_nodes", "ComfyUI-HUD");
 			bool confirm = await DisplayAlertAsync(
 				LocalizationManager.Text("core_link.patch_local_hud_title"),
 				LocalizationManager.Format("core_link.patch_local_hud_message", localHudPath, targetHudPath),
@@ -171,7 +171,7 @@ public partial class MainPage
 	{
 		try
 		{
-			string targetHudPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-HUD");
+			string targetHudPath = Path.Combine(GetConfiguredCoreLinkPath(), "custom_nodes", "ComfyUI-HUD");
 			string sourceBridgePath = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", "NexusBridge", "js");
 			if (!Directory.Exists(targetHudPath) || !File.Exists(Path.Combine(targetHudPath, "__init__.py")))
 			{
@@ -360,6 +360,7 @@ public partial class MainPage
 	private async Task PrepareStartupCoreLinkAsync(string path)
 	{
 		PortablePreferences.Set(PreferenceKeys.ComfyUIPath, path);
+		SynchronizeConfiguredComfyPathSurfaces();
 		Log($"Core Link ready: {path}");
 		_loadingOverlayController.SetMode(showConfig: false);
 		UpdateSystemLoadingState(true);
@@ -369,7 +370,7 @@ public partial class MainPage
 	private Task PrepareSelectedCoreLinkAsync(string path)
 	{
 		PortablePreferences.Set(PreferenceKeys.ComfyUIPath, path);
-		UpdateComfyManagerAvailability(path);
+		SynchronizeConfiguredComfyPathSurfaces();
 		Log($"SUCCESS: Core Link Established at {path}");
 		_loadingOverlayController.SetMode(showConfig: false);
 		_loadingOverlayController.Hold(

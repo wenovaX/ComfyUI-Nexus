@@ -45,7 +45,8 @@ internal sealed class ExtensionInstaller
 				.Where(target => !string.IsNullOrWhiteSpace(target))
 				.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			bool installAll = targets.Count == 0;
-			string managerPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", "ComfyUI-Manager");
+			string customNodesPath = ComfyPathResolver.ResolveActiveCustomNodesPath();
+			string managerPath = Path.Combine(customNodesPath, "ComfyUI-Manager");
 			if (installAll || targets.Contains("ComfyUI-Manager"))
 			{
 				DeleteExistingExtensionIfRequested(managerPath, reinstallExisting);
@@ -70,7 +71,7 @@ internal sealed class ExtensionInstaller
 				}
 
 				string nodeTag = $"[Node:{i + 1}/{nodeCount}]";
-				string targetPath = Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes", node.Folder);
+				string targetPath = Path.Combine(customNodesPath, node.Folder);
 				bool shouldInstallScripts = !Directory.Exists(targetPath);
 				DeleteExistingExtensionIfRequested(targetPath, reinstallExisting);
 				shouldInstallScripts = shouldInstallScripts || reinstallExisting;

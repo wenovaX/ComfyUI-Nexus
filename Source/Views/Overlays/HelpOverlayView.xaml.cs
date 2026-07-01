@@ -60,7 +60,7 @@ public partial class HelpOverlayView : ContentView
 	// Keep article variables small and explicit; they are resolved before tag parsing.
 	private static readonly Dictionary<string, Func<string>> HelpVariables = new(StringComparer.OrdinalIgnoreCase)
 	{
-		["comfyui.path"] = () => ComfyInstallService.ComfyPath,
+		["comfyui.path"] = () => ComfyPathResolver.ResolveConfiguredComfyPath(),
 	};
 
 	private readonly List<HelpNavigationEntry> _entries = [];
@@ -1345,7 +1345,7 @@ public partial class HelpOverlayView : ContentView
 
 		return Path.GetFullPath(Path.IsPathRooted(normalizedPath)
 			? normalizedPath
-			: Path.Combine(ComfyInstallService.ComfyPath, normalizedPath));
+			: Path.Combine(ComfyPathResolver.ResolveConfiguredComfyPath(), normalizedPath));
 	}
 
 	private sealed record HelpNavigationEntry(HelpSection Section, HelpItem Item);

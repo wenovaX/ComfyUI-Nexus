@@ -10,6 +10,9 @@ internal sealed class ComfyVenvManager
 	private const string RuntimeTag = "[Runtime]";
 	private static readonly TimeSpan DependencyIdleTimeout = TimeSpan.FromMinutes(10);
 	private static readonly TimeSpan ReadinessIdleTimeout = TimeSpan.FromSeconds(30);
+	private static string ActiveComfyPath => ComfyPathResolver.ResolveActiveComfyPath();
+	private static string ActiveVenvPath => ComfyPathResolver.ResolveActiveVenvPath();
+	private static string ActiveVenvPythonExe => ComfyPathResolver.ResolveActiveVenvPythonExe();
 
 	private readonly Action<string> _log;
 	private readonly Action<double, string> _progress;
@@ -25,7 +28,7 @@ internal sealed class ComfyVenvManager
 		try
 		{
 			Report(0.05, "Preparing ComfyUI virtual environment. This can take 10-20 minutes on a fresh setup.");
-			ComfyInstallService.EnsureComfyWorkspaceDirectories(ComfyInstallService.ComfyPath);
+			ComfyInstallService.EnsureComfyWorkspaceDirectories(ActiveComfyPath);
 			await EnsureAsync(RuntimeTag, cancellationToken);
 		}
 		catch (Exception ex)
@@ -52,13 +55,13 @@ internal sealed class ComfyVenvManager
 	{
 		try
 		{
-			ComfyInstallService.EnsureComfyWorkspaceDirectories(ComfyInstallService.ComfyPath);
+			ComfyInstallService.EnsureComfyWorkspaceDirectories(ActiveComfyPath);
 
-			if (Directory.Exists(ComfyInstallService.ComfyVenvPath))
+			if (Directory.Exists(ActiveVenvPath))
 			{
-				if (!IsSafeComfyVenvPath(ComfyInstallService.ComfyVenvPath))
+				if (!IsSafeComfyVenvPath(ActiveVenvPath))
 				{
-					return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ComfyInstallService.ComfyVenvPath}", 0);
+					return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ActiveVenvPath}", 0);
 				}
 
 				_log($"{RuntimeTag} Removing existing .venv...");
@@ -84,7 +87,7 @@ internal sealed class ComfyVenvManager
 	{
 		try
 		{
-			if (!Directory.Exists(ComfyInstallService.ComfyVenvPath))
+			if (!Directory.Exists(ActiveVenvPath))
 			{
 				SetupSettingsService.Instance.Settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
 				SetupSettingsService.Instance.Settings.PendingVenvDelete = false;
@@ -98,9 +101,9 @@ internal sealed class ComfyVenvManager
 				return ScheduleDelete("ComfyUI server is running");
 			}
 
-			if (!IsSafeComfyVenvPath(ComfyInstallService.ComfyVenvPath))
+			if (!IsSafeComfyVenvPath(ActiveVenvPath))
 			{
-				return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ComfyInstallService.ComfyVenvPath}", 0);
+				return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ActiveVenvPath}", 0);
 			}
 
 			_log($"{RuntimeTag} Deleting ComfyUI .venv...");
@@ -132,7 +135,7 @@ internal sealed class ComfyVenvManager
 
 		try
 		{
-			if (!Directory.Exists(ComfyInstallService.ComfyVenvPath))
+			if (!Directory.Exists(ActiveVenvPath))
 			{
 				settings.PendingVenvDelete = false;
 				SetupSettingsService.Instance.Save();
@@ -140,9 +143,9 @@ internal sealed class ComfyVenvManager
 				return new SetupStepResult(true, "Pending .venv delete cleared.", 1);
 			}
 
-			if (!IsSafeComfyVenvPath(ComfyInstallService.ComfyVenvPath))
+			if (!IsSafeComfyVenvPath(ActiveVenvPath))
 			{
-				return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ComfyInstallService.ComfyVenvPath}", 0);
+				return new SetupStepResult(false, $"Refusing to delete unsafe venv path: {ActiveVenvPath}", 0);
 			}
 
 			_log($"{RuntimeTag} Applying pending .venv delete before server boot...");
@@ -182,7 +185,7 @@ internal sealed class ComfyVenvManager
 	internal async Task EnsureAsync(string tag, CancellationToken cancellationToken)
 	{
 		_log($"{tag} Ensuring virtual environment...");
-		if (File.Exists(ComfyInstallService.ComfyVenvPythonExe)) return;
+		if (File.Exists(ActiveVenvPythonExe)) return;
 
 		string seedPython = ResolveVenvSeedPython();
 		string? seedWorkingDirectory = ResolveVenvSeedWorkingDirectory(seedPython);
@@ -199,7 +202,7 @@ internal sealed class ComfyVenvManager
 		var pipEnvironment = CreatePipEnvironment(tag);
 		var result = await ProcessRunner.RunAsync(
 			seedPython,
-			$"-m venv \"{ComfyInstallService.ComfyVenvPath}\"",
+			$"-m venv \"{ActiveVenvPath}\"",
 			seedWorkingDirectory,
 			_log,
 			cancellationToken,
@@ -221,14 +224,14 @@ internal sealed class ComfyVenvManager
 	{
 		try
 		{
-			ComfyInstallService.EnsureComfyWorkspaceDirectories(ComfyInstallService.ComfyPath);
+			ComfyInstallService.EnsureComfyWorkspaceDirectories(ActiveComfyPath);
 			string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable();
 			string runtimeLabel = RuntimeRepairTarget.GetLabel();
 
 			if (RuntimeRepairTarget.IsUsingVenv())
 			{
 				await EnsureAsync(RuntimeTag, cancellationToken);
-				pythonExecutable = ComfyInstallService.ComfyVenvPythonExe;
+				pythonExecutable = ActiveVenvPythonExe;
 			}
 
 			_log($"{RuntimeTag} Repair target: {runtimeLabel}");
@@ -251,9 +254,9 @@ internal sealed class ComfyVenvManager
 	{
 		try
 		{
-			await InstallComfyRequirementsAsync(RuntimeTag, ComfyInstallService.ComfyVenvPythonExe, cancellationToken);
+			await InstallComfyRequirementsAsync(RuntimeTag, ActiveVenvPythonExe, cancellationToken);
 
-			var cudaResult = await UpgradeToCudaAsync(ComfyInstallService.ComfyVenvPythonExe, cancellationToken);
+			var cudaResult = await UpgradeToCudaAsync(ActiveVenvPythonExe, cancellationToken);
 			if (!cudaResult.IsSuccess) return cudaResult;
 
 			return new SetupStepResult(true, "ComfyUI .venv dependencies and CUDA environment are ready.", 1);
@@ -284,7 +287,7 @@ internal sealed class ComfyVenvManager
 
 	private async Task InstallComfyRequirementsAsync(string tag, string pythonExecutable, CancellationToken cancellationToken)
 	{
-		string requirementsPath = Path.Combine(ComfyInstallService.ComfyPath, "requirements.txt");
+		string requirementsPath = Path.Combine(ActiveComfyPath, "requirements.txt");
 		if (!File.Exists(requirementsPath))
 		{
 			_log($"{tag} requirements.txt was not found. Skipping dependency sync.");
@@ -297,7 +300,7 @@ internal sealed class ComfyVenvManager
 		var result = await ProcessRunner.RunAsync(
 			pythonExecutable,
 			$"-m pip install -r \"{requirementsPath}\"",
-			ComfyInstallService.ComfyPath,
+			ActiveComfyPath,
 			_log,
 			cancellationToken,
 			DependencyIdleTimeout,
@@ -329,7 +332,7 @@ internal sealed class ComfyVenvManager
 		var uninstall = await ProcessRunner.RunAsync(
 			pythonExecutable,
 			$"-m pip uninstall {settings.TorchPackages} -y",
-			ComfyInstallService.ComfyPath,
+			ActiveComfyPath,
 			_log,
 			cancellationToken,
 			environmentVariables: pipEnvironment);
@@ -341,7 +344,7 @@ internal sealed class ComfyVenvManager
 		var install = await ProcessRunner.RunAsync(
 			pythonExecutable,
 			$"-m pip install {settings.TorchPackages} --index-url {settings.PyTorchIndexUrl}",
-			ComfyInstallService.ComfyPath,
+			ActiveComfyPath,
 			_log,
 			cancellationToken,
 			DependencyIdleTimeout,
@@ -389,7 +392,7 @@ else:
 		try
 		{
 			await File.WriteAllTextAsync(scriptPath, verifyScript, cancellationToken);
-			var (exitCode, output, error) = await ProcessRunner.RunAsync(pythonExecutable, $"\"{scriptPath}\"", ComfyInstallService.ComfyPath, _log, cancellationToken);
+			var (exitCode, output, error) = await ProcessRunner.RunAsync(pythonExecutable, $"\"{scriptPath}\"", ActiveComfyPath, _log, cancellationToken);
 
 			if (exitCode == 0 && output.Contains("CUDA Available: True", StringComparison.Ordinal))
 			{
@@ -528,10 +531,10 @@ else:
 			{
 				return await Task.Run(() =>
 				{
-					if (!Directory.Exists(ComfyInstallService.ComfyVenvPath)) return true;
+					if (!Directory.Exists(ActiveVenvPath)) return true;
 
-					ClearReadOnlyAttributes(new DirectoryInfo(ComfyInstallService.ComfyVenvPath));
-					Directory.Delete(ComfyInstallService.ComfyVenvPath, recursive: true);
+					ClearReadOnlyAttributes(new DirectoryInfo(ActiveVenvPath));
+					Directory.Delete(ActiveVenvPath, recursive: true);
 					return true;
 				}, cancellationToken);
 			}
@@ -553,7 +556,7 @@ else:
 			}
 		}
 
-		return !Directory.Exists(ComfyInstallService.ComfyVenvPath);
+		return !Directory.Exists(ActiveVenvPath);
 	}
 
 	private static SetupStepResult CreateVenvDeleteFailureResult(string action)
@@ -586,7 +589,7 @@ else:
 	private static bool IsSafeComfyVenvPath(string path)
 	{
 		string fullVenvPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-		string fullComfyPath = Path.GetFullPath(ComfyInstallService.ComfyPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		string fullComfyPath = Path.GetFullPath(ActiveComfyPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 		string expectedVenvName = Path.GetFileName(fullVenvPath);
 
 		return string.Equals(expectedVenvName, ".venv", StringComparison.OrdinalIgnoreCase)

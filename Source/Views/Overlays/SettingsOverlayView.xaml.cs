@@ -1223,8 +1223,10 @@ public partial class SettingsOverlayView : ContentView
 
 	private void UpdateVenvCard()
 	{
-		bool hasVenvDirectory = Directory.Exists(ComfyInstallService.ComfyVenvPath);
-		bool hasVenvPython = File.Exists(ComfyInstallService.ComfyVenvPythonExe);
+		string venvPath = ComfyPathResolver.ResolveActiveVenvPath();
+		string venvPythonExe = ComfyPathResolver.ResolveActiveVenvPythonExe();
+		bool hasVenvDirectory = Directory.Exists(venvPath);
+		bool hasVenvPython = File.Exists(venvPythonExe);
 		bool useVenv = string.Equals(_editor.Draft.ServerPythonMode, PythonExecutionModes.Venv, StringComparison.Ordinal);
 		bool pendingCreate = HasDraftBootTask(PendingBootTaskIds.VenvCreate);
 		bool pendingRebuild = HasDraftBootTask(PendingBootTaskIds.VenvRebuild);
@@ -1235,7 +1237,7 @@ public partial class SettingsOverlayView : ContentView
 		if (pendingCreate || pendingRebuild)
 		{
 			VenvStateValueLabel.Text = pendingCreate ? ".venv create scheduled" : ".venv rebuild scheduled";
-			VenvPathValueLabel.Text = ComfyInstallService.ComfyVenvPath;
+			VenvPathValueLabel.Text = venvPath;
 			VenvDetailValueLabel.Text = pendingCreate
 				? useVenv
 					? "VENV launch is selected, so Nexus must create the managed .venv before the next boot."
@@ -1251,7 +1253,7 @@ public partial class SettingsOverlayView : ContentView
 		if (pendingDelete)
 		{
 			VenvStateValueLabel.Text = ".venv delete scheduled";
-			VenvPathValueLabel.Text = ComfyInstallService.ComfyVenvPath;
+			VenvPathValueLabel.Text = venvPath;
 			VenvDetailValueLabel.Text = "Restart the server to stop the current runtime and remove .venv before the next boot. DIRECT launch mode is selected.";
 			CreateVenvButton.IsVisible = false;
 			ResetVenvButton.IsVisible = false;
@@ -1265,7 +1267,7 @@ public partial class SettingsOverlayView : ContentView
 			: hasVenvDirectory
 				? ".venv folder exists, but python.exe is missing"
 				: ".venv not created";
-		VenvPathValueLabel.Text = hasVenvDirectory ? ComfyInstallService.ComfyVenvPath : $"Target: {ComfyInstallService.ComfyVenvPath}";
+		VenvPathValueLabel.Text = hasVenvDirectory ? venvPath : $"Target: {venvPath}";
 		VenvDetailValueLabel.Text = hasVenvPython
 			? "Reset recreates the environment. Delete removes it and switches launch mode to DIRECT."
 			: "Create is recommended if you want Nexus to manage ComfyUI dependencies in an isolated Python environment.";
@@ -1491,7 +1493,12 @@ public partial class SettingsOverlayView : ContentView
 			: "Local Nexus runtime";
 
 	private static string GetCustomNodesPath()
-		=> System.IO.Path.Combine(ComfyInstallService.ComfyPath, "custom_nodes");
+	{
+		string comfyPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+		return string.IsNullOrWhiteSpace(comfyPath)
+			? string.Empty
+			: System.IO.Path.Combine(comfyPath, "custom_nodes");
+	}
 
 	private void RebuildManagedExtensionOptions()
 	{
@@ -1659,7 +1666,15 @@ public partial class SettingsOverlayView : ContentView
 	}
 
 	private static string GetEffectiveComfyPath(SetupSettings settings)
-		=> string.IsNullOrWhiteSpace(settings.ComfyPath) ? ComfyInstallService.DefaultComfyPath : settings.ComfyPath;
+	{
+		string activePath = ComfyPathResolver.ResolveActiveComfyPath();
+		if (!string.IsNullOrWhiteSpace(activePath))
+		{
+			return activePath;
+		}
+
+		return string.IsNullOrWhiteSpace(settings.ComfyPath) ? ComfyInstallService.DefaultComfyPath : settings.ComfyPath;
+	}
 
 	private static string GetToolPathDisplay(string path)
 		=> string.IsNullOrWhiteSpace(path) ? "(not configured)" : path;
@@ -2181,7 +2196,7 @@ public partial class SettingsOverlayView : ContentView
 		_editor.Draft.ServerPythonMode = PythonExecutionModes.Venv;
 		_editor.Draft.PendingVenvDelete = false;
 		RemoveDraftBootTask(PendingBootTaskIds.VenvDelete);
-		if (!File.Exists(ComfyInstallService.ComfyVenvPythonExe)
+		if (!File.Exists(ComfyPathResolver.ResolveActiveVenvPythonExe())
 			&& !HasDraftBootTask(PendingBootTaskIds.VenvCreate)
 			&& !HasDraftBootTask(PendingBootTaskIds.VenvRebuild))
 		{
@@ -2441,7 +2456,12 @@ public partial class SettingsOverlayView : ContentView
 		try
 		{
 			string sourcePath = System.IO.Path.Combine(GetCustomNodesPath(), "ComfyUI-HUD", "hud_sample");
-			string targetPath = System.IO.Path.Combine(ComfyInstallService.ComfyPath, "user", "default", "workflows", "hud_sample");
+			string targetPath = System.IO.Path.Combine(
+				ComfyPathResolver.ResolveConfiguredComfyPath(),
+				"user",
+				"default",
+				"workflows",
+				"hud_sample");
 			if (!Directory.Exists(sourcePath) ||
 				!Directory.EnumerateFiles(sourcePath, "*.json", SearchOption.AllDirectories).Any())
 			{
@@ -4300,7 +4320,7 @@ public partial class SettingsOverlayView : ContentView
 	private bool IsRequiredVenvCreateTask(string taskId)
 		=> string.Equals(taskId, PendingBootTaskIds.VenvCreate, StringComparison.Ordinal)
 			&& string.Equals(_editor.Draft.ServerPythonMode, PythonExecutionModes.Venv, StringComparison.Ordinal)
-			&& !File.Exists(ComfyInstallService.ComfyVenvPythonExe);
+			&& !File.Exists(ComfyPathResolver.ResolveActiveVenvPythonExe());
 
 	private void AddDraftBootTask(string taskId, string origin = "")
 	{

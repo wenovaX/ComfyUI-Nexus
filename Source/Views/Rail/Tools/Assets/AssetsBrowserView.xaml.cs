@@ -592,6 +592,34 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 	public void SetRootPath(string rootPath)
 		=> SetRootProfile(ResolveProfileForPath(rootPath));
 
+	internal void RefreshConfiguredRoots()
+	{
+		RenderFixedCards();
+		RenderBookmarks();
+		RefreshBackgroundContextMenu();
+
+		if (_currentProfile == null || string.Equals(_currentProfile.Id, "custom", StringComparison.OrdinalIgnoreCase))
+		{
+			return;
+		}
+
+		AssetRootProfile? refreshedProfile = GetFixedProfiles()
+			.FirstOrDefault(profile => string.Equals(profile.Id, _currentProfile.Id, StringComparison.OrdinalIgnoreCase));
+		if (refreshedProfile == null)
+		{
+			return;
+		}
+
+		if (!string.Equals(refreshedProfile.Path, _rootPath, StringComparison.OrdinalIgnoreCase))
+		{
+			ApplyRootProfile(refreshedProfile);
+		}
+		else if (string.Equals(refreshedProfile.Id, "models", StringComparison.OrdinalIgnoreCase))
+		{
+			ApplyModelLibraryLocationChrome();
+		}
+	}
+
 	private void SetRootProfile(AssetRootProfile profile)
 	{
 		if (IsCurrentRootProfile(profile))

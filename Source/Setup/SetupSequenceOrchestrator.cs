@@ -217,7 +217,7 @@ internal sealed class SetupSequenceOrchestrator
 
 	private static List<string> GetMissingManagedExtensionTargets()
 	{
-		string customNodesPath = Path.Combine(Services.ComfyInstallService.ComfyPath, "custom_nodes");
+		string customNodesPath = Services.ComfyPathResolver.ResolveActiveCustomNodesPath();
 		var missingTargets = new List<string>();
 
 		AddIfMissing(

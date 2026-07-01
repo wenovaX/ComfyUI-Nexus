@@ -16,7 +16,8 @@ internal sealed record RuntimeBackupAnalysis(
 	long FileCount,
 	long RequiredBytes,
 	long AvailableBytes,
-	string BackupRoot);
+	string BackupRoot,
+	string ComfyPath);
 
 internal sealed record RuntimeBackupEntry(string Path, string Name, string Format, bool IsComplete);
 
@@ -79,12 +80,13 @@ internal sealed class RuntimeBackupService
 		try
 		{
 			var targets = NormalizeTargets(backupTargets);
+			string comfyPath = GetActiveComfyPath();
 			if (targets.Count == 0)
 			{
 				return Failure("Select at least one runtime folder to back up.", targets);
 			}
 
-			var sources = ResolveBackupSources(targets);
+			var sources = ResolveBackupSources(targets, comfyPath);
 			if (sources.Count == 0)
 			{
 				return Failure("No selected runtime folders were available to back up.", targets);
@@ -105,7 +107,8 @@ internal sealed class RuntimeBackupService
 					totals.FileCount,
 					requiredBytes,
 					-1,
-					backupRoot);
+					backupRoot,
+					comfyPath);
 			}
 
 			if (!TryGetAvailableBytes(backupRoot, out long availableBytes, out string error))
@@ -118,7 +121,8 @@ internal sealed class RuntimeBackupService
 					totals.FileCount,
 					requiredBytes,
 					-1,
-					backupRoot);
+					backupRoot,
+					comfyPath);
 			}
 
 			if (availableBytes < requiredBytes)
@@ -131,7 +135,8 @@ internal sealed class RuntimeBackupService
 					totals.FileCount,
 					requiredBytes,
 					availableBytes,
-					backupRoot);
+					backupRoot,
+					comfyPath);
 			}
 
 			return new RuntimeBackupAnalysis(
@@ -142,7 +147,8 @@ internal sealed class RuntimeBackupService
 				totals.FileCount,
 				requiredBytes,
 				availableBytes,
-				backupRoot);
+				backupRoot,
+				comfyPath);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -194,7 +200,7 @@ internal sealed class RuntimeBackupService
 		{
 			Directory.CreateDirectory(analysis.BackupRoot);
 			ResetProgressThrottle();
-			var sources = ResolveBackupSources(analysis.Targets);
+			var sources = ResolveBackupSources(analysis.Targets, analysis.ComfyPath);
 			if (sources.Count != analysis.Targets.Count)
 			{
 				return new SetupStepResult(false, "A selected backup source changed after analysis. Calculate the backup again.", 0);
@@ -233,9 +239,10 @@ internal sealed class RuntimeBackupService
 		try
 		{
 			await CleanupRestoreTempsAsync(cancellationToken).ConfigureAwait(false);
+			string comfyPath = GetActiveComfyPath();
 			if (string.IsNullOrWhiteSpace(backupPath))
 			{
-				return RestoreFailure("Select a valid runtime backup.", backupPath);
+				return RestoreFailure("Select a valid runtime backup.", backupPath, comfyPath: comfyPath);
 			}
 
 			string format;
@@ -252,12 +259,12 @@ internal sealed class RuntimeBackupService
 			}
 			else
 			{
-				return RestoreFailure("Select a valid runtime backup.", backupPath);
+				return RestoreFailure("Select a valid runtime backup.", backupPath, comfyPath: comfyPath);
 			}
 
 			if (sourceFiles.Count == 0)
 			{
-				return RestoreFailure("The selected backup does not contain models or custom_nodes.", backupPath, format);
+				return RestoreFailure("The selected backup does not contain models or custom_nodes.", backupPath, format, comfyPath: comfyPath);
 			}
 
 			var items = new List<RuntimeRestoreItem>(sourceFiles.Count);
@@ -270,9 +277,9 @@ internal sealed class RuntimeBackupService
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!sourcePaths.Add(source.RelativePath))
 				{
-					return RestoreFailure($"The backup contains a duplicate runtime path: {source.RelativePath}", backupPath, format);
+					return RestoreFailure($"The backup contains a duplicate runtime path: {source.RelativePath}", backupPath, format, comfyPath: comfyPath);
 				}
-				string destinationPath = GetSafeRestorePath(source.RelativePath);
+				string destinationPath = GetSafeRestorePath(source.RelativePath, comfyPath);
 				if (!File.Exists(destinationPath))
 				{
 					items.Add(new RuntimeRestoreItem(
@@ -331,7 +338,7 @@ internal sealed class RuntimeBackupService
 				.ToList();
 			foreach (string target in targets)
 			{
-				string targetRoot = Path.Combine(ComfyInstallService.ComfyPath, target);
+				string targetRoot = Path.Combine(comfyPath, target);
 				foreach (string existingPath in EnumerateFilesSafely(targetRoot, cancellationToken))
 				{
 					string relative = $"{target}/{Path.GetRelativePath(targetRoot, existingPath).Replace(Path.DirectorySeparatorChar, '/')}";
@@ -359,9 +366,9 @@ internal sealed class RuntimeBackupService
 					AddWithoutOverflow(
 						largestReplacementBytes,
 						Math.Max(MinimumSafetyBytes, CalculatePercent(copyBytes, 2))));
-			if (!TryGetAvailableBytes(ComfyInstallService.ComfyPath, out long availableBytes, out string spaceError))
+			if (!TryGetAvailableBytes(comfyPath, out long availableBytes, out string spaceError))
 			{
-				return RestoreFailure(spaceError, backupPath, format, items, copyBytes, requiredBytes, -1);
+				return RestoreFailure(spaceError, backupPath, format, items, copyBytes, requiredBytes, -1, comfyPath);
 			}
 
 			string previewPath = await WriteRestorePreviewAsync(
@@ -372,6 +379,7 @@ internal sealed class RuntimeBackupService
 				copyBytes,
 				requiredBytes,
 				availableBytes,
+				comfyPath,
 				cancellationToken).ConfigureAwait(false);
 			bool enoughSpace = availableBytes >= requiredBytes;
 			return new RuntimeRestoreAnalysis(
@@ -379,7 +387,7 @@ internal sealed class RuntimeBackupService
 				enoughSpace ? "Runtime restore analysis is ready." : "The ComfyUI destination does not have enough free space.",
 				Path.GetFullPath(backupPath),
 				format,
-				ComfyInstallService.ComfyPath,
+				comfyPath,
 				targets,
 				items,
 				copyBytes,
@@ -390,7 +398,7 @@ internal sealed class RuntimeBackupService
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			_log($"{RuntimeTag} [ERROR] Restore analysis failed: {ex.Message}");
-			return RestoreFailure($"Restore analysis failed: {ex.Message}", backupPath);
+			return RestoreFailure($"Restore analysis failed: {ex.Message}", backupPath, comfyPath: GetActiveComfyPath());
 		}
 	}
 
@@ -406,12 +414,17 @@ internal sealed class RuntimeBackupService
 		var pendingItems = analysis.Items
 			.Where(item => item.Action is RuntimeRestoreAction.Add or RuntimeRestoreAction.Replace)
 			.ToList();
-		if (!ValidateRestoreSnapshot(pendingItems, out string validationError))
+		if (!IsSamePath(GetActiveComfyPath(), analysis.ComfyPath))
+		{
+			return new RuntimeRestoreResult(false, "The active ComfyUI path changed after restore analysis. Analyze the backup again.", 0, pendingItems.Count);
+		}
+
+		if (!ValidateRestoreSnapshot(pendingItems, analysis.ComfyPath, out string validationError))
 		{
 			return new RuntimeRestoreResult(false, validationError, 0, pendingItems.Count);
 		}
 
-		if (!TryGetAvailableBytes(ComfyInstallService.ComfyPath, out long availableBytes, out string spaceError)
+		if (!TryGetAvailableBytes(analysis.ComfyPath, out long availableBytes, out string spaceError)
 			|| availableBytes < analysis.RequiredBytes)
 		{
 			string message = availableBytes < 0
@@ -446,6 +459,7 @@ internal sealed class RuntimeBackupService
 						item,
 						sessionId,
 						journal,
+						analysis.ComfyPath,
 						value =>
 						{
 							restoredBytes += value;
@@ -466,6 +480,7 @@ internal sealed class RuntimeBackupService
 						item,
 						sessionId,
 						journal,
+						analysis.ComfyPath,
 						value =>
 						{
 							restoredBytes += value;
@@ -487,12 +502,12 @@ internal sealed class RuntimeBackupService
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			_log($"{RuntimeTag} [ERROR] Restore failed after {completed} file(s): {ex.Message}");
-			await CleanupJournalTempsAsync(journal, CancellationToken.None).ConfigureAwait(false);
+			await CleanupJournalTempsAsync(journal, analysis.ComfyPath, CancellationToken.None).ConfigureAwait(false);
 			return new RuntimeRestoreResult(false, $"Restore failed: {ex.Message}", completed, pendingItems.Count - completed);
 		}
 		catch
 		{
-			await CleanupJournalTempsAsync(journal, CancellationToken.None).ConfigureAwait(false);
+			await CleanupJournalTempsAsync(journal, analysis.ComfyPath, CancellationToken.None).ConfigureAwait(false);
 			throw;
 		}
 	}
@@ -682,12 +697,12 @@ internal sealed class RuntimeBackupService
 			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToList();
 
-	private static List<(string Target, string Path)> ResolveBackupSources(IEnumerable<string> targets)
+	private static List<(string Target, string Path)> ResolveBackupSources(IEnumerable<string> targets, string comfyPath)
 	{
 		var sources = new List<(string Target, string Path)>();
 		foreach (string target in targets)
 		{
-			string sourcePath = Path.Combine(ComfyInstallService.ComfyPath, target);
+			string sourcePath = Path.Combine(comfyPath, target);
 			if (Directory.Exists(sourcePath))
 			{
 				sources.Add((target, sourcePath));
@@ -698,7 +713,29 @@ internal sealed class RuntimeBackupService
 	}
 
 	private static RuntimeBackupAnalysis Failure(string message, IReadOnlyList<string> targets)
-		=> new(false, message, targets, 0, 0, 0, -1, GetConfiguredBackupRoot());
+		=> new(false, message, targets, 0, 0, 0, -1, GetConfiguredBackupRoot(), GetActiveComfyPath());
+
+	private static string GetActiveComfyPath()
+	{
+		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
+		return string.IsNullOrWhiteSpace(comfyPath)
+			? ComfyInstallService.DefaultComfyPath
+			: comfyPath;
+	}
+
+	private static bool IsSamePath(string left, string right)
+	{
+		if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+		{
+			return false;
+		}
+
+		string normalizedLeft = Path.GetFullPath(left)
+			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		string normalizedRight = Path.GetFullPath(right)
+			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		return string.Equals(normalizedLeft, normalizedRight, StringComparison.OrdinalIgnoreCase);
+	}
 
 	private static long CalculatePercent(long value, int percent)
 		=> value > long.MaxValue / percent ? long.MaxValue : value * percent / 100;
@@ -1093,13 +1130,14 @@ internal sealed class RuntimeBackupService
 		IReadOnlyList<RuntimeRestoreItem>? items = null,
 		long copyBytes = 0,
 		long requiredBytes = 0,
-		long availableBytes = -1)
+		long availableBytes = -1,
+		string? comfyPath = null)
 		=> new(
 			false,
 			message,
 			backupPath,
 			format,
-			ComfyInstallService.ComfyPath,
+			string.IsNullOrWhiteSpace(comfyPath) ? GetActiveComfyPath() : comfyPath,
 			[],
 			items ?? [],
 			copyBytes,
@@ -1115,6 +1153,7 @@ internal sealed class RuntimeBackupService
 		long copyBytes,
 		long requiredBytes,
 		long availableBytes,
+		string comfyPath,
 		CancellationToken cancellationToken)
 	{
 		string logDirectory = ComfyInstallService.GetLocalRuntimePath("Work/Logs");
@@ -1125,7 +1164,7 @@ internal sealed class RuntimeBackupService
 		builder.AppendLine($"Generated: {DateTimeOffset.Now:O}");
 		builder.AppendLine($"Backup: {backupPath}");
 		builder.AppendLine($"Format: {format}");
-		builder.AppendLine($"Destination: {ComfyInstallService.ComfyPath}");
+		builder.AppendLine($"Destination: {comfyPath}");
 		builder.AppendLine($"Targets: {string.Join(", ", targets)}");
 		builder.AppendLine($"Copy bytes: {copyBytes}");
 		builder.AppendLine($"Required bytes: {requiredBytes}");
@@ -1142,11 +1181,12 @@ internal sealed class RuntimeBackupService
 
 	private static bool ValidateRestoreSnapshot(
 		IReadOnlyList<RuntimeRestoreItem> items,
+		string comfyPath,
 		out string error)
 	{
 		foreach (RuntimeRestoreItem item in items)
 		{
-			string destinationPath = GetSafeRestorePath(item.RelativePath);
+			string destinationPath = GetSafeRestorePath(item.RelativePath, comfyPath);
 			if (item.Action == RuntimeRestoreAction.Add)
 			{
 				if (File.Exists(destinationPath))
@@ -1181,11 +1221,12 @@ internal sealed class RuntimeBackupService
 		RuntimeRestoreItem item,
 		string sessionId,
 		RestoreJournal journal,
+		string comfyPath,
 		Action<long> reportCopiedBytes,
 		CancellationToken cancellationToken)
 	{
-		string destinationPath = GetSafeRestorePath(item.RelativePath);
-		string directory = Path.GetDirectoryName(destinationPath) ?? ComfyInstallService.ComfyPath;
+		string destinationPath = GetSafeRestorePath(item.RelativePath, comfyPath);
+		string directory = Path.GetDirectoryName(destinationPath) ?? comfyPath;
 		Directory.CreateDirectory(directory);
 		string tempPath = Path.Combine(directory, $"{Path.GetFileName(destinationPath)}{RestoreTempMarker}{sessionId}.tmp");
 		journal.TempPaths.Add(tempPath);
@@ -1262,7 +1303,7 @@ internal sealed class RuntimeBackupService
 			RestoreJournal? journal = JsonSerializer.Deserialize<RestoreJournal>(json, ManifestJsonOptions);
 			if (journal != null)
 			{
-				await CleanupJournalTempsAsync(journal, cancellationToken).ConfigureAwait(false);
+				await CleanupJournalTempsAsync(journal, GetActiveComfyPath(), cancellationToken).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
@@ -1275,14 +1316,14 @@ internal sealed class RuntimeBackupService
 		}
 	}
 
-	private static Task CleanupJournalTempsAsync(RestoreJournal journal, CancellationToken cancellationToken)
+	private static Task CleanupJournalTempsAsync(RestoreJournal journal, string comfyPath, CancellationToken cancellationToken)
 	{
 		return Task.Run(() =>
 		{
 			foreach (string tempPath in journal.TempPaths)
 			{
 				cancellationToken.ThrowIfCancellationRequested();
-				if (IsSafeRestoreTempPath(tempPath, journal.SessionId))
+				if (IsSafeRestoreTempPath(tempPath, journal.SessionId, comfyPath))
 				{
 					TryDeleteFile(tempPath);
 				}
@@ -1291,7 +1332,7 @@ internal sealed class RuntimeBackupService
 		}, cancellationToken);
 	}
 
-	private static bool IsSafeRestoreTempPath(string path, string sessionId)
+	private static bool IsSafeRestoreTempPath(string path, string sessionId, string comfyPath)
 	{
 		if (string.IsNullOrWhiteSpace(path)
 			|| string.IsNullOrWhiteSpace(sessionId)
@@ -1303,7 +1344,7 @@ internal sealed class RuntimeBackupService
 		string fullPath = Path.GetFullPath(path);
 		foreach (string target in new[] { RuntimeBackupTargets.Models, RuntimeBackupTargets.CustomNodes })
 		{
-			string root = Path.GetFullPath(Path.Combine(ComfyInstallService.ComfyPath, target))
+			string root = Path.GetFullPath(Path.Combine(comfyPath, target))
 				.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
 				+ Path.DirectorySeparatorChar;
 			if (fullPath.StartsWith(root, StringComparison.OrdinalIgnoreCase))
@@ -1353,7 +1394,7 @@ internal sealed class RuntimeBackupService
 			3,
 			format,
 			DateTimeOffset.Now,
-			ComfyInstallService.ComfyPath,
+			analysis.ComfyPath,
 			analysis.Targets,
 			analysis.SourceBytes,
 			analysis.FileCount,
@@ -1413,7 +1454,7 @@ internal sealed class RuntimeBackupService
 			|| normalized.StartsWith("custom_nodes/", StringComparison.OrdinalIgnoreCase);
 	}
 
-	private static string GetSafeRestorePath(string entryName)
+	private static string GetSafeRestorePath(string entryName, string comfyPath)
 	{
 		string normalized = entryName.Replace('\\', '/').TrimStart('/');
 		int separatorIndex = normalized.IndexOf('/');
@@ -1438,7 +1479,7 @@ internal sealed class RuntimeBackupService
 
 		string relativePath = normalized[(separatorIndex + 1)..]
 			.Replace('/', Path.DirectorySeparatorChar);
-		string targetRoot = Path.GetFullPath(Path.Combine(ComfyInstallService.ComfyPath, target))
+		string targetRoot = Path.GetFullPath(Path.Combine(comfyPath, target))
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
 			+ Path.DirectorySeparatorChar;
 		string destination = Path.GetFullPath(Path.Combine(targetRoot, relativePath));

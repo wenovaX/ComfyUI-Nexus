@@ -24,7 +24,7 @@ internal sealed class ModelResourceInstaller
 		try
 		{
 			var settings = SetupSettingsService.Instance.Settings;
-			string checkpointsDir = Path.Combine(ComfyInstallService.ComfyPath, "models", "checkpoints");
+			string checkpointsDir = Path.Combine(ComfyPathResolver.ResolveActiveModelsRootPath(), "checkpoints");
 			Directory.CreateDirectory(checkpointsDir);
 
 			string fileName = settings.DefaultModelFileName;

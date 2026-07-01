@@ -563,10 +563,25 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 			return;
 		}
 
+		string previousOutputRoot = GetRootPath(MediaAssetScope.Output);
+		string previousInputRoot = GetRootPath(MediaAssetScope.Input);
+
 		_comfyRootPath = rootPath;
+		MarkCacheDirty(previousOutputRoot);
+		MarkCacheDirty(previousInputRoot);
+		MarkCacheDirty(GetRootPath(MediaAssetScope.Output));
+		MarkCacheDirty(GetRootPath(MediaAssetScope.Input));
 		MarkCacheDirty(GetActiveRootPath());
 		RestartWatcher();
-		QueueRefresh();
+		if (_hasSyncedOutputJobs)
+		{
+			_syncedOutputJobs.Clear();
+			_hasSyncedOutputJobs = false;
+		}
+
+		_selection.Clear();
+		QueueRefresh(forceRefresh: true);
+		UpdateTabState();
 	}
 
 	internal void RefreshAssets() => QueueRefresh();

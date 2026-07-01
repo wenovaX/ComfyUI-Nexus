@@ -23,7 +23,7 @@ internal sealed class StartupReadinessProbe
 			return NotUsable($"Server port is invalid: {settings.ServerPort}.");
 		}
 
-		string comfyPath = ComfyInstallService.ComfyPath;
+		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
 		if (string.IsNullOrWhiteSpace(comfyPath) || !Directory.Exists(comfyPath))
 		{
 			return NotUsable($"ComfyUI path is missing or unavailable: {comfyPath}");

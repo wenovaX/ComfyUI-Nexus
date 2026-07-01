@@ -13,7 +13,7 @@ internal static class RuntimeRepairTarget
 	internal static string GetPythonExecutable(SetupSettings? settings = null)
 	{
 		settings ??= SetupSettingsService.Instance.Settings;
-		if (IsUsingVenv(settings)) return ComfyInstallService.ComfyVenvPythonExe;
+		if (IsUsingVenv(settings)) return ComfyPathResolver.ResolveActiveVenvPythonExe();
 
 		return string.IsNullOrWhiteSpace(settings.PythonPath) ? "python" : settings.PythonPath;
 	}

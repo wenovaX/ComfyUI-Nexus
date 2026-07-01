@@ -37,7 +37,7 @@ internal sealed class ComfyServerProcessService
 		cancellationToken.ThrowIfCancellationRequested();
 
 		string serverPython = ResolveServerPythonExecutable();
-		string comfyPath = ComfyInstallService.ComfyPath;
+		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
 		string mainPy = Path.Combine(comfyPath, "main.py");
 		string logsDirectory = ComfyInstallService.GetLocalRuntimePath("Logs");
 		string latestServerLogPath = SessionLogPaths.GetLatestLogPath(logsDirectory, SessionLogPaths.ComfyServerLatestFileName);
@@ -191,7 +191,7 @@ internal sealed class ComfyServerProcessService
 	{
 		Settings.LastLaunchSuccessful = true;
 		Settings.LastActivePort = ConfiguredPort;
-		Settings.ActiveServerLaunchSettings = ServerLaunchSettingsSnapshot.FromSettings(Settings, ComfyInstallService.ComfyPath);
+		Settings.ActiveServerLaunchSettings = ServerLaunchSettingsSnapshot.FromSettings(Settings, ComfyPathResolver.ResolveActiveComfyPath());
 		SetupSettingsService.Instance.Save();
 	}
 
@@ -216,7 +216,7 @@ internal sealed class ComfyServerProcessService
 			return string.IsNullOrWhiteSpace(Settings.PythonPath) ? "python" : Settings.PythonPath;
 		}
 
-		return ComfyInstallService.ComfyVenvPythonExe;
+		return ComfyPathResolver.ResolveActiveVenvPythonExe();
 	}
 
 	private void EnsureNodes20Enabled(string comfyPath)
