@@ -1,0 +1,202 @@
+{
+	"title": {
+		"en": "NEXUS HELP",
+		"ko": "NEXUS 도움말",
+		"zh-Hans": "NEXUS 帮助",
+		"zh-Hant": "NEXUS 說明"
+	},
+	"subtitle": {
+		"en": "A practical field notebook for models, nodes, references, and links you actually revisit.",
+		"ko": "모델, 노드, 레퍼런스 활용을 위한 실용적인 현장 노트입니다.",
+		"zh-Hans": "面向模型、节点和参考资源的实用现场笔记。",
+		"zh-Hant": "面向模型、節點和參考資源的實用現場筆記。"
+	},
+	"sections": [
+		{
+			"title": {
+				"en": "TREASURE HUNT",
+				"ko": "보물찾기",
+				"zh-Hans": "寻宝",
+				"zh-Hant": "尋寶"
+			},
+			"description": {
+				"en": "Your model farming starts right here.",
+				"ko": "당신의 모델 파밍은 여기서 시작됩니다.",
+				"zh-Hans": "您的模型淘金之旅从这里开始。",
+				"zh-Hant": "您的模型淘金之旅從這裡開始。"
+			},
+			"items": [
+				{
+					"slug": "civitai",
+					"title": {
+						"en": "Market : Civitai",
+						"ko": "마켓 : Civitai",
+						"zh-Hans": "市场 : Civitai",
+						"zh-Hant": "市場 : Civitai"
+					},
+					"hint": {
+						"en": "One-line summary: Find model -> Click download icon -> Use directly.",
+						"ko": "한 줄 요약: 모델 찾기 -> 다운로드 아이콘 클릭 -> 바로 사용.",
+						"zh-Hans": "一句话总结：找到模型 -> 点击下载图标 -> 直接使用。",
+						"zh-Hant": "一句話總結：找到模型 -> 點擊下載圖示 -> 直接使用。"
+					},
+					"accentColor": "#facc15"
+				},
+				{
+					"slug": "hugging-face-downloads",
+					"title": {
+						"en": "Vault : HuggingFace",
+						"ko": "보물창고 : HuggingFace",
+						"zh-Hans": "宝库 : HuggingFace",
+						"zh-Hant": "寶庫 : HuggingFace"
+					},
+					"hint": {
+						"en": "One-line summary: Find model -> Click download icon -> Use directly.",
+						"ko": "한 줄 요약: 모델 찾기 -> 다운로드 아이콘 클릭 -> 바로 사용.",
+						"zh-Hans": "一句话总结：找到模型 -> 点击下载图标 -> 直接使用。",
+						"zh-Hant": "一句話總結：找到模型 -> 點擊下載圖示 -> 直接使用。"
+					},
+					"accentColor": "#ff9f1c"
+				}
+			]
+		},
+		{
+			"title": {
+				"en": "QUICK START",
+				"ko": "실전 튜토리얼",
+				"zh-Hans": "快速入门",
+				"zh-Hant": "快速入門"
+			},
+			"description": {
+				"en": "Actionable, step-by-step guides for the immediate workflow.",
+				"ko": "당장 무언가를 실행하고 만들어보고 싶을 때 순서대로 따라 하는 행동 지침서입니다.",
+				"zh-Hans": "针对即时工作流的可操作的分步指南。",
+				"zh-Hant": "針對即時工作流程的可操作的分步指南。"
+			},
+			"items": [
+				{
+					"slug": "adding-a-model",
+					"title": {
+						"en": "Add a Model",
+						"ko": "모델 추가하기",
+						"zh-Hans": "添加模型",
+						"zh-Hant": "新增模型"
+					},
+					"hint": {
+						"en": "Common folders: checkpoints, loras, vae, controlnet, ipadapter.",
+						"ko": "폴더 예시: checkpoints, loras, vae, controlnet, ipadapter.",
+						"zh-Hans": "文件夹示例：checkpoints、loras、vae、controlnet、ipadapter。",
+						"zh-Hant": "資料夾範例：checkpoints、loras、vae、controlnet、ipadapter。"
+					},
+					"accentColor": "#a855f7"
+				},
+				{
+					"slug": "make-your-first-image",
+					"title": {
+						"en": "First Image",
+						"ko": "첫 이미지 뽑기",
+						"zh-Hans": "生成首图",
+						"zh-Hant": "生成首圖"
+					},
+					"hint": {
+						"en": "Practical guide to generating your very first image with the model you just got.",
+						"ko": "방금 받은 모델로 첫 이미지를 뽑아보는 실전 가이드입니다.",
+						"zh-Hans": "使用刚获取的模型生成首张图像的实战指南。",
+						"zh-Hant": "使用剛獲取的模型生成首張圖像的實戰指南。"
+					},
+					"accentColor": "#4ade80"
+				},
+				{
+					"slug": "practical-workflow-checklist",
+					"title": {
+						"en": "Preparation Guide",
+						"ko": "준비 가이드",
+						"zh-Hans": "准备指南",
+						"zh-Hant": "準備指南"
+					},
+					"hint": {
+						"en": "Tip: Keep notes for folder maps, favorite model combos, and frequent error fixes.",
+						"ko": "팁: 폴더 매핑, 선호 모델 조합, 빈번한 오류 해결법을 기록해두면 좋습니다.",
+						"zh-Hans": "建议记录文件夹映射、常用模型组合和高频错误解决方法。",
+						"zh-Hant": "建議記錄資料夾映射、常用模型組合和高頻錯誤解法。"
+					},
+					"accentColor": "#0ea5e9"
+				},
+				{
+					"slug": "face-sync-identity",
+					"title": {
+						"en": "Advanced: Fixing the Character's Face",
+						"ko": "고급: 주인공의 얼굴 고정하기",
+						"zh-Hans": "高级：固定主角的面部",
+						"zh-Hant": "高級：固定主角的臉部"
+					},
+					"hint": {
+						"en": "Advanced graduation quest: buffalo_l, CLIP Vision, Weight V2, and FaceDetailer synergy.",
+						"ko": "졸업급 심화 퀘스트: buffalo_l, CLIP Vision, Weight V2, FaceDetailer 시너지.",
+						"zh-Hans": "毕业级深造任务：buffalo_l, CLIP Vision, Weight V2, FaceDetailer 协同效应。",
+						"zh-Hant": "畢業級深造任務：buffalo_l, CLIP Vision, Weight V2, FaceDetailer 協同效應。"
+					},
+					"accentColor": "#ec4899"
+				}
+			]
+		},
+		{
+			"title": {
+				"en": "How it works?",
+				"ko": "How it works?",
+				"zh-Hans": "运作原理？",
+				"zh-Hant": "運作原理？"
+			},
+			"description": {
+				"en": "When you just get a little curious about the magic.",
+				"ko": "어쩌다 한 번, 이 마법의 원리가 궁금해질 때.",
+				"zh-Hans": "偶尔对魔法背后的原理感到好奇时。",
+				"zh-Hant": "偶爾對魔法背後的原理感到好奇時。"
+			},
+			"items": [
+				{
+					"slug": "how-images-are-born",
+					"title": {
+						"en": "How is this possible?",
+						"ko": "이게 어떻게 가능해?",
+						"zh-Hans": "这怎么可能？",
+						"zh-Hant": "這怎麼可能？"
+					},
+					"hint": {
+						"en": "If results feel off, check model choice, seed, CFG, sampler, steps, and image size first.",
+						"ko": "결과가 어색하다면 모델, 시드, CFG, 샘플러 설정을 먼저 확인하세요.",
+						"zh-Hans": "如果结果看起来不自然，请先检查模型、seed、CFG、sampler 和图像尺寸。",
+						"zh-Hant": "如果結果看起來不自然，請先檢查模型、seed、CFG、sampler 和圖像尺寸。"
+					},
+					"accentColor": "#f97316"
+				},
+				{
+					"slug": "gpu-hardware-guide",
+					"title": {
+						"en": "The GPU Story",
+						"ko": "내 그래픽카드 이야기",
+						"zh-Hans": "显卡的故事",
+						"zh-Hant": "顯示卡的故事"
+					},
+					"hint": {
+						"en": "Explains why NVIDIA GPUs are preferred and why VRAM capacity matters.",
+						"ko": "왜 NVIDIA 그래픽카드가 유리한지, VRAM 용량이 왜 중요한지 설명합니다.",
+						"zh-Hans": "说明为什么 NVIDIA 显卡更有优势，以及 VRAM 容量为什么重要。",
+						"zh-Hant": "說明為什麼 NVIDIA 顯示卡更有優勢，以及 VRAM 容量為什麼重要。"
+					},
+					"accentColor": "#84cc16"
+				},
+				{
+					"slug": "what-nexus-runs-on",
+					"title": {
+						"en": "What is Nexus?",
+						"ko": "Nexus가 대체 뭐야?",
+						"zh-Hans": "Nexus 到底是什么？",
+						"zh-Hant": "Nexus 到底是什麼？"
+					},
+					"accentColor": "#06b6d4"
+				}
+			]
+		}
+	]
+}

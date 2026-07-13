@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "git": {
+    "folder": "Git",
+    "file": "MinGit-2.55.0-rc0-64-bit.zip",
+    "sha256": "42825BAE66FA4B5580060E914CFF04C63085C2CDC440CC59A61E28B1091A41B7"
+  },
+  "python": {
+    "folder": "Python",
+    "file": "python-3.13.14-win-x64-runtime.zip",
+    "sha256": "7C444C215626E02C11778A5BBB6BBCC370CA0BD06CDC9C4760CAC06C54769D0E",
+    "manifest": "python-3.13.14-win-x64-runtime.manifest.json",
+    "version": "3.13.14",
+    "platform": "win-x64",
+    "layout_root": "python",
+    "source": "https://www.python.org/downloads/release/python-31314/",
+    "source_installer": "python-3.13.14-amd64.exe",
+    "source_installer_sha256": "C54D9B9BBB8A36E6489363DDD01139707FD781D72F1F9E90C7EC65D0061368E0",
+    "publisher": "Python Software Foundation"
+  },
+  "comfy": {
+    "folder": "ComfyUI",
+    "file": "ComfyUI-v0.27.0-source.zip",
+    "sha256": "62A2E70E143869B1C5B768F874622D402FE53B9D69F99A14CF83E6C2A97BB09C",
+    "version": "v0.27.0",
+    "revision": "bb131be",
+    "source": "https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.27.0"
+  },
+  "bridge": {
+    "folder": "NexusBridge",
+    "required_file": "__init__.py"
+  }
+}

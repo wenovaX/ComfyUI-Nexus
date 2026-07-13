@@ -1,0 +1,81 @@
+---
+
+[h]必备武器与最终检查[/h]
+
+首先，让我们了解 ComfyUI-Nexus 为您预装的得力必备武器（自定义节点），
+并在按下“Queue”按钮前，像飞行员起飞前检查仪表板一样，完成最后的一步点检。
+
+---
+
+[h]预装的得力武器库[/h]
+
+ComfyUI 的真正强大之处在于“自定义节点（扩展功能）”。
+以下是 Nexus 精选并为您预装的必备工具包。无需额外安装，即可开箱即用！
+
+[b]1. ComfyUI Manager (万能助手)[/b]  [link:🔗 GitHub|https://github.com/ltdrdata/ComfyUI-Manager]
+→ 这是一个万能工具，可帮助您安装或更新新节点，并搜索和下载缺失的模型。
+→ 这是一个您未来最常用的工具，并且在 Nexus 中得到了完美的管理与集成。
+→ 通过 Manager，您可以轻松接触到更多丰富有趣的自定义功能，开启属于您自己的冒险之旅！
+
+[b]2. ComfyUI HUD (头部显示器/悬浮控制台)[/b]
+→ 这是一项创新的便利功能，能将核心控制面板从混乱复杂的“节点面条”中
+提取出来，精美地悬浮显示在屏幕上。（Nexus 独占内置功能）
+
+[b]3. Impact Pack & Subpack (细节修复与人脸纠正)[/b]  [link:🔗 GitHub|https://github.com/ltdrdata/ComfyUI-Impact-Pack]
+→ 这是一个自动工作流并提升画质的必备工具集，
+其中包含可以高清修复模糊面部的 Face Detailer。
+
+[b]4. IP-Adapter Plus (图像提示词注入)[/b]  [link:🔗 GitHub|https://github.com/cubiq/ComfyUI_IPAdapter_plus]
+→ 这是一个强大的工具，允许您输入“参考图像”来代替文本提示词，
+从而自然地反映构图、风格或人物特征。
+
+[b]5. ControlNet Aux (ControlNet 预处理器)[/b]  [link:🔗 GitHub|https://github.com/Fannovel16/comfyui_controlnet_aux]
+→ 用于提取姿势（Openpose）、深度（Depth）或线条（Canny）的预处理器（Preprocessor）节点合集。
+
+[b]6. AnimateDiff Evolved (流畅动画)[/b]  [link:🔗 GitHub|https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved]
+→ 超越静态图像，用于制作自然且富有生命力的
+动态动画（GIF/MP4）的工具包。
+
+[b]7. 其他工具 (人脸分析与提示词便利功能)[/b]
+→ [b]FaceAnalysis[/b] [link:GitHub|https://github.com/chflame163/ComfyUI_FaceAnalysis]
+→ [b]PromptUtilities[/b] [link:GitHub|https://github.com/Moussekateer/ComfyUI-PromptUtilities]
+→ [b]AlekPet 节点[/b] [link:GitHub|https://github.com/AlekPet/ComfyUI_Custom_Nodes_AlekPet]
+
+帮助您更方便地输入提示词和分析人脸。
+
+---
+
+[h]起飞前必备检查项目[/h]
+
+一个微小的设定会极大影响生成结果和等待时间。
+在排队生成前，请务必确认这三点！
+
+1. [b]确认模型加载 (Checkpoint)[/b]
+→ 确认是否正确选择了符合您意图画风（SD 1.5 / SDXL）的模型。
+→ 如果节点闪烁红色，说明路径配置错误，请重新选择文件。
+
+2. [b]分辨率与比例 (Latent Image)[/b]
+→ 分辨率是否适合模型基准？（SD1.5 推荐 512，SDXL 推荐 1024）
+→ 盲目增大分辨率可能会导致显卡显存不足（OOM）错误而停止运行。
+
+3. [b]采样器与步数 (Sampler & Steps)[/b]
+→ 如果 Steps 过少，图像细节会变得模糊。（建议至少 20 步以上）
+→ 如果 CFG Scale 过高，图像可能会“烧焦”或色彩崩坏。（通常建议 5~8）
+
+---
+
+[h]遇到错误时如何保持冷静[/h]
+
+→ [b]节点变红了！[/b]
+当您加载了包含未安装的自定义节点的工作流，或者路径错误时，就会发生这种情况。
+
+打开 [b]ComfyUI Manager[/b]，点击“Install Missing Custom Nodes”，
+它就会自动为您寻找并立即安装所需的节点！
+
+→ [b]按了生成按钮，但没有反应或卡住了！[/b]
+首次加载模型时需要将其载入显卡显存，因此需要一些时间。
+
+如果看起来完全卡死，请检查下方的控制台（Console）日志，
+看看是否有显存不足（Out of Memory）的信息。
+
+---

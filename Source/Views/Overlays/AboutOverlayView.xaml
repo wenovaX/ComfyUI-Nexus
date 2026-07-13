@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.AboutOverlayView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<ContentView.Resources>
+		<Style x:Key="AboutCloseButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="{StaticResource AboutCloseButtonSurfaceColor}" />
+			<Setter Property="TextColor" Value="{StaticResource AboutValueColor}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="HeightRequest" Value="36" />
+			<Setter Property="Padding" Value="16,0" />
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="{StaticResource AboutCloseButtonHoverSurfaceColor}" />
+								<Setter Property="TextColor" Value="{StaticResource AboutCloseButtonHoverTextColor}" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Pressed">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="{StaticResource AboutCloseButtonPressedSurfaceColor}" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+
+		<Style x:Key="AboutKeyStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="{StaticResource AboutKeyColor}" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="CharacterSpacing" Value="2" />
+		</Style>
+
+		<Style x:Key="AboutValueStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="{StaticResource AboutValueColor}" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="LineBreakMode" Value="TailTruncation" />
+		</Style>
+
+		<Style x:Key="AboutServerUrlStyle" TargetType="Label" BasedOn="{StaticResource AboutValueStyle}">
+			<Setter Property="TextColor" Value="{StaticResource AboutAccentColor}" />
+			<Setter Property="TextDecorations" Value="Underline" />
+		</Style>
+	</ContentView.Resources>
+
+	<Grid BackgroundColor="{StaticResource AboutBackdropColor}"
+		  Padding="34">
+		<Border WidthRequest="620"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				BackgroundColor="{StaticResource AboutPanelColor}"
+				Stroke="{StaticResource AboutPanelStrokeColor}"
+				StrokeThickness="1"
+				Padding="0">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="28" />
+			</Border.StrokeShape>
+
+			<Grid RowDefinitions="Auto,Auto"
+				  RowSpacing="0">
+				<Grid ColumnDefinitions="*,Auto"
+					  Padding="30,26,26,18">
+					<VerticalStackLayout Spacing="5">
+						<Label Text="{loc:Loc command.menu.about}"
+							   TextColor="{StaticResource AboutTitleColor}"
+							   FontSize="21"
+							   FontAttributes="Bold" />
+						<Label Text="{loc:Loc views.overlays.about_overlay_view.subtitle}"
+							   TextColor="{StaticResource AboutSubtitleColor}"
+							   FontSize="12" />
+					</VerticalStackLayout>
+					<Button Grid.Column="1"
+							Text="{loc:Loc common.close}"
+							Clicked="OnCloseClicked"
+							SemanticProperties.Description="{loc:Loc common.close}"
+							SemanticProperties.Hint="{loc:Loc views.overlays.about_overlay_view.close_help}"
+							Style="{StaticResource AboutCloseButtonStyle}" />
+				</Grid>
+
+				<Border Grid.Row="1"
+						Margin="30,0,30,30"
+						BackgroundColor="{StaticResource AboutCardColor}"
+						Stroke="{StaticResource AboutCardStrokeColor}"
+						StrokeThickness="1"
+						Padding="22,20">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="22" />
+					</Border.StrokeShape>
+					<Grid RowDefinitions="Auto,Auto,Auto,Auto"
+						  RowSpacing="16">
+						<VerticalStackLayout Spacing="5">
+							<Label Text="{loc:Loc views.overlays.about_overlay_view.version}" Style="{StaticResource AboutKeyStyle}" />
+							<Label x:Name="VersionValueLabel" Style="{StaticResource AboutValueStyle}" />
+						</VerticalStackLayout>
+
+						<VerticalStackLayout Grid.Row="1" Spacing="5">
+							<Label Text="{loc:Loc views.overlays.about_overlay_view.comfyui_path}" Style="{StaticResource AboutKeyStyle}" />
+							<Label x:Name="ComfyPathValueLabel" Style="{StaticResource AboutValueStyle}" />
+						</VerticalStackLayout>
+
+						<VerticalStackLayout Grid.Row="2" Spacing="5">
+							<Label Text="{loc:Loc views.overlays.about_overlay_view.server_url}" Style="{StaticResource AboutKeyStyle}" />
+							<Label x:Name="ServerUrlValueLabel"
+								   Style="{StaticResource AboutServerUrlStyle}"
+								   AutomationProperties.IsInAccessibleTree="True"
+								   SemanticProperties.Description="{loc:Loc views.overlays.about_overlay_view.server_url}"
+								   SemanticProperties.Hint="{loc:Loc views.overlays.about_overlay_view.server_url_help}">
+								<Label.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnServerUrlTapped" />
+									<PointerGestureRecognizer PointerEntered="OnServerUrlPointerEntered"
+															  PointerExited="OnServerUrlPointerExited" />
+								</Label.GestureRecognizers>
+							</Label>
+						</VerticalStackLayout>
+
+						<VerticalStackLayout Grid.Row="3" Spacing="5">
+							<Label Text="{loc:Loc views.overlays.about_overlay_view.python_mode}" Style="{StaticResource AboutKeyStyle}" />
+							<Label x:Name="PythonModeValueLabel" Style="{StaticResource AboutValueStyle}" />
+						</VerticalStackLayout>
+					</Grid>
+				</Border>
+			</Grid>
+		</Border>
+	</Grid>
+</ContentView>

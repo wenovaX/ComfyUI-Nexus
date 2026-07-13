@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+	x:Class="ComfyUI_Nexus.AppShell"
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+	xmlns:local="clr-namespace:ComfyUI_Nexus"
+	Title="Nexus">
+
+	<ShellContent
+		Title="{loc:Loc app.app_shell.home}"
+		ContentTemplate="{DataTemplate local:MainPage}"
+		Route="MainPage" />
+
+</Shell>

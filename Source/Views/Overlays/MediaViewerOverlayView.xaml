@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.MediaViewerOverlayView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<ContentView.Resources>
+		<Color x:Key="ViewerTitleColor">#f0fbff</Color>
+		<Color x:Key="ViewerMetaColor">#91aabd</Color>
+		<Color x:Key="ViewerAccentColor">#31D8FF</Color>
+		<Color x:Key="ViewerFrameColor">#73070d15</Color>
+		<Color x:Key="ViewerFrameStrokeColor">#243c5366</Color>
+		<Color x:Key="ViewerTipKeyColor">#DFF8FF</Color>
+		<Color x:Key="ViewerTipKeyBackgroundColor">#173044</Color>
+		<Color x:Key="ViewerTipKeyStrokeColor">#4A8DE7FF</Color>
+		<Color x:Key="ViewerTipTextColor">#7390A3</Color>
+		<Color x:Key="ViewerArrowTextColor">#d9f6ff</Color>
+		<Color x:Key="ViewerCounterTextColor">#BFEFFF</Color>
+		<Color x:Key="ViewerDeleteTextColor">#ff8ba8</Color>
+		<Color x:Key="ViewerCloseTextColor">#d6f4ff</Color>
+	</ContentView.Resources>
+
+	<Grid BackgroundColor="#E8040912">
+		<Grid.Background>
+			<RadialGradientBrush Center="0.5,0.45"
+								 Radius="0.85">
+				<GradientStop Color="#F0050A12" Offset="0.0" />
+				<GradientStop Color="#F208101B" Offset="0.62" />
+				<GradientStop Color="#F7040810" Offset="1.0" />
+			</RadialGradientBrush>
+		</Grid.Background>
+
+		<BoxView Color="Transparent">
+			<BoxView.GestureRecognizers>
+				<TapGestureRecognizer Tapped="OnBackdropTapped" />
+			</BoxView.GestureRecognizers>
+		</BoxView>
+
+		<Grid RowDefinitions="Auto,*,Auto"
+			  Padding="28,22">
+			<Grid ColumnDefinitions="*,Auto"
+				  ColumnSpacing="14"
+				  ZIndex="20">
+				<VerticalStackLayout Spacing="4"
+									 VerticalOptions="Center">
+					<Label x:Name="ViewerTitleLabel"
+						   TextColor="{StaticResource ViewerTitleColor}"
+						   FontSize="22"
+						   FontAttributes="Bold"
+						   LineBreakMode="TailTruncation" />
+					<Label x:Name="ViewerMetaLabel"
+						   TextColor="{StaticResource ViewerMetaColor}"
+						   FontSize="12"
+						   LineBreakMode="TailTruncation" />
+				</VerticalStackLayout>
+
+				<HorizontalStackLayout Grid.Column="1"
+									   Spacing="8"
+									   VerticalOptions="Center">
+					<Border x:Name="ViewerDeleteButton"
+							WidthRequest="82"
+							HeightRequest="38"
+							BackgroundColor="#21192327"
+							Stroke="#5aef6d9a"
+							StrokeThickness="1"
+							StrokeShape="RoundRectangle 12"
+							ToolTipProperties.Text="{loc:Loc views.overlays.media_viewer.delete_tooltip}">
+						<Label x:Name="ViewerDeleteLabel"
+							   Text="{loc:Loc common.delete}"
+							   TextColor="{StaticResource ViewerDeleteTextColor}"
+							   FontSize="12"
+							   FontAttributes="Bold"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnDeleteTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="ViewerCloseButton"
+							WidthRequest="76"
+							HeightRequest="38"
+							BackgroundColor="#171f2c"
+							Stroke="#446eeaff"
+							StrokeThickness="1"
+							StrokeShape="RoundRectangle 12"
+							ToolTipProperties.Text="{loc:Loc views.overlays.media_viewer.close_tooltip}">
+						<Label Text="{loc:Loc common.close}"
+							   TextColor="{StaticResource ViewerCloseTextColor}"
+							   FontSize="12"
+							   FontAttributes="Bold"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Tapped="OnCloseTapped" />
+						</Border.GestureRecognizers>
+					</Border>
+				</HorizontalStackLayout>
+			</Grid>
+
+			<Grid Grid.Row="1"
+				  Margin="0,18,0,0"
+				  ZIndex="5">
+				<Border BackgroundColor="{StaticResource ViewerFrameColor}"
+						Stroke="{StaticResource ViewerFrameStrokeColor}"
+						StrokeThickness="1"
+						StrokeShape="RoundRectangle 24"
+						Padding="0">
+					<Grid RowDefinitions="Auto,*">
+						<Border x:Name="ViewerTipBar"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 24,24,0,0"
+								Padding="14,8">
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+									<GradientStop Color="#E20B1725" Offset="0.0" />
+									<GradientStop Color="#DA0A1420" Offset="0.42" />
+									<GradientStop Color="#C5091019" Offset="0.50" />
+									<GradientStop Color="#DA101421" Offset="0.58" />
+									<GradientStop Color="#E2121826" Offset="1.0" />
+								</LinearGradientBrush>
+							</Border.Background>
+							<Grid x:Name="ViewerTipLayoutGrid"
+								  ColumnDefinitions="*,*"
+								  RowDefinitions="Auto,Auto"
+								  ColumnSpacing="14"
+								  RowSpacing="7"
+								  Margin="102,0">
+								<Border x:Name="ViewerPointerTipGroup"
+										StrokeThickness="0"
+										StrokeShape="RoundRectangle 14"
+										Padding="10,5">
+									<HorizontalStackLayout x:Name="ViewerPointerTipStack"
+														   Spacing="8"
+														   HorizontalOptions="Start">
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.click_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label x:Name="ViewerPointerClickActionLabel"
+											   Text="{loc:Loc views.overlays.media_viewer.zoom}"
+											   TextColor="#7D9CAF"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+										<Border x:Name="ViewerPointerDragKeyHost"
+												BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label x:Name="ViewerPointerDragKeyLabel"
+												   Text="{loc:Loc views.overlays.media_viewer.drag_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label x:Name="ViewerPointerDragActionLabel"
+											   Text="{loc:Loc views.overlays.media_viewer.pan_while_zoomed}"
+											   TextColor="#7D9CAF"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+									</HorizontalStackLayout>
+								</Border>
+
+								<Border x:Name="ViewerKeyboardTipGroup"
+										Grid.Column="1"
+										StrokeThickness="0"
+										StrokeShape="RoundRectangle 14"
+										Padding="10,5">
+									<HorizontalStackLayout x:Name="ViewerKeyboardTipStack"
+														   Spacing="8"
+														   HorizontalOptions="End">
+										<Border x:Name="ViewerHintNextKeyHost"
+												BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.esc_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label Text="{loc:Loc common.close}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label x:Name="ViewerHintPreviousKeyLabel"
+												   Text="{loc:Loc views.overlays.media_viewer.left_right_keys}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label x:Name="ViewerHintPreviousActionLabel"
+											   Text="{loc:Loc views.overlays.media_viewer.previous_next}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3"
+												IsVisible="False">
+											<Label x:Name="ViewerHintNextKeyLabel"
+												   Text=""
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label x:Name="ViewerHintNextActionLabel"
+											   Text=""
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center"
+											   IsVisible="False" />
+										<Border x:Name="ViewerHintZoomKeyHost"
+												BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label x:Name="ViewerHintZoomKeyLabel"
+												   Text="{loc:Loc views.overlays.media_viewer.space_enter_keys}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label x:Name="ViewerHintZoomActionLabel"
+											   Text="{loc:Loc views.overlays.media_viewer.zoom_in}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+									</HorizontalStackLayout>
+								</Border>
+
+								<Grid x:Name="ViewerVideoTipLayout"
+									  Grid.ColumnSpan="2"
+									  ColumnDefinitions="*,Auto"
+									  ColumnSpacing="14"
+									  IsVisible="False">
+									<HorizontalStackLayout Spacing="8"
+														   HorizontalOptions="Start"
+														   VerticalOptions="Center">
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.click_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.space_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label Text="{loc:Loc views.overlays.media_viewer.play_pause}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+									</HorizontalStackLayout>
+
+									<HorizontalStackLayout Grid.Column="1"
+														   Spacing="8"
+														   HorizontalOptions="End"
+														   VerticalOptions="Center">
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.esc_key}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label Text="{loc:Loc common.close}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+										<Border BackgroundColor="{StaticResource ViewerTipKeyBackgroundColor}"
+												Stroke="{StaticResource ViewerTipKeyStrokeColor}"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 9"
+												Padding="8,3">
+											<Label Text="{loc:Loc views.overlays.media_viewer.left_right_keys}"
+												   TextColor="{StaticResource ViewerTipKeyColor}"
+												   FontSize="10"
+												   FontAttributes="Bold" />
+										</Border>
+										<Label Text="{loc:Loc views.overlays.media_viewer.previous_next}"
+											   TextColor="{StaticResource ViewerTipTextColor}"
+											   FontSize="11"
+											   VerticalOptions="Center" />
+									</HorizontalStackLayout>
+								</Grid>
+							</Grid>
+						</Border>
+
+						<Grid x:Name="ViewerImageClip"
+							  Grid.Row="1"
+							  IsClippedToBounds="True"
+							  Padding="14">
+							<WebView x:Name="ViewerVideo"
+									 IsVisible="False"
+									 HorizontalOptions="Fill"
+									 VerticalOptions="Fill" />
+							<Image x:Name="ViewerImage"
+								   Aspect="AspectFit"
+								   HorizontalOptions="Fill"
+								   VerticalOptions="Fill"
+								   InputTransparent="True" />
+							<BoxView x:Name="ViewerImageInteractionLayer"
+									 Color="Transparent">
+								<BoxView.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnImageTapped" />
+								</BoxView.GestureRecognizers>
+							</BoxView>
+						</Grid>
+					</Grid>
+				</Border>
+
+				<Border x:Name="ViewerPreviousButton"
+						WidthRequest="98"
+						HorizontalOptions="Start"
+						VerticalOptions="Fill"
+						BackgroundColor="#00000000"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 24,0,24,0">
+					<Grid>
+						<Label Text="‹"
+							   TextColor="{StaticResource ViewerArrowTextColor}"
+							   FontSize="58"
+							   Opacity="0.72"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+					</Grid>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnPreviousTapped" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border x:Name="ViewerNextButton"
+						WidthRequest="98"
+						HorizontalOptions="End"
+						VerticalOptions="Fill"
+						BackgroundColor="#00000000"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 0,24,0,24">
+					<Grid>
+						<Label Text="›"
+							   TextColor="{StaticResource ViewerArrowTextColor}"
+							   FontSize="58"
+							   Opacity="0.72"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center" />
+					</Grid>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnNextTapped" />
+					</Border.GestureRecognizers>
+				</Border>
+
+				<Border HorizontalOptions="Center"
+						VerticalOptions="End"
+						Margin="0,0,0,2"
+						BackgroundColor="#73070D15"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 14,14,0,0"
+						Padding="18,6">
+					<Label x:Name="ViewerCounterLabel"
+						   TextColor="{StaticResource ViewerCounterTextColor}"
+						   FontSize="14"
+						   FontAttributes="Bold" />
+				</Border>
+			</Grid>
+		</Grid>
+
+		<Grid x:Name="ViewerConfirmLayer"
+			  IsVisible="False"
+			  Opacity="0"
+			  BackgroundColor="#B6040810"
+			  ZIndex="100">
+			<Border WidthRequest="420"
+					HorizontalOptions="Center"
+					VerticalOptions="Center"
+					BackgroundColor="#F20A121F"
+					Stroke="#668DE7FF"
+					StrokeThickness="1"
+					StrokeShape="RoundRectangle 26"
+					Padding="26,24">
+				<VerticalStackLayout Spacing="18">
+					<VerticalStackLayout Spacing="7">
+						<Label x:Name="ViewerConfirmTitleLabel"
+							   TextColor="#f4fbff"
+							   FontSize="18"
+							   FontAttributes="Bold" />
+						<Label x:Name="ViewerConfirmMessageLabel"
+							   TextColor="#9eb7ca"
+							   FontSize="13"
+							   LineBreakMode="WordWrap" />
+					</VerticalStackLayout>
+
+					<Border BackgroundColor="#121A26"
+							Stroke="#243B55"
+							StrokeThickness="1"
+							StrokeShape="RoundRectangle 14"
+							Padding="12,9">
+						<Label Text="{loc:Loc views.overlays.media_viewer.confirm_shortcut_hint}"
+							   TextColor="#6f8799"
+							   FontSize="11"
+							   HorizontalOptions="Center" />
+					</Border>
+
+					<Grid ColumnDefinitions="*,*"
+						  ColumnSpacing="10">
+						<Border x:Name="ViewerConfirmCancelButton"
+								HeightRequest="42"
+								BackgroundColor="#151E2B"
+								Stroke="#37516A"
+								StrokeThickness="1"
+								StrokeShape="RoundRectangle 14">
+							<Label Text="{loc:Loc common.cancel}"
+								   TextColor="#CDEBFF"
+								   FontSize="13"
+								   FontAttributes="Bold"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center" />
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnConfirmCancelTapped" />
+							</Border.GestureRecognizers>
+						</Border>
+
+						<Border x:Name="ViewerConfirmAcceptButton"
+								Grid.Column="1"
+								HeightRequest="42"
+								BackgroundColor="#33202A"
+								Stroke="#EF6D9A"
+								StrokeThickness="1"
+								StrokeShape="RoundRectangle 14">
+							<Label Text="{loc:Loc common.delete}"
+								   TextColor="#FF9CB8"
+								   FontSize="13"
+								   FontAttributes="Bold"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center" />
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnConfirmAcceptTapped" />
+							</Border.GestureRecognizers>
+						</Border>
+					</Grid>
+				</VerticalStackLayout>
+			</Border>
+		</Grid>
+	</Grid>
+</ContentView>

@@ -1,0 +1,81 @@
+---
+
+[h]The GPU Story: Secrets of the Used Market[/h]
+
+In the AI community, you'll often find people searching for the older RTX 3060 12GB rather than the newer RTX 4060 8GB model.
+
+While CPU and RAM performance matter a lot for gaming,
+in the world of AI image generation, the [b]GPU[/b] is king. Specifically,
+the size of your [b]VRAM (Video Memory)[/b] often takes priority over raw speed.
+
+Why does everyone care so much about VRAM?
+
+---
+
+[h]Act 1: What Exactly is VRAM?[/h]
+
+Inside your GPU is a dedicated space called VRAM.
+Think of this as a chef's [b]"cutting board."[/b]
+
+Even if you have a master chef with incredible speed (processing power),
+if the cutting board (VRAM) is too small, they can't place massive ingredients like an SDXL model on it all at once.
+
+When they run out of space while chopping, they have to constantly walk back and forth to the fridge (System RAM). 
+This creates a massive bottleneck, causing the process to drastically slow down or fail to run entirely.
+
+[img:vram_desk.png|800]
+
+---
+
+[h]Act 2: Why Does Everyone Insist on NVIDIA?[/h]
+
+"If VRAM size is all that matters, can't I just use a cheaper alternative?"
+
+Recently, competitors like Intel have released GPUs with 12GB+ of VRAM at similar or lower price points, 
+yet people still stick with NVIDIA.
+
+While the hardware specs of other cards might look appealing, the reality is that
+most major AI frameworks and open-source tools are optimized for [b]CUDA[/b].
+
+In other words, even with identical performance, CUDA support dictates "what tools you can actually use." 
+It's not just about "can it run?" but rather "can it be fully utilized?" 
+Some competitor cards can run these tools, but they often face severe limitations in performance and stability.
+
+Using an NVIDIA card is like driving smoothly on a paved highway, while using
+other cards is like trying to forge a path through a dirt road full of compatibility issues.
+
+---
+
+[h]Act 3: Is My VRAM Safe Right Now?[/h]
+
+"Great, I bought a 12GB NVIDIA card! Time to use all 12GB to the fullest!"
+Unfortunately, reality is a bit harsher than that.
+
+Even during light usage, the Windows UI, web browsers, and messenger apps
+are quietly consuming 1GB or more of your VRAM in the background.
+
+In this state, trying to run AI tasks while simultaneously gaming or doing other heavy tasks is virtually impossible.
+
+[img:vram_size_compare.png|800]
+
+[accent]This is why some users install a separate GPU just for display output,
+dedicating their main GPU entirely to AI calculations (Dual GPU setup)
+to secure pure, uninterrupted VRAM.[/accent]
+
+---
+
+[h]Conclusion: So, What Should We Buy?[/h]
+
+You can certainly study and test AI at low resolutions with a 6-8GB card.
+However, if you want to run the latest AI models (SDXL, FLUX, etc.) without stress,
+having an environment with [b]12GB+ of VRAM[/b] significantly broadens your options.
+(You can endure slow generation speeds, but lacking VRAM prevents you from even starting.)
+
+You don't necessarily have to chase the latest generation of graphics cards.
+Models like the RTX 3060 12GB are abundant in the used market at stable prices,
+making them an excellent, low-risk choice for beginners.
+
+Aiming for a reasonably priced used product with an excellent VRAM-to-price ratio
+is the smartest first step into the challenging AI ecosystem.
+
+---

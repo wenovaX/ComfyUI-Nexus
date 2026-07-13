@@ -1,0 +1,1186 @@
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:components="clr-namespace:ComfyUI_Nexus.Views.Components"
+			 xmlns:diagnostics="clr-namespace:ComfyUI_Nexus.Setup.Diagnostics"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.ProductSetupView"
+			 BackgroundColor="#050505"
+			 HorizontalOptions="Fill"
+			 VerticalOptions="Fill"
+			 MinimumWidthRequest="800"
+			 MinimumHeightRequest="600">
+
+	<ContentView.Resources>
+		<ResourceDictionary>
+			<Color x:Key="SetupCardActionTextColor">#FFFFFF</Color>
+			<Color x:Key="SetupCardDescriptionTextColor">#A0FFFFFF</Color>
+			<Color x:Key="SetupAccentColor">#31d8ff</Color>
+			<Color x:Key="SetupAccentFaintColor">#1A31d8ff</Color>
+			<Color x:Key="SetupAccentMidColor">#4D31d8ff</Color>
+			<Color x:Key="SetupGlassHoverColor">#1AFFFFFF</Color>
+			<Color x:Key="SetupTextPrimaryColor">#ffffff</Color>
+			<Color x:Key="SetupTextMutedColor">#7fa0b8</Color>
+			<Color x:Key="SetupHealthyStrongColor">#2600ff88</Color>
+			<Color x:Key="SetupHealthySoftColor">#0D00ff88</Color>
+			<Color x:Key="SetupHoverHealthyStrongColor">#2C00ff88</Color>
+			<Color x:Key="SetupHoverHealthySoftColor">#1200ff88</Color>
+
+			<!-- Base Card Title (VANGUARD / ARCHITECT) -->
+			<Style x:Key="CardTitleStyle" TargetType="Label">
+				<Setter Property="FontSize" Value="28" />
+				<Setter Property="FontAttributes" Value="Bold" />
+				<Setter Property="CharacterSpacing" Value="2" />
+				<Setter Property="Margin" Value="0,0,0,8" />
+				<Setter Property="InputTransparent" Value="True" />
+			</Style>
+
+			<!-- Accent Line -->
+			<Style x:Key="CardAccentLineStyle" TargetType="BoxView">
+				<Setter Property="HeightRequest" Value="2" />
+				<Setter Property="WidthRequest" Value="60" />
+				<Setter Property="HorizontalOptions" Value="Start" />
+				<Setter Property="Margin" Value="0,0,0,20" />
+				<Setter Property="InputTransparent" Value="True" />
+			</Style>
+
+			<!-- Action Text (DEPLOY NEW...) -->
+			<Style x:Key="CardActionStyle" TargetType="Label">
+				<Setter Property="TextColor" Value="{StaticResource SetupCardActionTextColor}" />
+				<Setter Property="FontSize" Value="16" />
+				<Setter Property="FontAttributes" Value="Bold" />
+				<Setter Property="Margin" Value="0,0,0,8" />
+				<Setter Property="InputTransparent" Value="True" />
+			</Style>
+
+			<!-- Description Text -->
+			<Style x:Key="CardDescStyle" TargetType="Label">
+				<Setter Property="TextColor" Value="{StaticResource SetupCardDescriptionTextColor}" />
+				<Setter Property="FontSize" Value="14" />
+				<Setter Property="LineBreakMode" Value="WordWrap" />
+				<Setter Property="InputTransparent" Value="True" />
+			</Style>
+
+			<!-- SHARED DIAGNOSTIC NODE TEMPLATE -->
+			<DataTemplate x:Key="DiagnosticNodeTemplate" x:DataType="diagnostics:DiagnosticNodeViewModel">
+				<Border StrokeThickness="0" BackgroundColor="{Binding HighlightBackground}" StrokeShape="RoundRectangle 12" Padding="16,0" Margin="0,4" MinimumHeightRequest="120">
+					<Border.GestureRecognizers>
+						<PointerGestureRecognizer PointerEntered="OnGlassItemHovered" PointerExited="OnGlassItemUnhovered" />
+					</Border.GestureRecognizers>
+					<Border.Triggers>
+						<DataTrigger TargetType="Border" Binding="{Binding CurrentHealth}" Value="Healthy">
+							<Setter Property="Background">
+								<Setter.Value>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+										<GradientStop Color="{StaticResource SetupHealthyStrongColor}" Offset="0.0" />
+										<GradientStop Color="{StaticResource SetupHealthySoftColor}" Offset="0.6" />
+										<GradientStop Color="Transparent" Offset="1.0" />
+									</LinearGradientBrush>
+								</Setter.Value>
+							</Setter>
+							<Setter Property="StrokeShape" Value="Rectangle" />
+							<Setter Property="Margin" Value="0" />
+						</DataTrigger>
+
+						<DataTrigger TargetType="Border" Binding="{Binding IsAdvisoryNode}" Value="True">
+							<Setter Property="Background">
+								<Setter.Value>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+										<GradientStop Color="{StaticResource SetupAccentFaintColor}" Offset="0.0" />
+										<GradientStop Color="#0F8ecfff" Offset="0.45" />
+										<GradientStop Color="Transparent" Offset="1.0" />
+									</LinearGradientBrush>
+								</Setter.Value>
+							</Setter>
+							<Setter Property="StrokeShape" Value="Rectangle" />
+							<Setter Property="Margin" Value="0" />
+						</DataTrigger>
+
+						<DataTrigger TargetType="Border" Binding="{Binding IsLoading}" Value="True">
+							<Setter Property="Background">
+								<Setter.Value>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+										<GradientStop Color="{StaticResource SetupAccentMidColor}" Offset="0.0" />
+										<GradientStop Color="{StaticResource SetupAccentFaintColor}" Offset="0.5" />
+										<GradientStop Color="Transparent" Offset="1.0" />
+									</LinearGradientBrush>
+								</Setter.Value>
+							</Setter>
+							<Setter Property="StrokeShape" Value="Rectangle" />
+							<Setter Property="Margin" Value="0" />
+						</DataTrigger>
+					</Border.Triggers>
+					<Grid>
+						<Border Opacity="{Binding InteractionOverlayOpacity}"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 12"
+								InputTransparent="True">
+							<Border.Background>
+								<LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
+									<GradientStop Color="{StaticResource SetupHoverHealthyStrongColor}" Offset="0.0" />
+									<GradientStop Color="{StaticResource SetupHoverHealthySoftColor}" Offset="0.55" />
+									<GradientStop Color="Transparent" Offset="1.0" />
+								</LinearGradientBrush>
+							</Border.Background>
+							<Border.Triggers>
+								<DataTrigger TargetType="Border" Binding="{Binding IsAdvisoryNode}" Value="True">
+									<Setter Property="Background">
+										<Setter.Value>
+											<LinearGradientBrush StartPoint="1,0" EndPoint="0,1">
+												<GradientStop Color="#3031d8ff" Offset="0.0" />
+												<GradientStop Color="#148ecfff" Offset="0.55" />
+												<GradientStop Color="Transparent" Offset="1.0" />
+											</LinearGradientBrush>
+										</Setter.Value>
+									</Setter>
+								</DataTrigger>
+							</Border.Triggers>
+						</Border>
+
+						<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
+							<!-- Status Icon -->
+							<Grid WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
+								<Grid.Triggers>
+									<DataTrigger TargetType="Grid" Binding="{Binding IsLoading}" Value="True">
+										<Setter Property="Scale" Value="1.2" />
+									</DataTrigger>
+								</Grid.Triggers>
+								<Border StrokeThickness="1" Stroke="{Binding StatusBrush}" BackgroundColor="{StaticResource SetupGlassHoverColor}" Opacity="0.4" StrokeShape="RoundRectangle 8" />
+								<Border x:Name="DiagnosticLoadingRing"
+										StyleId="DiagnosticLoadingRing"
+										WidthRequest="38"
+										HeightRequest="38"
+										Stroke="{StaticResource SetupAccentColor}"
+										StrokeThickness="2"
+										StrokeShape="RoundRectangle 19"
+										Opacity="0"
+										HorizontalOptions="Center"
+										VerticalOptions="Center"
+										Loaded="OnDiagnosticLoadingRingLoaded"
+										Unloaded="OnDiagnosticLoadingRingUnloaded">
+									<Border.Background>
+										<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+											<GradientStop Color="#0031d8ff" Offset="0.0" />
+											<GradientStop Color="#3331d8ff" Offset="0.35" />
+											<GradientStop Color="#AA31d8ff" Offset="1.0" />
+										</LinearGradientBrush>
+									</Border.Background>
+								</Border>
+								<Image Source="{Binding IconSource}"
+									   WidthRequest="24"
+									   HeightRequest="24"
+									   HorizontalOptions="Center"
+									   VerticalOptions="Center" />
+							</Grid>
+
+							<StackLayout Padding="0, 10" Grid.Column="1" VerticalOptions="Center" Spacing="4">
+								<Grid ColumnDefinitions="Auto,Auto,*" ColumnSpacing="8">
+									<Label Grid.Column="0"
+										   Text="{Binding DisplayName}"
+										   TextColor="{StaticResource SetupTextPrimaryColor}"
+										   FontSize="16"
+										   FontAttributes="Bold"
+										   LineBreakMode="TailTruncation" />
+									<Label x:Name="DiagnosticEditLabel"
+										   Grid.Column="1"
+										   Text="[edit]"
+										   TextColor="{StaticResource SetupAccentColor}"
+										   FontSize="12"
+										   FontAttributes="Bold"
+										   VerticalOptions="Center"
+										   IsVisible="{Binding CanHeaderEdit}">
+										<Label.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnDiagnosticEditHovered" PointerExited="OnDiagnosticEditUnhovered" />
+											<TapGestureRecognizer Tapped="OnDiagnosticNodeTapped" />
+										</Label.GestureRecognizers>
+									</Label>
+								</Grid>
+								<Label Text="{Binding Description}" TextColor="{StaticResource SetupTextMutedColor}" FontSize="13" LineBreakMode="WordWrap" />
+								<Border IsVisible="{Binding HasEnvironmentDetails}"
+										MinimumHeightRequest="{Binding EnvironmentDetailsMinHeight}"
+										Margin="0,3,0,0"
+										Padding="10,6"
+										BackgroundColor="#1231d8ff"
+										Stroke="#2631d8ff"
+										StrokeThickness="1"
+										StrokeShape="RoundRectangle 8">
+									<Grid ColumnDefinitions="Auto,*" ColumnSpacing="9" VerticalOptions="Center">
+										<Label Text="{loc:Loc setup.status.label}"
+											   TextColor="#6631d8ff"
+											   FontSize="9"
+											   FontAttributes="Bold"
+											   CharacterSpacing="1"
+											   VerticalOptions="Center" />
+										<Label Grid.Column="1"
+											   Text="{Binding EnvironmentDetails}"
+											   TextColor="{Binding DetailsColor}"
+											   FontSize="12"
+											   FontAttributes="Italic"
+											   MaxLines="{Binding EnvironmentDetailsMaxLines}"
+											   LineBreakMode="WordWrap"
+											   VerticalOptions="Center" />
+									</Grid>
+								</Border>
+
+								<!-- Clickable Environment Path -->
+								<Label Text="{Binding EnvironmentDisplayPath}" TextColor="{StaticResource SetupAccentColor}" TextDecorations="Underline" FontSize="12" IsVisible="{Binding HasEnvironmentPath}" Margin="0,2,0,0" LineBreakMode="TailTruncation">
+									<Label.GestureRecognizers>
+										<PointerGestureRecognizer PointerEntered="OnPathHovered" PointerExited="OnPathUnhovered" />
+										<TapGestureRecognizer Command="{Binding OpenPathCommand}" />
+									</Label.GestureRecognizers>
+								</Label>
+
+							</StackLayout>
+
+							<Grid Grid.Column="2"
+								  MinimumHeightRequest="120"
+								  VerticalOptions="Fill"
+								  HorizontalOptions="End"
+								  Padding="0,10,12,10">
+								<VerticalStackLayout Spacing="8"
+													 WidthRequest="190"
+													 HorizontalOptions="End"
+													 VerticalOptions="Center">
+									<Label Text="{Binding ActionText}"
+										   TextColor="{Binding StatusColor}"
+										   FontSize="13"
+										   FontAttributes="Bold"
+										   CharacterSpacing="0.5"
+										   HorizontalTextAlignment="Center"
+										   VerticalTextAlignment="Center"
+										   HorizontalOptions="Fill"
+										   VerticalOptions="Center"
+										   IsVisible="{Binding HasNoActions}" />
+									<Border StrokeThickness="1"
+											Stroke="{StaticResource SetupAccentColor}"
+											BackgroundColor="#1210141F"
+											StrokeShape="RoundRectangle 8"
+											Padding="12,0"
+											WidthRequest="190"
+											HeightRequest="32"
+											HorizontalOptions="Fill"
+											IsVisible="{Binding CanStatusEdit}">
+										<Border.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnDiagnosticRetryHovered" PointerExited="OnDiagnosticRetryUnhovered" />
+											<TapGestureRecognizer Tapped="OnDiagnosticNodeTapped" />
+										</Border.GestureRecognizers>
+										<Label Text="{loc:Loc setup.status.edit}"
+											   TextColor="{StaticResource SetupAccentColor}"
+											   FontSize="10"
+											   FontAttributes="Bold"
+											   CharacterSpacing="1"
+											   HorizontalTextAlignment="Center"
+											   VerticalTextAlignment="Center"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center" />
+									</Border>
+									<Label Text="{Binding OperationProgressText}"
+										   TextColor="{StaticResource SetupAccentColor}"
+										   FontSize="10"
+										   FontAttributes="Bold"
+										   LineBreakMode="TailTruncation"
+										   HorizontalTextAlignment="Center"
+										   HorizontalOptions="Fill"
+										   IsVisible="{Binding HasOperationProgressText}" />
+									<Label Text="{Binding WorkingHint}"
+										   TextColor="{StaticResource SetupTextMutedColor}"
+										   FontSize="10"
+										   FontAttributes="Italic"
+										   LineBreakMode="WordWrap"
+										   MaxLines="2"
+										   HorizontalTextAlignment="Center"
+										   HorizontalOptions="Fill"
+										   IsVisible="{Binding HasWorkingHint}" />
+
+									<Border StrokeThickness="1"
+											Stroke="{StaticResource SetupAccentColor}"
+											BackgroundColor="#1210141F"
+											StrokeShape="RoundRectangle 8"
+											Padding="12,0"
+											WidthRequest="190"
+											HeightRequest="32"
+											HorizontalOptions="Fill"
+											IsVisible="{Binding CanCancel}">
+										<Border.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnDiagnosticRetryHovered" PointerExited="OnDiagnosticRetryUnhovered" />
+											<TapGestureRecognizer Tapped="OnDiagnosticCancelTapped" />
+										</Border.GestureRecognizers>
+										<Label Text="{loc:Loc common.cancel}"
+											   TextColor="{StaticResource SetupAccentColor}"
+											   FontSize="10"
+											   FontAttributes="Bold"
+											   CharacterSpacing="1"
+											   HorizontalTextAlignment="Center"
+											   VerticalTextAlignment="Center"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center" />
+									</Border>
+
+									<Border StrokeThickness="1"
+											Stroke="{Binding StatusBrush}"
+											BackgroundColor="#1210141F"
+											StrokeShape="RoundRectangle 8"
+											Padding="12,0"
+											WidthRequest="190"
+											HeightRequest="32"
+											HorizontalOptions="Fill"
+											IsVisible="{Binding CanRetry}">
+										<Border.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnDiagnosticRetryHovered" PointerExited="OnDiagnosticRetryUnhovered" />
+											<TapGestureRecognizer Tapped="OnDiagnosticRetryTapped" />
+										</Border.GestureRecognizers>
+										<Label Text="RETRY"
+											   TextColor="{Binding StatusColor}"
+											   FontSize="10"
+											   FontAttributes="Bold"
+											   CharacterSpacing="1"
+											   HorizontalTextAlignment="Center"
+											   VerticalTextAlignment="Center"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center" />
+									</Border>
+
+									<StackLayout BindableLayout.ItemsSource="{Binding Actions}"
+												 IsVisible="{Binding HasActions}"
+												 Spacing="4"
+												 HorizontalOptions="End"
+												 VerticalOptions="Center">
+										<BindableLayout.ItemTemplate>
+											<DataTemplate x:DataType="diagnostics:DiagnosticActionViewModel">
+												<Border StrokeThickness="0"
+														BackgroundColor="{Binding NormalBackground}"
+														StrokeShape="RoundRectangle 8"
+														Padding="10,6"
+														WidthRequest="190"
+														MinimumHeightRequest="32"
+														HorizontalOptions="End">
+													<Border.GestureRecognizers>
+														<PointerGestureRecognizer PointerEntered="OnGlassItemHovered" PointerExited="OnGlassItemUnhovered" />
+														<TapGestureRecognizer Command="{Binding Command}" />
+													</Border.GestureRecognizers>
+													<VerticalStackLayout Spacing="2"
+																		 HorizontalOptions="Fill"
+																		 VerticalOptions="Center">
+														<Label Text="{Binding DisplayName}"
+															   TextColor="{Binding TextColor}"
+															   FontSize="11"
+															   FontAttributes="Bold"
+															   LineBreakMode="TailTruncation"
+															   HorizontalTextAlignment="Center"
+															   VerticalTextAlignment="Center"
+															   HorizontalOptions="Fill"
+															   VerticalOptions="Center" />
+														<Label Text="{Binding Description}"
+															   TextColor="{StaticResource SetupTextMutedColor}"
+															   FontSize="9"
+															   LineBreakMode="WordWrap"
+															   MaxLines="2"
+															   HorizontalTextAlignment="Center"
+															   HorizontalOptions="Fill"
+															   IsVisible="{Binding HasDescription}" />
+													</VerticalStackLayout>
+												</Border>
+											</DataTemplate>
+										</BindableLayout.ItemTemplate>
+									</StackLayout>
+								</VerticalStackLayout>
+							</Grid>
+						</Grid>
+					</Grid>
+				</Border>
+			</DataTemplate>
+		</ResourceDictionary>
+	</ContentView.Resources>
+
+	<Grid x:Name="ProductSetupRoot"
+		  HorizontalOptions="Fill"
+		  VerticalOptions="Fill">
+		<!-- LAYER 1: BACKGROUND (Deep Space & Particles) -->
+		<Grid x:Name="BackgroundLayer">
+			<Image Source="nexus_setup_bg.png"
+				   Aspect="AspectFill" />
+			<Grid x:Name="ParticleContainer" InputTransparent="True" CascadeInputTransparent="True" />
+		</Grid>
+
+		<!-- LAYER 1.5: GLOBAL CINEMATIC GLOW (Unclipped) -->
+		<Grid x:Name="GlobalGlowLayer" InputTransparent="True" CascadeInputTransparent="True">
+			<Grid x:Name="GlowSyncGroup"
+				  ColumnDefinitions="*, *"
+				  WidthRequest="1150"
+				  HeightRequest="1000"
+				  VerticalOptions="Center"
+				  HorizontalOptions="Center">
+				<Image x:Name="VanguardGlow"
+					   Grid.Column="0"
+					   Source="hover_cloud_vanguard.png"
+					   Aspect="AspectFit"
+					   WidthRequest="1200"
+					   HeightRequest="1000"
+					   Opacity="0.15"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center" />
+				<Image x:Name="ArchitectGlow"
+					   Grid.Column="1"
+					   Source="hover_cloud_architect.png"
+					   Aspect="AspectFit"
+					   WidthRequest="1200"
+					   HeightRequest="1000"
+					   Opacity="0.15"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center" />
+			</Grid>
+		</Grid>
+
+		<AbsoluteLayout x:Name="ScaleContainer"
+						HorizontalOptions="Fill"
+						VerticalOptions="Fill"
+						InputTransparent="True">
+			<AbsoluteLayout.GestureRecognizers>
+				<PointerGestureRecognizer PointerMoved="OnGlobalPointerMoved" />
+			</AbsoluteLayout.GestureRecognizers>
+
+			<!-- Main UI Prefab Wrapper -->
+			<Grid x:Name="MainUIPrefab"
+				  AbsoluteLayout.LayoutBounds="0.5,0.5,1150,1000"
+				  AbsoluteLayout.LayoutFlags="PositionProportional">
+
+				<!-- PIERCING HEADER -->
+				<Grid x:Name="HeaderBar"
+					  VerticalOptions="Start"
+					  HorizontalOptions="Center"
+					  Margin="0,50,0,0"
+					  Opacity="0"
+					  IsVisible="False">
+					<Image Source="top_logo_neon_glass.png"
+						   HeightRequest="120"
+						   Aspect="AspectFit" />
+				</Grid>
+
+				<Border x:Name="GlassPanel"
+						VerticalOptions="End"
+						HeightRequest="768"
+						WidthRequest="1150"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 32"
+						BackgroundColor="#26050A14">
+
+					<Grid RowDefinitions="*,Auto"
+						  Padding="60,40,60,40">
+						<!-- Content area -->
+						<Grid Grid.Row="0">
+
+						<!-- CROSSROADS STATE -->
+						<StackLayout x:Name="WelcomeContainer"
+									 IsVisible="False"
+									 Opacity="0"
+									 VerticalOptions="Center"
+									 Spacing="48">
+
+							<Label Text="{loc:Loc views.overlays.product_setup_view.select_your_deployment_strategy}"
+								   TextColor="#7fa0b8"
+								   FontSize="24"
+								   FontAttributes="Bold"
+								   CharacterSpacing="4"
+								   HorizontalTextAlignment="Center" />
+
+							<Grid ColumnDefinitions="*, *"
+								  ColumnSpacing="32"
+								  MaximumWidthRequest="1100"
+								  HorizontalOptions="Center">
+
+								<!-- VANGUARD WRAPPER (Allows overflow glow) -->
+								<Grid x:Name="VanguardContainer" Grid.Column="0" HeightRequest="240">
+
+									<!-- VANGUARD CARD -->
+									<Border x:Name="VanguardCard"
+											HeightRequest="240"
+											StrokeThickness="0"
+											StrokeShape="RoundRectangle 24"
+											BackgroundColor="#1A000000"
+											Padding="0"
+											ZIndex="1">
+										<Grid ColumnDefinitions="200, *" InputTransparent="True" CascadeInputTransparent="True">
+											<!-- Object Prefab (Left) -->
+											<Grid Grid.Column="0" InputTransparent="True">
+												<Ellipse x:Name="VanguardRing1" Stroke="#4D31D8FF" StrokeThickness="1" Margin="25" StrokeDashArray="1,4" InputTransparent="True" />
+												<Ellipse x:Name="VanguardRing2" Stroke="#2631D8FF" StrokeThickness="2" Margin="45" StrokeDashArray="10,5" InputTransparent="True" />
+												<Image Source="setup_vanguard_high.png"
+													   Aspect="AspectFill"
+													   Opacity="0.8"
+													   Margin="15"
+													   x:Name="VanguardBgImage"
+													   InputTransparent="True" />
+											</Grid>
+
+											<!-- Text Content (Right) -->
+											<StackLayout Grid.Column="1" Padding="10,0,40,0" Spacing="0" VerticalOptions="Center" InputTransparent="True">
+												<Label Text="VANGUARD"
+													   Style="{StaticResource CardTitleStyle}"
+													   TextColor="#31d8ff" />
+
+												<BoxView Color="#31d8ff"
+														 Style="{StaticResource CardAccentLineStyle}" />
+
+												<Label Text="{loc:Loc views.overlays.product_setup_view.deploy_new_environment}"
+													   Style="{StaticResource CardActionStyle}" />
+
+												<Label Text="{loc:Loc views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit}"
+													   Style="{StaticResource CardDescStyle}" />
+											</StackLayout>
+										</Grid>
+									</Border>
+
+									<!-- EVENT PROXY -->
+									<BoxView Grid.Column="0"
+											 HeightRequest="240"
+											 BackgroundColor="Transparent"
+											 ZIndex="2">
+										<BoxView.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnVanguardCardPointerEntered"
+																	  PointerExited="OnVanguardCardPointerExited" />
+											<TapGestureRecognizer Tapped="OnVanguardSelected" />
+										</BoxView.GestureRecognizers>
+									</BoxView>
+								</Grid>
+
+								<!-- ARCHITECT WRAPPER -->
+								<Grid x:Name="ArchitectContainer" Grid.Column="1" HeightRequest="240">
+
+									<!-- ARCHITECT CARD -->
+									<Border x:Name="ArchitectCard"
+											HeightRequest="240"
+											StrokeThickness="0"
+											StrokeShape="RoundRectangle 24"
+											BackgroundColor="#1A000000"
+											Padding="0"
+											ZIndex="1">
+										<Grid ColumnDefinitions="200, *" InputTransparent="True" CascadeInputTransparent="True">
+											<!-- Object Prefab (Left) -->
+											<Grid Grid.Column="0" InputTransparent="True">
+												<Ellipse x:Name="ArchitectRing1" Stroke="#4Dc78bff" StrokeThickness="1" Margin="25" StrokeDashArray="2,6" InputTransparent="True" />
+												<Ellipse x:Name="ArchitectRing2" Stroke="#26c78bff" StrokeThickness="2" Margin="45" StrokeDashArray="15,10" InputTransparent="True" />
+												<Image Source="setup_architect_high.png"
+													   Aspect="AspectFill"
+													   Opacity="0.8"
+													   Margin="15"
+													   x:Name="ArchitectBgImage"
+													   InputTransparent="True" />
+											</Grid>
+
+											<StackLayout Grid.Column="1" Padding="10,0,40,0" Spacing="0" VerticalOptions="Center" InputTransparent="True">
+												<Label Text="ARCHITECT"
+													   Style="{StaticResource CardTitleStyle}"
+													   TextColor="#c78bff" />
+
+												<BoxView Color="#c78bff"
+														 Style="{StaticResource CardAccentLineStyle}" />
+
+												<Label Text="{loc:Loc views.overlays.product_setup_view.connect_existing_path}"
+													   Style="{StaticResource CardActionStyle}" />
+
+												<Label Text="{loc:Loc views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu}"
+													   Style="{StaticResource CardDescStyle}" />
+											</StackLayout>
+										</Grid>
+									</Border>
+
+									<!-- EVENT PROXY -->
+									<BoxView Grid.Column="0"
+											 HeightRequest="240"
+											 BackgroundColor="Transparent"
+											 ZIndex="2">
+										<BoxView.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnArchitectCardPointerEntered"
+																	  PointerExited="OnArchitectCardPointerExited" />
+											<TapGestureRecognizer Tapped="OnArchitectSelected" />
+										</BoxView.GestureRecognizers>
+									</BoxView>
+								</Grid>
+							</Grid>
+						</StackLayout>
+
+						<!-- VANGUARD PANEL (Checklist) -->
+						<Border x:Name="VanguardPanel"
+								IsVisible="False"
+								Opacity="0"
+								MaximumWidthRequest="800"
+								HeightRequest="704"
+								StrokeThickness="0"
+								Stroke="#4D31D8FF"
+								StrokeShape="RoundRectangle 24"
+								BackgroundColor="#1A050A14"
+								Padding="34">
+							<Grid RowDefinitions="Auto, *" RowSpacing="14">
+								<Grid Grid.Row="0" RowDefinitions="Auto,Auto" RowSpacing="6">
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+										<HorizontalStackLayout Spacing="14"
+															   VerticalOptions="Center">
+											<Label Text="{loc:Loc views.overlays.product_setup_view.initiation_sequence}"
+												   TextColor="#31d8ff"
+												   FontSize="22"
+												   FontAttributes="Bold"
+												   CharacterSpacing="2" />
+										</HorizontalStackLayout>
+										<Border Grid.Column="1"
+												StrokeThickness="0"
+												StrokeShape="RoundRectangle 10"
+												BackgroundColor="#18ffb84d"
+												Padding="10,4"
+												VerticalOptions="Center">
+											<Label x:Name="VanguardRequiredStatusLabel"
+												   Text="{loc:Loc views.overlays.product_setup_view.0_0_ready}"
+												   TextColor="#ffb84d"
+												   FontSize="11"
+												   FontAttributes="Bold"
+												   CharacterSpacing="1" />
+										</Border>
+									</Grid>
+									<Label Text="{loc:Loc views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s}"
+										   Grid.Row="1"
+										   TextColor="#668ecfff"
+										   FontSize="12" />
+								</Grid>
+								<ScrollView x:Name="VanguardInitiationScrollView"
+											Grid.Row="1"
+											Orientation="Vertical"
+											VerticalScrollBarVisibility="Never">
+									<StackLayout Spacing="0">
+										<StackLayout x:Name="DiagnosticNodesList"
+													 Spacing="0"
+													 BindableLayout.ItemsSource="{Binding VanguardNodes}"
+													 BindableLayout.ItemTemplate="{StaticResource DiagnosticNodeTemplate}" />
+
+										<StackLayout x:Name="VanguardOptionalHeader"
+													 Spacing="4"
+													 Margin="0,14,0,0">
+											<Label Text="{loc:Loc views.overlays.product_setup_view.optional_setup}"
+												   TextColor="#8ecfff"
+												   FontSize="13"
+												   FontAttributes="Bold"
+												   CharacterSpacing="1.5" />
+											<BoxView Color="#1A31d8ff"
+													 HeightRequest="1"
+													 HorizontalOptions="Fill" />
+										</StackLayout>
+
+										<StackLayout x:Name="VanguardOptionalNodesList"
+													 Spacing="0"
+													 VerticalOptions="Start"
+													 BindableLayout.ItemsSource="{Binding VanguardOptionalNodes}"
+													 BindableLayout.ItemTemplate="{StaticResource DiagnosticNodeTemplate}" />
+										<BoxView HeightRequest="56" Opacity="0" />
+									</StackLayout>
+								</ScrollView>
+							</Grid> <!-- Outer Grid -->
+						</Border> <!-- VanguardPanel -->
+
+						<Border x:Name="ArchitectInitiationPanel"
+								IsVisible="False"
+								Opacity="0"
+								MaximumWidthRequest="800"
+								HeightRequest="704"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 24"
+								BackgroundColor="#1A050A14"
+								Padding="34">
+							<Grid RowDefinitions="Auto,*" RowSpacing="14">
+								<Grid Grid.Row="0" RowDefinitions="Auto,Auto" RowSpacing="6">
+									<Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+										<HorizontalStackLayout Spacing="14"
+															   VerticalOptions="Center">
+											<Label Text="{loc:Loc views.overlays.product_setup_view.initiation_sequence}"
+												   TextColor="#31d8ff"
+												   FontSize="22"
+												   FontAttributes="Bold"
+												   CharacterSpacing="2" />
+										</HorizontalStackLayout>
+										<Border Grid.Column="1"
+												StrokeThickness="0"
+												StrokeShape="RoundRectangle 10"
+												BackgroundColor="#18ffb84d"
+												Padding="10,4"
+												VerticalOptions="Center">
+											<Label x:Name="ArchitectRequiredStatusLabel"
+												   Text="{loc:Loc views.overlays.product_setup_view.0_0_ready}"
+												   TextColor="#ffb84d"
+												   FontSize="11"
+												   FontAttributes="Bold"
+												   CharacterSpacing="1" />
+										</Border>
+									</Grid>
+									<Label Text="{loc:Loc views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s}"
+										   Grid.Row="1"
+										   TextColor="#668ecfff"
+										   FontSize="12" />
+								</Grid>
+
+								<ScrollView x:Name="ArchitectInitiationScrollView"
+											Grid.Row="1"
+											Orientation="Vertical"
+											VerticalScrollBarVisibility="Never">
+									<StackLayout Spacing="0">
+										<StackLayout x:Name="ArchitectNodesList"
+													 Spacing="0"
+													 VerticalOptions="Start"
+													 BindableLayout.ItemsSource="{Binding ArchitectNodes}"
+													 BindableLayout.ItemTemplate="{StaticResource DiagnosticNodeTemplate}" />
+
+										<StackLayout x:Name="ArchitectOptionalHeader"
+													 Spacing="4"
+													 Margin="0,14,0,0">
+											<Label Text="{loc:Loc views.overlays.product_setup_view.optional_setup}"
+												   TextColor="#8ecfff"
+												   FontSize="13"
+												   FontAttributes="Bold"
+												   CharacterSpacing="1.5" />
+											<BoxView Color="#1A31d8ff"
+													 HeightRequest="1"
+													 HorizontalOptions="Fill" />
+										</StackLayout>
+
+										<StackLayout x:Name="ArchitectOptionalNodesList"
+													 Spacing="0"
+													 VerticalOptions="Start"
+													 BindableLayout.ItemsSource="{Binding ArchitectOptionalNodes}"
+													 BindableLayout.ItemTemplate="{StaticResource DiagnosticNodeTemplate}" />
+										<BoxView x:Name="ArchitectOptionalScrollAnchor" HeightRequest="56" Opacity="0" />
+									</StackLayout>
+								</ScrollView>
+							</Grid>
+						</Border>
+
+						<!-- ARCHITECT PANEL (Workspace Link) -->
+						<Border x:Name="ArchitectWorkspacePanel"
+								IsVisible="False"
+								Opacity="0"
+								MaximumWidthRequest="800"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 24"
+								BackgroundColor="#1A050A14"
+								Padding="40">
+							<Grid RowDefinitions="Auto,Auto,*">
+								<StackLayout Spacing="12" Margin="0,0,0,16">
+									<Label Text="{loc:Loc views.overlays.product_setup_view.workspace_link}" TextColor="#c78bff" FontSize="22" FontAttributes="Bold" CharacterSpacing="2" />
+									<Label Text="{loc:Loc views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins}" TextColor="#a3c4db" FontSize="16" />
+								</StackLayout>
+
+								<!-- Subtle Separator -->
+								<BoxView Grid.Row="1" HeightRequest="1" BackgroundColor="#33c78bff" Margin="0,0,0,16" />
+
+								<components:FolderBrowserView x:Name="ArchitectFolderBrowser" Grid.Row="2" PathConfirmed="OnArchitectPathConfirmed" />
+							</Grid>
+						</Border>
+
+						<!-- SERVER CONSOLE PANEL (Launching) -->
+						<Border x:Name="ServerConsolePanel"
+								IsVisible="False"
+								Opacity="0"
+								MaximumWidthRequest="1000"
+								StrokeThickness="0"
+								StrokeShape="RoundRectangle 24"
+								BackgroundColor="#1A050A14"
+								MaximumHeightRequest="760"
+								Padding="34">
+							<Grid RowDefinitions="Auto,Auto" RowSpacing="20">
+								<!-- Header: Command Center Banner -->
+								<Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+									<StackLayout Spacing="8">
+										<Label Text="{loc:Loc views.overlays.product_setup_view.nexus_core_command_center}" TextColor="#31d8ff" FontSize="22" FontAttributes="Bold" CharacterSpacing="4" />
+										<Label Text="{loc:Loc views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus}" TextColor="#4D31d8ff" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" />
+									</StackLayout>
+									<Border x:Name="ConsoleStatusBorder" Grid.Column="1" Stroke="#31d8ff" StrokeThickness="1" Padding="12,4" StrokeShape="RoundRectangle 4" VerticalOptions="Start">
+										<Label x:Name="ConsoleStatusLabel" Text="{loc:Loc common.online}" TextColor="#31d8ff" FontSize="12" FontAttributes="Bold" />
+									</Border>
+								</Grid>
+
+								<!-- Main Console Area -->
+								<Grid Grid.Row="1"
+									  ColumnDefinitions="*, 240"
+									  ColumnSpacing="32"
+									  HeightRequest="430"
+									  MaximumHeightRequest="560"
+									  VerticalOptions="Start">
+
+									<!-- Left: Live Log Terminal -->
+									<Border Grid.Column="0"
+											BackgroundColor="#1A000000"
+											Stroke="#3331d8ff"
+											StrokeThickness="1"
+											StrokeShape="RoundRectangle 16"
+											Padding="0"
+											HeightRequest="430"
+											MaximumHeightRequest="430"
+											VerticalOptions="Fill">
+										<Grid RowDefinitions="Auto,*" RowSpacing="1">
+											<!-- Background Technical Grid Overlay -->
+											<Image Grid.RowSpan="2" Source="nexus_flash_flare_png_1778353292656" Aspect="AspectFill" Opacity="0.05" InputTransparent="True" />
+
+											<Grid ColumnDefinitions="Auto,Auto,*,Auto"
+												  ColumnSpacing="8"
+												  Padding="18,14,18,12"
+												  BackgroundColor="#08000000">
+												<Border x:Name="ConsoleHostPill" BackgroundColor="#0A31d8ff" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,3" WidthRequest="190" HeightRequest="28">
+													<Border.GestureRecognizers>
+														<TapGestureRecognizer Tapped="OnHostEditClicked" />
+														<PointerGestureRecognizer PointerEntered="OnConsoleConfigPillHovered" PointerExited="OnConsoleConfigPillUnhovered" />
+													</Border.GestureRecognizers>
+													<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="7" InputTransparent="True" VerticalOptions="Center">
+														<Label Text="HOST" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" VerticalOptions="Center" />
+														<Label x:Name="ConsoleHostLabel" Grid.Column="1" Text="127.0.0.1" TextColor="#dffaff" FontSize="10" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+														<Border Grid.Column="2" BackgroundColor="#2631d8ff" StrokeThickness="0" StrokeShape="RoundRectangle 5" Padding="5,2" VerticalOptions="Center">
+															<Label Text="{loc:Loc setup.status.edit}" TextColor="#31d8ff" FontSize="8" FontAttributes="Bold" VerticalOptions="Center" />
+														</Border>
+													</Grid>
+												</Border>
+												<Border x:Name="ConsolePortPill" Grid.Column="1" BackgroundColor="#0A31d8ff" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,3" WidthRequest="126" HeightRequest="28">
+													<Border.GestureRecognizers>
+														<TapGestureRecognizer Tapped="OnPortEditClicked" />
+														<PointerGestureRecognizer PointerEntered="OnConsoleConfigPillHovered" PointerExited="OnConsoleConfigPillUnhovered" />
+													</Border.GestureRecognizers>
+													<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" InputTransparent="True" VerticalOptions="Center">
+														<Label Text="PORT" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" VerticalOptions="Center" />
+														<Label x:Name="ConsolePortLabel" Grid.Column="1" Text="8188" TextColor="#dffaff" FontSize="10" FontAttributes="Bold" LineBreakMode="TailTruncation" VerticalOptions="Center" />
+														<Border Grid.Column="2" BackgroundColor="#2631d8ff" StrokeThickness="0" StrokeShape="RoundRectangle 5" Padding="5,2" VerticalOptions="Center">
+															<Label Text="{loc:Loc setup.status.edit}" TextColor="#31d8ff" FontSize="8" FontAttributes="Bold" VerticalOptions="Center" />
+														</Border>
+													</Grid>
+												</Border>
+												<Border x:Name="ServerPythonModePill" Grid.Column="3" BackgroundColor="#0A31d8ff" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,3" WidthRequest="132" HeightRequest="28">
+													<Border.GestureRecognizers>
+														<TapGestureRecognizer Tapped="OnServerPythonModeTapped" />
+														<PointerGestureRecognizer PointerEntered="OnConsoleConfigPillHovered" PointerExited="OnConsoleConfigPillUnhovered" />
+													</Border.GestureRecognizers>
+													<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="6" VerticalOptions="Center">
+														<Label Text="PY" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" VerticalOptions="Center" />
+														<Label x:Name="ServerPythonModeLabel" Grid.Column="1" Text="VENV" TextColor="#31d8ff" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" />
+														<Border Grid.Column="2" WidthRequest="34" HeightRequest="16" StrokeThickness="0" StrokeShape="RoundRectangle 8" BackgroundColor="#18000000" VerticalOptions="Center">
+															<Grid>
+																<BoxView x:Name="ServerPythonModeTrack" Color="#2231d8ff" CornerRadius="8" />
+																<Border x:Name="ServerPythonModeKnob" WidthRequest="12" HeightRequest="12" StrokeThickness="0" StrokeShape="RoundRectangle 6" BackgroundColor="#31d8ff" HorizontalOptions="End" Margin="2" />
+															</Grid>
+														</Border>
+													</Grid>
+												</Border>
+											</Grid>
+
+											<components:LogTailView x:Name="ConsoleLogTail"
+																	Grid.Row="1"
+																	Padding="18,0,18,20"
+																	HeightRequest="352"
+																	MaximumHeightRequest="352"
+																	MaxRows="100"
+																	PrewarmRows="50"
+																	MaxFlushBatchSize="40"
+																	AutoScroll="True"
+																	AnimateScroll="False"
+																	VerticalOptions="Fill" />
+										</Grid>
+									</Border>
+
+									<!-- Right: System Metrics -->
+									<Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+										<Label Text="{loc:Loc views.overlays.product_setup_view.boot_matrix}" TextColor="#7fa0b8" FontSize="13" FontAttributes="Bold" CharacterSpacing="1" />
+
+										<VerticalStackLayout Grid.Row="1" Spacing="8">
+											<!-- GPU Selector -->
+											<Grid HeightRequest="58" ZIndex="100">
+												<VerticalStackLayout Spacing="5">
+													<Grid ColumnDefinitions="*, Auto">
+														<Label Text="{loc:Loc views.overlays.product_setup_view.cuda_device}" TextColor="#7fa0b8" FontSize="11" />
+														<Label x:Name="SelectedGpuLabel" Grid.Column="1" Text="GPU 0" TextColor="#31d8ff" FontSize="11" FontAttributes="Bold" />
+													</Grid>
+													<Border BackgroundColor="#1A31d8ff"
+															Stroke="#6631d8ff"
+															StrokeThickness="1"
+															StrokeShape="RoundRectangle 8"
+															Padding="9,6">
+														<Border.GestureRecognizers>
+															<TapGestureRecognizer Tapped="OnGpuSelectorTapped" />
+														</Border.GestureRecognizers>
+														<Grid ColumnDefinitions="*,Auto" InputTransparent="True">
+															<VerticalStackLayout Spacing="1">
+																<Label x:Name="SelectedGpuNameLabel" Text="GPU 0" TextColor="#e8fbff" FontSize="11" FontAttributes="Bold" />
+																<Label x:Name="SelectedGpuDetailLabel" Text="{loc:Loc views.overlays.product_setup_view.scanning}" TextColor="#7fa0b8" FontSize="9" LineBreakMode="TailTruncation" />
+															</VerticalStackLayout>
+															<Label x:Name="GpuDropdownGlyphLabel" Grid.Column="1" Text="v" TextColor="#31d8ff" FontSize="15" FontAttributes="Bold" VerticalOptions="Center" />
+														</Grid>
+													</Border>
+												</VerticalStackLayout>
+											</Grid>
+
+											<!-- Boot Channel -->
+											<Border BackgroundColor="#0A31d8ff" Stroke="#2231d8ff" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="10,8" ZIndex="0">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.product_setup_view.boot_channel}" TextColor="#7fa0b8" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" />
+													<Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="4">
+														<Label Text="HOST" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" />
+														<Label x:Name="BootHostLabel" Grid.Column="1" Text="127.0.0.1" TextColor="#dffaff" FontSize="10" LineBreakMode="TailTruncation" />
+														<Label Grid.Row="1" Text="PORT" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" />
+														<Label x:Name="BootPortLabel" Grid.Row="1" Grid.Column="1" Text="8188" TextColor="#dffaff" FontSize="10" />
+														<Label Grid.Row="2" Text="{loc:Loc views.overlays.product_setup_view.probe}" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" />
+														<Label x:Name="BootProbeLabel" Grid.Row="2" Grid.Column="1" Text="127.0.0.1" TextColor="#dffaff" FontSize="10" LineBreakMode="TailTruncation" />
+														<Label Grid.Row="3" Text="LOG" TextColor="#4D7fa0b8" FontSize="9" FontAttributes="Bold" />
+														<Label x:Name="BootLogLabel" Grid.Row="3" Grid.Column="1" Text="Logs/comfy-server-latest.log" TextColor="#31d8ff" FontSize="10" LineBreakMode="TailTruncation" />
+														<Border x:Name="BootLogOpenButton"
+																Grid.Row="3"
+																Grid.Column="2"
+																BackgroundColor="#1431d8ff"
+																StrokeThickness="0"
+																StrokeShape="RoundRectangle 6"
+																Padding="8,2"
+																VerticalOptions="Center">
+															<Border.GestureRecognizers>
+																<TapGestureRecognizer Tapped="OnBootLogOpenTapped" />
+																<PointerGestureRecognizer PointerEntered="OnBootLogOpenHovered" PointerExited="OnBootLogOpenUnhovered" />
+															</Border.GestureRecognizers>
+															<Label x:Name="BootLogOpenLabel"
+																   Text="{loc:Loc common.open}"
+																   TextColor="#31d8ff"
+																   FontSize="9"
+																   FontAttributes="Bold"
+																   InputTransparent="True" />
+														</Border>
+													</Grid>
+												</VerticalStackLayout>
+											</Border>
+
+											<!-- Server State -->
+											<Border x:Name="ServerStateCard" BackgroundColor="#E6081018" StrokeThickness="0" StrokeShape="RoundRectangle 12" Padding="0" HeightRequest="124">
+												<Grid>
+													<BoxView x:Name="ServerStateCardGlow" Color="#31d8ff" Opacity="0.08" InputTransparent="True" />
+													<Grid ColumnDefinitions="6,*">
+														<Border x:Name="ServerStateAccentBar"
+																Grid.Column="0"
+																BackgroundColor="#31d8ff"
+																StrokeThickness="0"
+																StrokeShape="RoundRectangle 12"
+																Opacity="0.9" />
+														<Grid Grid.Column="1" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="3" Padding="10,8,9,8">
+															<Label Text="{loc:Loc views.overlays.product_setup_view.server_state}" TextColor="#7fa0b8" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" />
+															<Border x:Name="ServerStateBadge"
+																	Grid.Column="1"
+																	Grid.RowSpan="2"
+																	BackgroundColor="#1A31d8ff"
+																	StrokeThickness="0"
+																	StrokeShape="RoundRectangle 8"
+																	Padding="8,4"
+																	VerticalOptions="Start">
+																<Label x:Name="ServerStateGlyphLabel" Text="{loc:Loc common.ready}" TextColor="#31d8ff" FontSize="9" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+															</Border>
+															<Label x:Name="ServerStateTitleLabel" Grid.Row="1" Text="{loc:Loc common.standby}" TextColor="#31d8ff" FontSize="16" FontAttributes="Bold" CharacterSpacing="1" />
+															<ScrollView x:Name="ServerStateDetailScroll"
+																	Grid.Row="2"
+																	Grid.ColumnSpan="2"
+																	HeightRequest="40"
+																	Orientation="Vertical"
+																	VerticalScrollBarVisibility="Default">
+																<Label x:Name="ServerStateDetailLabel" Text="{loc:Loc views.overlays.product_setup_view.ready_to_start_backend}" TextColor="#7fa0b8" FontSize="8" LineBreakMode="WordWrap" />
+															</ScrollView>
+														</Grid>
+													</Grid>
+												</Grid>
+											</Border>
+										</VerticalStackLayout>
+
+										<Border x:Name="GpuSelectorDropdownPanel"
+												Grid.Row="1"
+												IsVisible="False"
+												Margin="0,76,0,0"
+												ZIndex="500"
+												BackgroundColor="#F20A111B"
+												Stroke="#5531d8ff"
+												StrokeThickness="1"
+												StrokeShape="RoundRectangle 10"
+												Padding="6"
+												VerticalOptions="Start">
+											<VerticalStackLayout x:Name="GpuSelectorStack" Spacing="5" />
+										</Border>
+
+										<!-- CONSOLE INTERNAL ACTION BUTTONS -->
+										<VerticalStackLayout x:Name="ConsoleBootActionsGrid"
+															 Grid.Row="2"
+															 Spacing="6"
+															 Margin="0,2,0,0"
+															 VerticalOptions="Start">
+											<Grid HeightRequest="48">
+												<Border x:Name="ConsoleBootPulseGlow"
+														Opacity="0"
+														BackgroundColor="#31d8ff"
+														StrokeThickness="0"
+														StrokeShape="RoundRectangle 12"
+														InputTransparent="True" />
+
+												<Border x:Name="ConsoleBootButton"
+														BackgroundColor="#1A31d8ff"
+														Stroke="#31d8ff"
+														StrokeThickness="2"
+														StrokeShape="RoundRectangle 12">
+													<Border.GestureRecognizers>
+														<TapGestureRecognizer Tapped="OnPrimaryActionClicked" />
+														<PointerGestureRecognizer PointerEntered="OnConsoleBootHovered" PointerExited="OnConsoleBootUnhovered" />
+													</Border.GestureRecognizers>
+													<Label Text="{loc:Loc views.overlays.product_setup_view.engage_boot}"
+														   TextColor="#31d8ff"
+														   FontSize="13"
+														   FontAttributes="Bold"
+														   CharacterSpacing="1"
+														   HorizontalOptions="Center"
+														   VerticalOptions="Center" />
+												</Border>
+
+												<Border x:Name="ConsoleRetryButton"
+														IsVisible="False"
+														BackgroundColor="#1Aff4d4d"
+														Stroke="#ff4d4d"
+														StrokeThickness="2"
+														StrokeShape="RoundRectangle 12">
+													<Border.GestureRecognizers>
+														<TapGestureRecognizer Tapped="OnConsoleRetryClicked" />
+														<PointerGestureRecognizer PointerEntered="OnConsoleRetryHovered" PointerExited="OnConsoleRetryUnhovered" />
+													</Border.GestureRecognizers>
+													<Label Text="{loc:Loc common.retry_boot}"
+														   TextColor="#ff4d4d"
+														   FontSize="12"
+														   FontAttributes="Bold"
+														   CharacterSpacing="1"
+														   HorizontalOptions="Center"
+														   VerticalOptions="Center" />
+												</Border>
+											</Grid>
+
+											<Border x:Name="ConsoleRepairBeforeBootToggle"
+													BackgroundColor="#1Affaa00"
+													Stroke="#ffaa00"
+													StrokeThickness="1"
+													StrokeShape="RoundRectangle 8"
+													HeightRequest="26"
+													Padding="10,0">
+												<Border.GestureRecognizers>
+													<TapGestureRecognizer Tapped="OnConsoleRepairBeforeBootToggleClicked" />
+												</Border.GestureRecognizers>
+												<Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+													<Label x:Name="ConsoleRepairBeforeBootGlyph"
+														   Text="□"
+														   TextColor="#ffaa00"
+														   FontSize="11"
+														   FontAttributes="Bold"
+														   VerticalOptions="Center" />
+													<Label Grid.Column="1"
+														   Text="{loc:Loc setup.console.repair_before_boot}"
+														   TextColor="#ffaa00"
+														   FontSize="11"
+														   FontAttributes="Bold"
+														   LineBreakMode="TailTruncation"
+														   VerticalOptions="Center" />
+												</Grid>
+											</Border>
+										</VerticalStackLayout>
+									</Grid>
+								</Grid>
+							</Grid>
+						</Border>
+					</Grid>
+
+					<!-- ROW 2: ACTION BAR (Pure Glass Neon) -->
+					<Grid x:Name="ActionBottomBar"
+						  Grid.Row="2"
+						  Opacity="0"
+						  TranslationY="50"
+						  ColumnDefinitions="Auto,*,Auto"
+						  Padding="0,20,0,0"
+						  IsVisible="False">
+
+						<!-- BACK BUTTON -->
+						<Border x:Name="BackButton"
+								WidthRequest="160" HeightRequest="48"
+								BackgroundColor="Transparent"
+								Stroke="#337fa0b8"
+								StrokeThickness="1"
+								StrokeShape="RoundRectangle 8">
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnBackClicked" />
+								<PointerGestureRecognizer PointerEntered="OnBackButtonHovered" PointerExited="OnBackButtonUnhovered" />
+							</Border.GestureRecognizers>
+							<VisualStateManager.VisualStateGroups>
+								<VisualStateGroup>
+									<VisualState x:Name="BackNormal" />
+									<VisualState x:Name="BackPointerOver">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="#26ffffff" />
+											<Setter Property="Stroke" Value="#ffffff" />
+										</VisualState.Setters>
+									</VisualState>
+								</VisualStateGroup>
+							</VisualStateManager.VisualStateGroups>
+							<Label Text="{loc:Loc views.overlays.product_setup_view.back}"
+								   TextColor="#7fa0b8"
+								   FontSize="13"
+								   FontAttributes="Bold"
+								   CharacterSpacing="1"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center" />
+						</Border>
+
+						<!-- PRIMARY ACTION -->
+						<Border x:Name="PrimaryActionButton"
+								Grid.Column="2"
+								WidthRequest="220" HeightRequest="48"
+								BackgroundColor="Transparent"
+								Stroke="#4D31d8ff"
+								StrokeThickness="1"
+								StrokeShape="RoundRectangle 8">
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnPrimaryActionClicked" />
+								<PointerGestureRecognizer PointerEntered="OnPrimaryButtonHovered" PointerExited="OnPrimaryButtonUnhovered" />
+							</Border.GestureRecognizers>
+							<Grid>
+								<!-- PULSE GLOW LAYER -->
+								<Border x:Name="PrimaryActionPulseGlow"
+										Opacity="0"
+										StrokeThickness="2"
+										Stroke="#31d8ff"
+										BackgroundColor="Transparent"
+										StrokeShape="RoundRectangle 8"
+										InputTransparent="True">
+								</Border>
+
+								<Label x:Name="PrimaryActionLabel"
+									   Text="{loc:Loc views.overlays.product_setup_view.start}"
+									   TextColor="#31d8ff"
+									   FontSize="14"
+									   FontAttributes="Bold"
+									   CharacterSpacing="2"
+									   HorizontalOptions="Center"
+									   VerticalOptions="Center" />
+							</Grid>
+							<VisualStateManager.VisualStateGroups>
+								<VisualStateGroup>
+									<VisualState x:Name="PrimaryNormal" />
+									<VisualState x:Name="PrimaryPointerOver">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="#4D31d8ff" />
+											<Setter Property="Stroke" Value="#ffffff" />
+										</VisualState.Setters>
+									</VisualState>
+								</VisualStateGroup>
+							</VisualStateManager.VisualStateGroups>
+						</Border>
+					</Grid>
+				</Grid>
+			</Border>
+		</Grid> <!-- End of MainUIPrefab -->
+
+	</AbsoluteLayout>
+
+	<!-- LAYER 4: Input Blocker -->
+	<Grid x:Name="CinematicOverlay"
+		  HorizontalOptions="Fill"
+		  VerticalOptions="Fill"
+		  BackgroundColor="Transparent"
+		  InputTransparent="False"
+		  ZIndex="20000">
+		<Grid.GestureRecognizers>
+			<TapGestureRecognizer Tapped="OnBlockerTapped" />
+		</Grid.GestureRecognizers>
+	</Grid>
+</Grid>
+</ContentView>

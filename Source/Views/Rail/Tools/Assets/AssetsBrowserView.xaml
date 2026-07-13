@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:virtualization="clr-namespace:ComfyUI_Nexus.Views.Controls.Virtualization"
+			 xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+			 x:Class="ComfyUI_Nexus.Views.Rail.Tools.Assets.AssetsBrowserView">
+	<Grid RowDefinitions="Auto, Auto, *">
+		<!-- Header Section -->
+		<Border Grid.Row="0"
+				StrokeThickness="0"
+				Padding="12,20,12,20">
+			<Border.Background>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+					<GradientStop Color="{StaticResource AssetsRailHeaderGradientStartColor}" Offset="0" />
+					<GradientStop Color="{StaticResource AssetsRailHeaderGradientMiddleColor}" Offset="0.48" />
+					<GradientStop Color="{StaticResource AssetsRailHeaderGradientEndColor}" Offset="1" />
+				</LinearGradientBrush>
+			</Border.Background>
+			<Grid ColumnDefinitions="Auto,*"
+				  ColumnSpacing="8">
+				<Image Source="rail_assets.png"
+					   WidthRequest="18"
+					   HeightRequest="18"
+					   Opacity="0.92"
+					   AutomationProperties.IsInAccessibleTree="False"
+					   VerticalOptions="Center" />
+				<Label Text="{loc:Loc views.rail.tools.assets.assets_browser_view.assets}"
+					   Grid.Column="1"
+					   TextColor="{StaticResource AssetsRailTitleColor}"
+					   FontSize="13"
+					   FontAttributes="Bold"
+					   CharacterSpacing="1.2"
+					   VerticalOptions="Center" />
+			</Grid>
+		</Border>
+
+		<!-- Fixed Cards Section -->
+		<VerticalStackLayout x:Name="RailFixedCardsSection"
+							 Grid.Row="1"
+							 Spacing="0"
+							 BackgroundColor="{StaticResource AssetsRailSurfaceColor}">
+			<Grid x:Name="RailFixedCardsGrid"
+				  ColumnDefinitions="*,*"
+				  RowSpacing="6"
+				  ColumnSpacing="6"
+				  Padding="10,10,10,8" />
+		</VerticalStackLayout>
+
+		<!-- Main Content Section -->
+		<Grid Grid.Row="2">
+			<Grid RowDefinitions="Auto, Auto, *">
+
+					<!-- 2. Bookmarks Section (User Bookmarks Only) -->
+					<Border x:Name="RailBookmarksHighlightBorder"
+							Grid.Row="0"
+							Stroke="Transparent"
+							StrokeThickness="1"
+							StrokeShape="Rectangle">
+						<Border.GestureRecognizers>
+							<DropGestureRecognizer AllowDrop="True"
+												 DragOver="OnBookmarksSectionDragOver"
+												 DragLeave="OnBookmarksSectionDragLeave"
+												 Drop="OnBookmarksSectionDrop" />
+						</Border.GestureRecognizers>
+
+						<Grid ColumnDefinitions="*, Auto, Auto"
+							  Padding="12,2,10,2"
+							  BackgroundColor="{StaticResource AssetsRailSurfaceColor}"
+							  HeightRequest="36">
+
+							<!-- Integrated Dropdown Box -->
+							<Border x:Name="RailBookmarksContainerBorder"
+									Grid.Column="0"
+									BackgroundColor="{StaticResource AssetsRailInsetColor}"
+									Stroke="Transparent"
+									StrokeThickness="0"
+									Padding="8,0,0,0"
+									VerticalOptions="Center"
+									HeightRequest="30">
+								<Border.StrokeShape>
+									<shapes:RoundRectangle CornerRadius="4" />
+								</Border.StrokeShape>
+								<Grid ColumnDefinitions="Auto, *">
+									<Image x:Name="RailBookmarksIcon"
+										   Grid.Column="0"
+										   Source="assets_input.png"
+										   WidthRequest="14"
+										   HeightRequest="14"
+										   VerticalOptions="Center"
+										   Margin="0,0,6,2"
+										   AutomationProperties.IsInAccessibleTree="False"
+										   Opacity="0.6" />
+									<Picker x:Name="RailBookmarksPicker"
+											Grid.Column="1"
+											TextColor="{StaticResource AssetsRailTitleColor}"
+											FontSize="11"
+											FontAttributes="Bold"
+											BackgroundColor="Transparent"
+											SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.bookmarks}"
+											SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.bookmarks_help}"
+											VerticalOptions="Center"
+											HorizontalOptions="Fill"
+											Margin="0"
+											SelectedIndexChanged="OnBookmarksPickerSelectedIndexChanged" />
+								</Grid>
+							</Border>
+
+							<Label x:Name="RailAddBookmarkLabel"
+								   Text="+"
+								   Grid.Column="1"
+								   TextColor="{StaticResource AssetsRailAccentColor}"
+								   FontSize="18"
+								   FontAttributes="Bold"
+								   VerticalOptions="Center"
+								   HorizontalOptions="Center"
+								   WidthRequest="24"
+								   HeightRequest="18"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center"
+								   SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.add_bookmark}"
+								   SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.add_bookmark_help}"
+								   AutomationProperties.IsInAccessibleTree="True"
+								   Opacity="0.8">
+								<Label.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnAddBookmarkClicked" />
+									<PointerGestureRecognizer PointerEntered="OnAddBookmarkPointerEntered"
+															PointerExited="OnAddBookmarkPointerExited" />
+								</Label.GestureRecognizers>
+							</Label>
+
+							<Label x:Name="RailRemoveBookmarkLabel"
+								   Grid.Column="2"
+								   Text="x"
+								   TextColor="{StaticResource AssetsRailDangerColor}"
+								   FontSize="14"
+								   FontAttributes="Bold"
+								   VerticalOptions="Center"
+								   HorizontalOptions="Center"
+								   WidthRequest="16"
+								   HeightRequest="18"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center"
+								   IsVisible="False"
+								   SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.remove_bookmark}"
+								   SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.remove_bookmark_help}"
+								   AutomationProperties.IsInAccessibleTree="True"
+								   Opacity="0.8">
+								<Label.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnRemoveBookmarkClicked" />
+									<PointerGestureRecognizer PointerEntered="OnRemoveBookmarkPointerEntered"
+															PointerExited="OnRemoveBookmarkPointerExited" />
+								</Label.GestureRecognizers>
+							</Label>
+						</Grid>
+					</Border>
+
+					<!-- Divider -->
+					<BoxView HeightRequest="1"
+							 Grid.Row="1"
+							 BackgroundColor="{StaticResource AssetsRailDividerColor}"
+							 Margin="12,4,12,4"
+							 Opacity="0.4" />
+
+					<!-- 3. Current Location Section -->
+					<Border x:Name="RailCurrentLocationHighlightBorder"
+							Grid.Row="2"
+							Stroke="Transparent"
+							StrokeThickness="1.5"
+							StrokeShape="Rectangle">
+						<Border.GestureRecognizers>
+							<DropGestureRecognizer AllowDrop="True"
+												 DragOver="OnCurrentSectionDragOver"
+												 DragLeave="OnCurrentSectionDragLeave"
+												 Drop="OnCurrentSectionDrop" />
+						</Border.GestureRecognizers>
+
+						<Grid RowDefinitions="Auto, *">
+						<Grid Grid.Row="0"
+							  ColumnDefinitions="*, Auto"
+							  Padding="12,8,12,8"
+							  BackgroundColor="{StaticResource AssetsRailSurfaceColor}">
+							<VerticalStackLayout Grid.Column="0"
+												 Spacing="2"
+												 VerticalOptions="Center">
+								<Label x:Name="RailCurrentLocationTitleLabel"
+									   Text="{loc:Loc views.rail.tools.assets.assets_browser_view.current_location}"
+									   TextColor="{StaticResource AssetsRailMutedTextColor}"
+									   FontSize="12"
+									   FontAttributes="Bold"
+									   CharacterSpacing="0.8"
+									   VerticalOptions="Center" />
+								<Label x:Name="RailPathLabel"
+									   TextColor="{StaticResource AssetsRailPathTextColor}"
+									   FontSize="10"
+									   LineBreakMode="HeadTruncation" />
+							</VerticalStackLayout>
+
+							<HorizontalStackLayout Grid.Column="1"
+												   Spacing="3"
+												   VerticalOptions="Center"
+												   HorizontalOptions="End">
+								<Border x:Name="RailRefreshToolButton"
+										BackgroundColor="{StaticResource AssetsRailActionSurfaceColor}"
+										Padding="5"
+										StrokeThickness="0"
+										WidthRequest="28"
+										HeightRequest="28"
+										ToolTipProperties.Text="{loc:Loc common.refresh}"
+										SemanticProperties.Description="{loc:Loc common.refresh}"
+										SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.refresh_help}"
+										AutomationProperties.IsInAccessibleTree="True"
+										VerticalOptions="Center"
+										HorizontalOptions="End">
+									<Border.StrokeShape>
+										<shapes:RoundRectangle CornerRadius="8" />
+									</Border.StrokeShape>
+									<Image Source="media_refresh.png"
+										   WidthRequest="15"
+										   HeightRequest="15"
+										   Opacity="0.82"
+										   AutomationProperties.IsInAccessibleTree="False"
+										   HorizontalOptions="Center"
+										   VerticalOptions="Center" />
+									<Border.GestureRecognizers>
+										<TapGestureRecognizer Tapped="OnRefreshRootClicked" />
+										<PointerGestureRecognizer PointerEntered="OnRefreshRootPointerEntered"
+																  PointerExited="OnRefreshRootPointerExited" />
+									</Border.GestureRecognizers>
+								</Border>
+
+								<Border x:Name="RailRootToolButton"
+										BackgroundColor="{StaticResource AssetsRailActionSurfaceColor}"
+										Padding="5"
+										StrokeThickness="0"
+										WidthRequest="28"
+										HeightRequest="28"
+										ToolTipProperties.Text="{loc:Loc views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer}"
+										SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer}"
+										SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.open_current_folder_in_explorer_help}"
+										AutomationProperties.IsInAccessibleTree="True"
+										VerticalOptions="Center"
+										HorizontalOptions="End">
+									<Border.StrokeShape>
+										<shapes:RoundRectangle CornerRadius="8" />
+									</Border.StrokeShape>
+									<Image Source="assets_open_root.png"
+										   WidthRequest="15"
+										   HeightRequest="15"
+										   Opacity="0.82"
+										   AutomationProperties.IsInAccessibleTree="False"
+										   HorizontalOptions="Center"
+										   VerticalOptions="Center" />
+									<Border.GestureRecognizers>
+										<TapGestureRecognizer Tapped="OnOpenRootClicked" />
+										<PointerGestureRecognizer PointerEntered="OnOpenRootPointerEntered"
+																PointerExited="OnOpenRootPointerExited" />
+									</Border.GestureRecognizers>
+								</Border>
+							</HorizontalStackLayout>
+						</Grid>
+
+						<Grid x:Name="RailCurrentBodyStack"
+							  Grid.Row="1"
+							  RowDefinitions="Auto, Auto, Auto, *">
+
+							<Border x:Name="RailWorkflowBookmarksSection"
+									Grid.Row="0"
+									BackgroundColor="{StaticResource AssetsRailWorkflowPanelColor}"
+									Stroke="{StaticResource AssetsRailWorkflowPanelStrokeColor}"
+									StrokeThickness="1"
+									Margin="12,0,12,8"
+									Padding="10,8"
+									IsVisible="False">
+								<Border.StrokeShape>
+									<shapes:RoundRectangle CornerRadius="6" />
+								</Border.StrokeShape>
+								<VerticalStackLayout Spacing="7">
+									<Grid ColumnDefinitions="*, Auto">
+										<Label Text="{loc:Loc views.rail.tools.assets.assets_browser_view.bookmarked_workflows}"
+											   Grid.Column="0"
+											   TextColor="{StaticResource AssetsRailBookmarkTitleColor}"
+											   FontSize="11"
+											   FontAttributes="Bold"
+											   CharacterSpacing="0.8"
+											   VerticalOptions="Center" />
+										<Label x:Name="RailWorkflowBookmarksCountLabel"
+											   Grid.Column="1"
+											   TextColor="{StaticResource AssetsRailBookmarkCountColor}"
+											   FontSize="10"
+											   VerticalOptions="Center"
+											   HorizontalOptions="End" />
+									</Grid>
+									<Grid ColumnDefinitions="*, Auto"
+										  ColumnSpacing="8">
+										<ScrollView x:Name="RailWorkflowBookmarksScrollView"
+													Grid.Column="0"
+													VerticalScrollBarVisibility="Never"
+													Scrolled="OnWorkflowBookmarksScrolled">
+											<VerticalStackLayout x:Name="RailWorkflowBookmarksList"
+																 Spacing="3" />
+										</ScrollView>
+										<Border x:Name="RailWorkflowBookmarksScrollTrack"
+												Grid.Column="1"
+												WidthRequest="5"
+												BackgroundColor="{StaticResource AssetsRailScrollbarTrackColor}"
+												Stroke="{StaticResource AssetsRailScrollbarStrokeColor}"
+												StrokeThickness="0.5"
+												Opacity="0"
+												HorizontalOptions="Center"
+												VerticalOptions="Start">
+											<Border.StrokeShape>
+												<shapes:RoundRectangle CornerRadius="3" />
+											</Border.StrokeShape>
+											<Border x:Name="RailWorkflowBookmarksScrollThumb"
+													WidthRequest="3"
+													BackgroundColor="{StaticResource AssetsRailAccentColor}"
+													StrokeThickness="0"
+													Opacity="0.95"
+													HorizontalOptions="Center"
+													VerticalOptions="Start">
+												<Border.StrokeShape>
+													<shapes:RoundRectangle CornerRadius="2" />
+												</Border.StrokeShape>
+											</Border>
+										</Border>
+									</Grid>
+								</VerticalStackLayout>
+							</Border>
+
+							<Grid Grid.Row="1"
+								  Padding="12,0,12,8">
+								<Border x:Name="RailSearchBorder"
+										BackgroundColor="{StaticResource AssetsRailInsetColor}"
+										Stroke="Transparent"
+										StrokeThickness="0"
+										HeightRequest="30"
+										MinimumHeightRequest="30">
+									<Border.StrokeShape>
+										<shapes:RoundRectangle CornerRadius="4" />
+									</Border.StrokeShape>
+									<Grid ColumnDefinitions="*, Auto">
+										<Entry x:Name="RailSearchEntry"
+											   Grid.Column="0"
+											   Placeholder="{loc:Loc views.rail.tools.assets.assets_browser_view.search_assets}"
+											   PlaceholderColor="{StaticResource AssetsRailSearchPlaceholderColor}"
+											   TextColor="{StaticResource AssetsRailSearchTextColor}"
+											   FontSize="12"
+											   BackgroundColor="Transparent"
+											   SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.search_assets}"
+											   SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.search_assets_help}"
+											   VerticalOptions="Center"
+											   HeightRequest="30"
+											   MinimumHeightRequest="30"
+											   ClearButtonVisibility="Never"
+											   TextChanged="OnSearchTextChanged"
+											   Focused="OnSearchEntryFocused"
+											   Unfocused="OnSearchEntryUnfocused" />
+										<Border x:Name="RailSearchClearButton"
+												Grid.Column="1"
+												WidthRequest="24"
+												HeightRequest="24"
+												StrokeThickness="0"
+												VerticalOptions="Center"
+												HorizontalOptions="Center"
+												SemanticProperties.Description="{loc:Loc views.rail.tools.assets.assets_browser_view.clear_search}"
+												SemanticProperties.Hint="{loc:Loc views.rail.tools.assets.assets_browser_view.clear_search_help}"
+												AutomationProperties.IsInAccessibleTree="True"
+												IsVisible="False">
+											<Border.StrokeShape>
+												<shapes:RoundRectangle CornerRadius="7" />
+											</Border.StrokeShape>
+											<Label x:Name="RailSearchClearLabel"
+												   Text="×"
+												   FontSize="14"
+												   FontAttributes="Bold"
+												   HorizontalOptions="Center"
+												   VerticalOptions="Center"
+												   HorizontalTextAlignment="Center"
+												   VerticalTextAlignment="Center" />
+											<Border.GestureRecognizers>
+												<TapGestureRecognizer Tapped="OnClearSearchTapped" />
+											</Border.GestureRecognizers>
+										</Border>
+									</Grid>
+									<Border.GestureRecognizers>
+										<PointerGestureRecognizer PointerEntered="OnSearchPointerEntered"
+																PointerExited="OnSearchPointerExited" />
+									</Border.GestureRecognizers>
+								</Border>
+							</Grid>
+
+							<Label x:Name="RailSearchStatusLabel"
+								   Grid.Row="2"
+								   TextColor="{StaticResource AssetsRailMutedTextColor}"
+								   FontSize="10"
+								   Margin="14,0,14,8"
+								   IsVisible="False" />
+
+							<Grid x:Name="RailAssetListSurface"
+								  Grid.Row="3">
+								<Grid.GestureRecognizers>
+									<TapGestureRecognizer Tapped="OnAssetListSurfaceTapped" />
+								</Grid.GestureRecognizers>
+
+								<virtualization:VirtualizedVerticalListView x:Name="RailSearchVirtualList"
+																			IsVisible="False" />
+
+								<Label x:Name="RailSearchEmptyLabel"
+									   Text="{loc:Loc views.rail.tools.assets.assets_browser_view.no_matching_assets_found}"
+									   TextColor="{StaticResource AssetsRailEmptyTextColor}"
+									   FontSize="11"
+									   Margin="14,4,14,10"
+									   IsVisible="False" />
+
+								<virtualization:VirtualizedVerticalListView x:Name="RailTreeVirtualList" />
+
+								<Label x:Name="RailTreeEmptyLabel"
+									   TextColor="{StaticResource AssetsRailEmptyTextColor}"
+									   FontSize="11"
+									   Margin="12,12,12,0"
+									   IsVisible="False" />
+							</Grid>
+						</Grid>
+					</Grid>
+				</Border>
+
+			</Grid>
+
+		</Grid>
+
+		<!-- Loading Overlay -->
+		<Grid x:Name="RailLoadingOverlay"
+			  Grid.RowSpan="3"
+			  IsVisible="False"
+			  ZIndex="2"
+			  BackgroundColor="{StaticResource AssetsRailLoadingBackdropColor}"
+			  InputTransparent="False"
+			  Margin="0,58,0,0">
+			<Border BackgroundColor="{StaticResource AssetsRailLoadingPanelColor}"
+					Stroke="{StaticResource AssetsRailLoadingPanelStrokeColor}"
+					StrokeThickness="1"
+					Padding="14,12"
+					WidthRequest="220"
+					HorizontalOptions="Center"
+					VerticalOptions="Center">
+				<Border.StrokeShape>
+					<shapes:RoundRectangle CornerRadius="16" />
+				</Border.StrokeShape>
+				<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+					<Grid WidthRequest="34" HeightRequest="34" VerticalOptions="Center">
+						<shapes:Ellipse Fill="{StaticResource AssetsRailLoadingIconSurfaceColor}"
+										Stroke="{StaticResource AssetsRailLoadingIconStrokeColor}"
+										StrokeThickness="1.2" />
+						<ActivityIndicator IsRunning="True"
+										   Color="{StaticResource AssetsRailAccentColor}"
+										   WidthRequest="24"
+										   HeightRequest="24"
+										   AutomationProperties.IsInAccessibleTree="False"
+										   HorizontalOptions="Center"
+										   VerticalOptions="Center" />
+					</Grid>
+					<Label Grid.Column="1"
+						   Text="{loc:Loc views.rail.tools.assets.assets_browser_view.updating_assets}"
+						   TextColor="{StaticResource AssetsRailActiveTextColor}"
+						   FontSize="12"
+						   FontAttributes="Bold"
+						   LineBreakMode="TailTruncation"
+						   VerticalOptions="Center" />
+				</Grid>
+			</Border>
+		</Grid>
+	</Grid>
+</ContentView>

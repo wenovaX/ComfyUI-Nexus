@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+	<!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+
+	<Color x:Key="Primary">#512BD4</Color>
+	<Color x:Key="PrimaryDark">#ac99ea</Color>
+	<Color x:Key="PrimaryDarkText">#242424</Color>
+	<Color x:Key="Secondary">#DFD8F7</Color>
+	<Color x:Key="SecondaryDarkText">#9880e5</Color>
+	<Color x:Key="Tertiary">#2B0B98</Color>
+
+	<Color x:Key="White">White</Color>
+	<Color x:Key="Black">Black</Color>
+	<Color x:Key="Magenta">#D600AA</Color>
+	<Color x:Key="MidnightBlue">#190649</Color>
+	<Color x:Key="OffBlack">#1f1f1f</Color>
+
+	<Color x:Key="Gray100">#E1E1E1</Color>
+	<Color x:Key="Gray200">#C8C8C8</Color>
+	<Color x:Key="Gray300">#ACACAC</Color>
+	<Color x:Key="Gray400">#919191</Color>
+	<Color x:Key="Gray500">#6E6E6E</Color>
+	<Color x:Key="Gray600">#404040</Color>
+	<Color x:Key="Gray900">#212121</Color>
+	<Color x:Key="Gray950">#141414</Color>
+
+	<Color x:Key="MainPageShellColor">#050a14</Color>
+	<Color x:Key="MainFocusSignatureStartColor">#19f3dd</Color>
+	<Color x:Key="MainFocusSignatureMiddleColor">#7b61ff</Color>
+	<Color x:Key="MainFocusSignatureEndColor">#22a4ff</Color>
+	<Color x:Key="MainFocusIndicatorCyanColor">#00e5ff</Color>
+	<Color x:Key="MainFocusIndicatorVioletColor">#7b61ff</Color>
+	<Color x:Key="MainFocusIndicatorPinkColor">#ff82b2</Color>
+	<Color x:Key="MainFocusIndicatorBlueColor">#5fa4ff</Color>
+	<Color x:Key="MainStartupSplashColor">#0b1119</Color>
+	<Color x:Key="MainAccentColor">#31D8FF</Color>
+	<Color x:Key="MainBlackColor">#000000</Color>
+	<Color x:Key="MainThumbnailSurfaceColor">#F208101B</Color>
+	<Color x:Key="MainShutdownBackdropStartColor">#B8030710</Color>
+	<Color x:Key="MainShutdownBackdropMiddleColor">#AA081020</Color>
+	<Color x:Key="MainShutdownBackdropEndColor">#B00A1624</Color>
+	<Color x:Key="MainShutdownCyanGlowColor">#1022D3FF</Color>
+	<Color x:Key="MainShutdownGreenGlowColor">#1327FF9D</Color>
+	<Color x:Key="MainShutdownPanelColor">#C40A121F</Color>
+	<Color x:Key="MainShutdownTitleColor">#F2FBFF</Color>
+	<Color x:Key="MainShutdownDetailColor">#AFC7D8</Color>
+	<Color x:Key="MainShutdownProgressColor">#8DE7FF</Color>
+	<Color x:Key="MainShutdownProgressTrackColor">#16233A</Color>
+	<Color x:Key="MainShutdownLockPillColor">#1AFFFFFF</Color>
+	<Color x:Key="MainShutdownLockDotColor">#FF8DE7FF</Color>
+	<Color x:Key="MainShutdownLockTextColor">#7F99AA</Color>
+	<Color x:Key="MainToastSurfaceColor">#E60A121F</Color>
+	<Color x:Key="MainToastStrokeColor">#668DE7FF</Color>
+	<Color x:Key="MainToastAccentColor">#FF8DE7FF</Color>
+	<Color x:Key="MainToastTextColor">#EAF7FF</Color>
+	<Color x:Key="RailResizeGhostStartColor">#0b1119</Color>
+	<Color x:Key="RailResizeGhostMiddleColor">#0f1a26</Color>
+	<Color x:Key="RailResizeGhostNearAccentColor">#1f6f8f</Color>
+	<Color x:Key="RailResizeAccentColor">#31d8ff</Color>
+	<Color x:Key="AssetDragGhostSurfaceColor">#E6111824</Color>
+	<Color x:Key="AssetDragGhostStrokeColor">#668de7ff</Color>
+	<Color x:Key="AssetDragGhostIconColor">#ffcc33</Color>
+	<Color x:Key="AssetDragGhostTextColor">#eaf7ff</Color>
+
+	<Color x:Key="ToolbarShellColor">#080e17</Color>
+	<Color x:Key="ToolbarTextMutedColor">#8fb9d8</Color>
+	<Color x:Key="ToolbarTextSoftColor">#b0c4de</Color>
+	<Color x:Key="ToolbarTextDimColor">#5a8aaa</Color>
+	<Color x:Key="ToolbarTextWhiteColor">#ffffff</Color>
+	<Color x:Key="ToolbarAccentColor">#31d8ff</Color>
+	<Color x:Key="ToolbarCommandSurfaceColor">#0b1420</Color>
+	<Color x:Key="ToolbarCommandStrokeColor">#2b6f94</Color>
+	<Color x:Key="ToolbarCommandCoreColor">#0d1724</Color>
+	<Color x:Key="ToolbarDividerColor">#28415b</Color>
+	<Color x:Key="ToolbarGlyphColor">#9eeeff</Color>
+	<Color x:Key="ToolbarDangerAccentColor">#ff4d6d</Color>
+	<Color x:Key="ToolbarManagerLabelColor">#d9f7ff</Color>
+	<Color x:Key="ToolbarPropertiesAccentColor">#33d7ff</Color>
+	<Color x:Key="ToolbarCommandShadowColor">#162deaff</Color>
+	<Color x:Key="ToolbarHoverGlowColor">#2231d8ff</Color>
+	<Color x:Key="ToolbarQueueAdjustGlowColor">#6631d8ff</Color>
+	<Color x:Key="ToolbarCommandCoreShadowColor">#4010d9ff</Color>
+	<Color x:Key="ToolbarDangerGlowCoreColor">#66FF4D6D</Color>
+	<Color x:Key="ToolbarDangerGlowEdgeColor">#00FF4D6D</Color>
+	<Color x:Key="ToolbarMainActionGlowCoreColor">#10D9FF</Color>
+	<Color x:Key="ToolbarMainActionGlowEdgeColor">#0010D9FF</Color>
+	<Color x:Key="ToolbarStopGlowCoreColor">#FF4D6D</Color>
+	<Color x:Key="ToolbarSheenEdgeColor">#00FFFFFF</Color>
+	<Color x:Key="ToolbarSheenCoreColor">#66DDF7FF</Color>
+	<Color x:Key="ToolbarManagerGradientStartColor">#14263a</Color>
+	<Color x:Key="ToolbarManagerGradientEndColor">#07111d</Color>
+	<Color x:Key="ToolbarPropertiesGradientStartColor">#172a3f</Color>
+	<Color x:Key="ToolbarPropertiesGradientEndColor">#08111d</Color>
+
+	<Color x:Key="HeaderShellColor">#0b121c</Color>
+	<Color x:Key="HeaderDividerColor">#31506d</Color>
+	<Color x:Key="HeaderTextPrimaryColor">#ebf9ff</Color>
+	<Color x:Key="HeaderTextSoftColor">#cfeeff</Color>
+	<Color x:Key="HeaderSavedTextColor">#7fe7ff</Color>
+	<Color x:Key="HeaderSavedSurfaceColor">#0f1d2c</Color>
+	<Color x:Key="HeaderModifiedTextColor">#ffb347</Color>
+	<Color x:Key="HeaderModifiedSurfaceColor">#26140a</Color>
+	<Color x:Key="HeaderGpuTrackColor">#07101a</Color>
+	<Color x:Key="HeaderGpuAccentColor">#22d3ee</Color>
+	<Color x:Key="HeaderGpuLabelColor">#8fb9d8</Color>
+	<Color x:Key="HeaderValueTextColor">#f2fbff</Color>
+	<Color x:Key="HeaderWhiteTextColor">#ffffff</Color>
+	<Color x:Key="HeaderLoadingHaloCoreColor">#ffffff</Color>
+	<Color x:Key="HeaderLoadingHaloMidColor">#88ffffff</Color>
+	<Color x:Key="HeaderLogoGlowColor">#4400e5ff</Color>
+	<Color x:Key="HeaderSystemPanelGradientStartColor">#1a2d40</Color>
+	<Color x:Key="HeaderSystemPanelGradientMiddleColor">#0e1b2a</Color>
+	<Color x:Key="HeaderSystemPanelGradientEndColor">#050c16</Color>
+	<Color x:Key="HeaderSystemShadowColor">#0ad7ff</Color>
+	<Color x:Key="HeaderGpuRunningShellColor">#102232</Color>
+	<Color x:Key="HeaderGpuRunningBlobColor">#5ee7ff</Color>
+	<Color x:Key="HeaderGpuVramTrackColor">#121b28</Color>
+	<Color x:Key="HeaderGpuCacheBarColor">#657181</Color>
+	<Color x:Key="HeaderGpuCachedTextColor">#7dc8ff</Color>
+	<Color x:Key="HeaderDividerAccentColor">#10d9ff</Color>
+	<Color x:Key="HeaderDividerDangerColor">#ef3f6b</Color>
+	<Color x:Key="HeaderMiniPanelGradientStartColor">#20344a</Color>
+	<Color x:Key="HeaderMiniPanelGradientMiddleColor">#102134</Color>
+	<Color x:Key="HeaderMiniPanelGradientEndColor">#070f1a</Color>
+	<Color x:Key="HeaderCpuUsageBarColor">#224466</Color>
+	<Color x:Key="HeaderGpuMiniUsageBarColor">#1a5a6a</Color>
+	<Color x:Key="HeaderToolbarSeparatorColor">#1a2d40</Color>
+	<Color x:Key="HeaderGpuExecutingColor">#ff4444</Color>
+	<Color x:Key="HeaderUsageHighBarColor">#ff7a8f</Color>
+	<Color x:Key="HeaderUsageMediumBarColor">#ffca6f</Color>
+	<Color x:Key="HeaderUsageNormalBarColor">#8cf1ff</Color>
+	<Color x:Key="HeaderUsageHighTextColor">#ffd4db</Color>
+	<Color x:Key="HeaderUsageMediumTextColor">#ffe6b0</Color>
+	<Color x:Key="HeaderUnsavedSurfaceColor">#15202b</Color>
+	<Color x:Key="ToolbarViewQueueActiveTextColor">#e8fbff</Color>
+	<Color x:Key="ToolbarViewQueueHoverStartColor">#2d587d</Color>
+	<Color x:Key="ToolbarViewQueueHoverMiddleColor">#1b3955</Color>
+	<Color x:Key="ToolbarViewQueueHoverEndColor">#0b1827</Color>
+	<Color x:Key="ToolbarViewQueueActiveStartColor">#264c6d</Color>
+	<Color x:Key="ToolbarViewQueueActiveMiddleColor">#17314a</Color>
+	<Color x:Key="ToolbarViewQueueActiveEndColor">#091524</Color>
+	<Color x:Key="ToolbarGlassHoverStartColor">#24425f</Color>
+	<Color x:Key="ToolbarGlassHoverMiddleColor">#17324c</Color>
+	<Color x:Key="ToolbarGlassHoverEndColor">#0a1624</Color>
+	<Color x:Key="ToolbarGlassActiveStartColor">#245f7e</Color>
+	<Color x:Key="ToolbarGlassActiveMiddleColor">#164765</Color>
+	<Color x:Key="ToolbarGlassActiveEndColor">#0a1c2b</Color>
+	<Color x:Key="ToolbarGlassNormalStartColor">#172a3f</Color>
+	<Color x:Key="ToolbarGlassNormalMiddleColor">#102135</Color>
+	<Color x:Key="ToolbarGlassNormalEndColor">#07111d</Color>
+	<Color x:Key="CanvasToolbarSurfaceColor">#0b121c</Color>
+	<Color x:Key="CanvasToolbarTextColor">#88e4ff</Color>
+	<Color x:Key="CanvasToolbarTextHoverColor">#f3feff</Color>
+	<Color x:Key="CanvasToolbarHoverColor">#1d2a3d</Color>
+	<Color x:Key="CanvasToolbarPressedColor">#102030</Color>
+	<Color x:Key="CanvasToolbarSeparatorColor">#22334a</Color>
+	<Color x:Key="CanvasToolbarTopLineColor">#1a2244</Color>
+
+	<Color x:Key="CommandMenuSurfaceColor">#D90A101B</Color>
+	<Color x:Key="CommandMenuStrokeColor">#2631d8ff</Color>
+	<Color x:Key="CommandMenuTextColor">#dff8ff</Color>
+	<Color x:Key="CommandMenuHoverSurfaceColor">#1831d8ff</Color>
+	<Color x:Key="CommandMenuHoverTextColor">#f3feff</Color>
+	<Color x:Key="CommandMenuPressedSurfaceColor">#2631d8ff</Color>
+	<Color x:Key="CommandMenuSeparatorColor">#24344f</Color>
+
+	<Color x:Key="BookmarkHudBackdropColor">#CC050a14</Color>
+
+	<Color x:Key="AboutBackdropColor">#B8050A14</Color>
+	<Color x:Key="AboutPanelColor">#F20A101B</Color>
+	<Color x:Key="AboutPanelStrokeColor">#2631d8ff</Color>
+	<Color x:Key="AboutTitleColor">#f4feff</Color>
+	<Color x:Key="AboutSubtitleColor">#8fb9d8</Color>
+	<Color x:Key="AboutCardColor">#11111A24</Color>
+	<Color x:Key="AboutCardStrokeColor">#26344F66</Color>
+	<Color x:Key="AboutAccentColor">#31d8ff</Color>
+	<Color x:Key="AboutValueColor">#dff8ff</Color>
+	<Color x:Key="AboutCloseButtonSurfaceColor">#1231d8ff</Color>
+	<Color x:Key="AboutCloseButtonHoverSurfaceColor">#2431d8ff</Color>
+	<Color x:Key="AboutCloseButtonPressedSurfaceColor">#3631d8ff</Color>
+	<Color x:Key="AboutCloseButtonHoverTextColor">#ffffff</Color>
+	<Color x:Key="AboutKeyColor">#5f788d</Color>
+
+	<Color x:Key="WorkspaceShellColor">#0b121c</Color>
+	<Color x:Key="WorkspaceAccentColor">#00e5ff</Color>
+	<Color x:Key="WorkspaceVioletColor">#7b61ff</Color>
+	<Color x:Key="WorkspacePinkColor">#ff82b2</Color>
+	<Color x:Key="WorkspaceBlueColor">#5fa4ff</Color>
+
+	<Color x:Key="DeckAccentColor">#00e5ff</Color>
+	<Color x:Key="DeckTextSoftColor">#dff8ff</Color>
+	<Color x:Key="DeckTextMutedColor">#6f8fab</Color>
+	<Color x:Key="DeckPanelColor">#0a0e1a</Color>
+	<Color x:Key="DeckHeaderColor">#0b0f19</Color>
+	<Color x:Key="DeckStrokeColor">#1a2244</Color>
+	<Color x:Key="DeckSearchColor">#121826</Color>
+	<Color x:Key="DeckPlaceholderColor">#445566</Color>
+	<Color x:Key="DeckActionColor">#88e4ff</Color>
+	<Color x:Key="DeckDangerColor">#ff6666</Color>
+	<Color x:Key="DeckPulsePanelGradientStartColor">#111b2a</Color>
+	<Color x:Key="DeckPulsePanelGradientMiddleColor">#07101b</Color>
+	<Color x:Key="DeckPulsePanelGradientEndColor">#101527</Color>
+	<Color x:Key="DeckPulseShadowColor">#00d7ff</Color>
+	<Color x:Key="DeckPulseLiveTextColor">#baf8ff</Color>
+	<Color x:Key="DeckPulseIdleColor">#2373ff</Color>
+	<Color x:Key="DeckPulseWarningColor">#ffcc66</Color>
+	<Color x:Key="DeckPulseWarningTrackColor">#806622</Color>
+	<Color x:Key="DeckPulseDangerColor">#ff4d6d</Color>
+	<Color x:Key="DeckPulseWarningTextColor">#ffe7a6</Color>
+	<Color x:Key="DeckPulseDangerTextColor">#ffc4cf</Color>
+	<Color x:Key="DeckToggleInactiveTextColor">#6688aa</Color>
+	<Color x:Key="DeckToggleInactiveBorderColor">#445566</Color>
+	<Color x:Key="DeckDevToolsActiveColor">#88aa66</Color>
+	<Color x:Key="DeckDevToolsInactiveTextColor">#668877</Color>
+	<Color x:Key="DeckDevToolsInactiveBorderColor">#446655</Color>
+	<Color x:Key="DeckUiIsolationBorderColor">#335f7a</Color>
+	<Color x:Key="DeckPatchHudTextColor">#7be495</Color>
+	<Color x:Key="DeckPatchHudBorderColor">#446655</Color>
+	<Color x:Key="DeckSearchTextColor">#ffffff</Color>
+	<Color x:Key="DeckConsoleTimestampColor">#49657f</Color>
+	<Color x:Key="DeckConsoleErrorLevelColor">#ff6688</Color>
+	<Color x:Key="DeckConsoleWarningLevelColor">#ffd166</Color>
+	<Color x:Key="DeckConsoleTraceLevelColor">#8aa3ff</Color>
+	<Color x:Key="DeckConsoleErrorMessageColor">#ffd6df</Color>
+	<Color x:Key="DeckConsoleFailureMessageColor">#ffb3c1</Color>
+	<Color x:Key="DeckConsoleReadyMessageColor">#baf8ff</Color>
+	<Color x:Key="DeckConsoleDefaultMessageColor">#9edff0</Color>
+
+	<Color x:Key="HudActionButtonSurfaceColor">#182132</Color>
+	<Color x:Key="HudActionButtonTextColor">#dfeaf6</Color>
+	<Color x:Key="HudActionButtonHoverSurfaceColor">#223149</Color>
+	<Color x:Key="HudActionButtonPressedSurfaceColor">#122031</Color>
+	<Color x:Key="HudActionButtonDisabledSurfaceColor">#111722</Color>
+	<Color x:Key="HudActionButtonDisabledTextColor">#4d627a</Color>
+	<Color x:Key="HudToolButtonSurfaceColor">#141d2a</Color>
+	<Color x:Key="HudToolButtonTextColor">#8edfff</Color>
+	<Color x:Key="HudMiniButtonSurfaceColor">#131b29</Color>
+	<Color x:Key="HudIconTileHoverSurfaceColor">#213044</Color>
+	<Color x:Key="HudIconPressedSurfaceColor">#102030</Color>
+	<Color x:Key="HudIconDisabledSurfaceColor">#101722</Color>
+	<Color x:Key="AssetHubToolbarSurfaceColor">#1c202b</Color>
+	<Color x:Key="AssetHubToolbarTextColor">#e6ecf2</Color>
+	<Color x:Key="AssetHubToolbarBorderColor">#3a4356</Color>
+	<Color x:Key="AssetHubToolbarHoverSurfaceColor">#253041</Color>
+	<Color x:Key="AssetHubToolbarHoverBorderColor">#19f3dd</Color>
+	<Color x:Key="AssetHubToolbarPressedSurfaceColor">#16222f</Color>
+	<Color x:Key="AssetHubToolbarPressedBorderColor">#22a4ff</Color>
+
+	<Color x:Key="AssetsRailSurfaceColor">#0d141d</Color>
+	<Color x:Key="AssetsRailInsetColor">#090e14</Color>
+	<Color x:Key="AssetsRailDividerColor">#1a2740</Color>
+	<Color x:Key="AssetsRailTitleColor">#8dbce0</Color>
+	<Color x:Key="AssetsRailAccentColor">#8de7ff</Color>
+	<Color x:Key="AssetsRailDangerColor">#FF6747</Color>
+	<Color x:Key="AssetsRailMutedTextColor">#5c7a99</Color>
+	<Color x:Key="AssetsRailPathTextColor">#4c647a</Color>
+	<Color x:Key="AssetsRailActiveTextColor">#ebf9ff</Color>
+	<Color x:Key="AssetsRailHeaderGradientStartColor">#2631d8ff</Color>
+	<Color x:Key="AssetsRailHeaderGradientMiddleColor">#10102030</Color>
+	<Color x:Key="AssetsRailHeaderGradientEndColor">#00000000</Color>
+	<Color x:Key="AssetsRailActionSurfaceColor">#101a26</Color>
+	<Color x:Key="AssetsRailWorkflowPanelColor">#0b121c</Color>
+	<Color x:Key="AssetsRailWorkflowPanelStrokeColor">#182941</Color>
+	<Color x:Key="AssetsRailBookmarkTitleColor">#d39dff</Color>
+	<Color x:Key="AssetsRailBookmarkCountColor">#6f86a0</Color>
+	<Color x:Key="AssetsRailScrollbarTrackColor">#172334</Color>
+	<Color x:Key="AssetsRailScrollbarStrokeColor">#20364d</Color>
+	<Color x:Key="AssetsRailBookmarkShadowColor">#6631d8ff</Color>
+	<Color x:Key="AssetsRailSearchPlaceholderColor">#7894A8</Color>
+	<Color x:Key="AssetsRailSearchTextColor">#F2FBFF</Color>
+	<Color x:Key="AssetsRailEmptyTextColor">#607688</Color>
+	<Color x:Key="AssetsRailLoadingBackdropColor">#CC050A10</Color>
+	<Color x:Key="AssetsRailLoadingPanelColor">#111B29</Color>
+	<Color x:Key="AssetsRailLoadingPanelStrokeColor">#24445C</Color>
+	<Color x:Key="AssetsRailLoadingShadowColor">#6600D8FF</Color>
+	<Color x:Key="AssetsRailLoadingIconSurfaceColor">#12354A</Color>
+	<Color x:Key="AssetsRailLoadingIconStrokeColor">#2E7595</Color>
+	<Color x:Key="RailButtonGlowSurfaceColor">#1c3b51</Color>
+	<Color x:Key="RailButtonGlowShadowColor">#45aee8</Color>
+
+	<Color x:Key="MediaRailSurfaceColor">#0d141d</Color>
+	<Color x:Key="MediaRailTitleColor">#8dbce0</Color>
+	<Color x:Key="MediaRailActiveTextColor">#ebf9ff</Color>
+	<Color x:Key="MediaRailInactiveTextColor">#7d96ad</Color>
+	<Color x:Key="MediaRailMutedTextColor">#5c7a99</Color>
+	<Color x:Key="MediaRailPathTextColor">#4c647a</Color>
+	<Color x:Key="MediaRailHeaderGradientStartColor">#26ff86c8</Color>
+	<Color x:Key="MediaRailHeaderGradientMiddleColor">#101f1725</Color>
+	<Color x:Key="MediaRailHeaderGradientEndColor">#00000000</Color>
+	<Color x:Key="MediaRailOutputTabSurfaceColor">#101923</Color>
+	<Color x:Key="MediaRailOutputTabStrokeColor">#1e3448</Color>
+	<Color x:Key="MediaRailInputTabSurfaceColor">#090e14</Color>
+	<Color x:Key="MediaRailInputTabStrokeColor">#142235</Color>
+	<Color x:Key="MediaRailSearchSurfaceColor">#090f17</Color>
+	<Color x:Key="MediaRailSearchStrokeColor">#142235</Color>
+	<Color x:Key="MediaRailSearchTextColor">#F2FBFF</Color>
+	<Color x:Key="MediaRailSearchPlaceholderColor">#7894A8</Color>
+	<Color x:Key="MediaRailTextActionColor">#79a9c6</Color>
+	<Color x:Key="MediaRailDividerColor">#1a2740</Color>
+	<Color x:Key="MediaRailLoadingBackdropColor">#CC050A10</Color>
+	<Color x:Key="MediaRailLoadingPanelColor">#111B29</Color>
+	<Color x:Key="MediaRailLoadingPanelStrokeColor">#24445C</Color>
+	<Color x:Key="MediaRailLoadingShadowColor">#000000</Color>
+	<Color x:Key="MediaRailLoadingIconSurfaceColor">#12354A</Color>
+	<Color x:Key="MediaRailLoadingIconStrokeColor">#2E7595</Color>
+	<Color x:Key="MediaRailLoadingAccentColor">#8de7ff</Color>
+
+	<Color x:Key="RailToolsSurfaceColor">#101723</Color>
+	<Color x:Key="RailContentSurfaceColor">#0b1119</Color>
+	<Color x:Key="RailAssetsAccentColor">#8de7ff</Color>
+	<Color x:Key="RailMediaAssetsAccentColor">#ff86c8</Color>
+	<Color x:Key="RailNodeLibraryAccentColor">#7be495</Color>
+	<Color x:Key="RailAssetsSeparatorEdgeColor">#0031d8ff</Color>
+	<Color x:Key="RailAssetsSeparatorCoreColor">#5531d8ff</Color>
+	<Color x:Key="RailMediaSeparatorEdgeColor">#00ff86c8</Color>
+	<Color x:Key="RailMediaSeparatorCoreColor">#55ff86c8</Color>
+	<Color x:Key="RailCollapseGlowColor">#2431D8FF</Color>
+	<Color x:Key="RailCollapseSurfaceColor">#7A31D8FF</Color>
+	<Color x:Key="RailCollapseChevronColor">#e4fbff</Color>
+	<Color x:Key="RailTransitionStartColor">#D80B1119</Color>
+	<Color x:Key="RailTransitionMiddleColor">#B00D1723</Color>
+	<Color x:Key="RailTransitionEndColor">#55122436</Color>
+	<Color x:Key="RailResizeHandleGripColor">#17324a</Color>
+
+	<Color x:Key="WorkflowActionsMenuStartColor">#d90a111c</Color>
+	<Color x:Key="WorkflowActionsMenuMiddleColor">#bf101d2e</Color>
+	<Color x:Key="WorkflowActionsMenuEndColor">#d9070c15</Color>
+	<Color x:Key="WorkflowActionsMenuShadowColor">#80000000</Color>
+	<Color x:Key="WorkflowDropdownSurfaceColor">#121826</Color>
+	<Color x:Key="WorkflowDropdownStrokeColor">#00e5ff</Color>
+
+	<Color x:Key="RunModeDeckSurfaceColor">#0a111c</Color>
+	<Color x:Key="RunModeDeckStrokeColor">#243d57</Color>
+	<Color x:Key="RunModeDeckShadowColor">#2010d9ff</Color>
+	<Color x:Key="RunModeDeckTextColor">#dff8ff</Color>
+	<Color x:Key="RunModeDeckInstantTextColor">#ffdfe7</Color>
+	<Color x:Key="RunModeDeckHoverGlowColor">#3331d8ff</Color>
+	<Color x:Key="RunModeDeckSeamCyanColor">#6631d8ff</Color>
+	<Color x:Key="RunModeDeckSeamDangerColor">#66ff4d6d</Color>
+	<Color x:Key="RunModeDeckDividerColor">#28415b</Color>
+	<Color x:Key="RunModeDeckDangerDividerColor">#442d47</Color>
+	<Color x:Key="RunModeDeckInstantGlowColor">#33ff4d6d</Color>
+
+	<Color x:Key="NodeRowHoverColor">#121d2b</Color>
+	<Color x:Key="NodeChevronTextColor">#6d8399</Color>
+	<Color x:Key="NodeItemTextColor">#e1e8f0</Color>
+	<Color x:Key="NodeItemSecondaryTextColor">#c3cfdb</Color>
+	<Color x:Key="NodeRemoveColor">#cc5555</Color>
+	<Color x:Key="NodeRemoveHoverColor">#ff7777</Color>
+	<Color x:Key="NodeHeaderGradientStartColor">#267be495</Color>
+	<Color x:Key="NodeHeaderGradientMiddleColor">#1015251a</Color>
+	<Color x:Key="NodeHeaderGradientEndColor">#00000000</Color>
+	<Color x:Key="NodeRailTitleColor">#8dbce0</Color>
+	<Color x:Key="NodeSearchSurfaceColor">#090e14</Color>
+	<Color x:Key="NodeSearchPlaceholderColor">#7894A8</Color>
+	<Color x:Key="NodeSearchTextColor">#F2FBFF</Color>
+	<Color x:Key="NodeSearchToggleStrokeColor">#1e2c3d</Color>
+	<Color x:Key="NodeSearchToggleIndicatorColor">#3d5266</Color>
+	<Color x:Key="NodeSearchToggleTextColor">#5c7a99</Color>
+	<Color x:Key="NodeLoadingBackdropColor">#CC050A10</Color>
+	<Color x:Key="NodeLoadingPanelColor">#111B29</Color>
+	<Color x:Key="NodeLoadingPanelStrokeColor">#24445C</Color>
+	<Color x:Key="NodeLoadingShadowColor">#6600D8FF</Color>
+	<Color x:Key="NodeLoadingIconSurfaceColor">#12354A</Color>
+	<Color x:Key="NodeLoadingIconStrokeColor">#2E7595</Color>
+	<Color x:Key="NodeLoadingAccentColor">#8de7ff</Color>
+	<Color x:Key="NodeLoadingTextColor">#ebf9ff</Color>
+
+	<Color x:Key="FolderBrowserPanelColor">#1A0a0f1a</Color>
+	<Color x:Key="FolderBrowserAccentColor">#31d8ff</Color>
+	<Color x:Key="FolderBrowserInputSurfaceColor">#1Affffff</Color>
+	<Color x:Key="FolderBrowserTextColor">#e8fbff</Color>
+	<Color x:Key="FolderBrowserParentAccentColor">#c78bff</Color>
+	<Color x:Key="FolderBrowserParentStrokeColor">#33c78bff</Color>
+	<Color x:Key="FolderBrowserParentHoverColor">#4Dc78bff</Color>
+	<Color x:Key="FolderBrowserDrivesStrokeColor">#3331D8FF</Color>
+	<Color x:Key="FolderBrowserDrivesHoverColor">#4D31D8FF</Color>
+	<Color x:Key="FolderBrowserNativeStrokeColor">#80c78bff</Color>
+	<Color x:Key="FolderBrowserNativeSurfaceColor">#1Ac78bff</Color>
+	<Color x:Key="FolderBrowserItemSelectedColor">#33c78bff</Color>
+
+	<SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
+	<SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
+	<SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
+	<SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
+	<SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+
+	<SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
+	<SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
+	<SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
+	<SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
+	<SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
+	<SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
+	<SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
+	<SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+	<SolidColorBrush x:Key="MainAccentBrush" Color="{StaticResource MainAccentColor}"/>
+	<SolidColorBrush x:Key="MainBlackBrush" Color="{StaticResource MainBlackColor}"/>
+	<SolidColorBrush x:Key="ToolbarCommandShadowBrush" Color="{StaticResource ToolbarCommandShadowColor}"/>
+	<SolidColorBrush x:Key="ToolbarCommandCoreShadowBrush" Color="{StaticResource ToolbarCommandCoreShadowColor}"/>
+	<SolidColorBrush x:Key="ToolbarManagerShadowBrush" Color="{StaticResource HeaderSystemShadowColor}"/>
+	<SolidColorBrush x:Key="ToolbarUtilityShadowBrush" Color="{StaticResource HeaderWhiteTextColor}"/>
+	<SolidColorBrush x:Key="NodeLoadingShadowBrush" Color="{StaticResource NodeLoadingShadowColor}"/>
+	<SolidColorBrush x:Key="HeaderSystemShadowBrush" Color="{StaticResource HeaderSystemShadowColor}"/>
+	<SolidColorBrush x:Key="HeaderDividerAccentBrush" Color="{StaticResource HeaderDividerAccentColor}"/>
+	<SolidColorBrush x:Key="HeaderCpuPanelShadowBrush" Color="{StaticResource HeaderWhiteTextColor}"/>
+	<SolidColorBrush x:Key="DeckPulseShadowBrush" Color="{StaticResource DeckPulseShadowColor}"/>
+	<SolidColorBrush x:Key="MediaRailLoadingShadowBrush" Color="{StaticResource MediaRailLoadingShadowColor}"/>
+	<SolidColorBrush x:Key="RunModeDeckShadowBrush" Color="{StaticResource RunModeDeckShadowColor}"/>
+	<SolidColorBrush x:Key="AssetsRailLoadingShadowBrush" Color="{StaticResource AssetsRailLoadingShadowColor}"/>
+	<SolidColorBrush x:Key="AssetsRailBookmarkShadowBrush" Color="{StaticResource AssetsRailBookmarkShadowColor}"/>
+	<SolidColorBrush x:Key="RailButtonGlowShadowBrush" Color="{StaticResource RailButtonGlowShadowColor}"/>
+	<SolidColorBrush x:Key="WorkflowActionsMenuShadowBrush" Color="{StaticResource WorkflowActionsMenuShadowColor}"/>
+</ResourceDictionary>

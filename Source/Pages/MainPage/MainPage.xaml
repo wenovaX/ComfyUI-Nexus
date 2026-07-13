@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:views="clr-namespace:ComfyUI_Nexus.Views"
+			 xmlns:rail="clr-namespace:ComfyUI_Nexus.Views.Rail"
+			 xmlns:railChrome="clr-namespace:ComfyUI_Nexus.Views.Rail.Chrome"
+			 xmlns:overlays="clr-namespace:ComfyUI_Nexus.Views.Overlays"
+			 x:Class="ComfyUI_Nexus.MainPage"
+			 Shell.NavBarIsVisible="False"
+			 Shell.TabBarIsVisible="False"
+			 BackgroundColor="{StaticResource MainPageShellColor}">
+	<ContentPage.Resources>
+		<Style x:Key="RailResizeOverlayBoxStyle" TargetType="BoxView">
+			<Setter Property="HorizontalOptions" Value="Start" />
+			<Setter Property="VerticalOptions" Value="Fill" />
+			<Setter Property="Opacity" Value="0" />
+			<Setter Property="IsVisible" Value="False" />
+			<Setter Property="InputTransparent" Value="True" />
+		</Style>
+
+		<LinearGradientBrush x:Key="RailResizeGhostBrush" StartPoint="0,0" EndPoint="1,0">
+			<GradientStop Color="{StaticResource RailResizeGhostStartColor}" Offset="0.0" />
+			<GradientStop Color="{StaticResource RailResizeGhostMiddleColor}" Offset="0.58" />
+			<GradientStop Color="{StaticResource RailResizeGhostNearAccentColor}" Offset="0.9" />
+			<GradientStop Color="{StaticResource RailResizeAccentColor}" Offset="1.0" />
+		</LinearGradientBrush>
+	</ContentPage.Resources>
+
+	<Grid x:Name="RootLayoutGrid" RowDefinitions="Auto, *, Auto" RowSpacing="0" ColumnSpacing="0">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition x:Name="ControlDeckColumn" Width="0" />
+			<ColumnDefinition Width="40" />
+			<ColumnDefinition Width="*" />
+		</Grid.ColumnDefinitions>
+
+		<!-- Use Control names distinct from Class names -->
+		<rail:RailView x:Name="RailControl"
+						Grid.Row="1"
+						Grid.Column="1"
+						Grid.ColumnSpan="2"
+						HorizontalOptions="Start"
+						ZIndex="10" />
+
+		<railChrome:RailResizeHandleView x:Name="RailResizeHandleControl"
+										 Grid.Row="1"
+										 Grid.Column="1"
+										 Grid.ColumnSpan="2"
+										 HorizontalOptions="Start"
+										 ZIndex="40" />
+
+		<BoxView x:Name="RailResizeGhostFill"
+				 Grid.Row="1"
+				 Grid.Column="1"
+				 Grid.ColumnSpan="2"
+				 Style="{StaticResource RailResizeOverlayBoxStyle}"
+				 WidthRequest="0"
+				 Background="{StaticResource RailResizeGhostBrush}"
+				 ZIndex="44" />
+
+		<BoxView x:Name="RailResizePreviewLine"
+				 Grid.Row="1"
+				 Grid.Column="1"
+				 Grid.ColumnSpan="2"
+				 Style="{StaticResource RailResizeOverlayBoxStyle}"
+				 WidthRequest="2"
+				 Color="{StaticResource RailResizeAccentColor}"
+				 ZIndex="45" />
+
+		<Grid x:Name="FocusSignatureGrid"
+			  Grid.Row="1"
+			  Grid.Column="1"
+			  Grid.ColumnSpan="2"
+			  AutomationProperties.IsInAccessibleTree="False"
+			  HeightRequest="3"
+			  VerticalOptions="Start"
+			  ZIndex="120"
+			  InputTransparent="True">
+			<BoxView Color="{StaticResource MainPageShellColor}" />
+
+			<BoxView Opacity="0.5">
+				<BoxView.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+						<GradientStop Color="{StaticResource MainFocusSignatureStartColor}" Offset="0.0" />
+						<GradientStop Color="{StaticResource MainFocusSignatureMiddleColor}" Offset="0.48" />
+						<GradientStop Color="{StaticResource MainFocusSignatureEndColor}" Offset="1.0" />
+					</LinearGradientBrush>
+				</BoxView.Background>
+			</BoxView>
+
+			<BoxView x:Name="FocusIndicatorBox"
+					 Opacity="0"
+					 ScaleY="1"
+					 AnchorY="0.5">
+				<BoxView.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.0" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.0625" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.125" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.1875" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.25" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.3125" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.375" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.4375" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.5" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.5625" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.625" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.6875" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.75" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.8125" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.875" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.9375" />
+						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="1.0" />
+					</LinearGradientBrush>
+				</BoxView.Background>
+			</BoxView>
+		</Grid>
+
+		<views:ControlDeckView x:Name="ControlDeckControl"
+								Grid.Row="0"
+								Grid.RowSpan="3"
+								Grid.Column="0"
+								HorizontalOptions="Fill"
+								ZIndex="10" />
+
+		<overlays:CommandMenuView x:Name="CommandMenuControl"
+								   Grid.Row="1"
+								   Grid.Column="1"
+								   Grid.ColumnSpan="2"
+								   HorizontalOptions="Start"
+								   VerticalOptions="Start"
+								   ZIndex="1500" />
+
+		<overlays:CommandInputView x:Name="CommandInputControl"
+									Grid.Row="0"
+									Grid.RowSpan="3"
+									Grid.Column="0"
+									Grid.ColumnSpan="3"
+									InputTransparent="True"
+									ZIndex="1600" />
+
+		<overlays:SettingsOverlayView x:Name="SettingsOverlayControl"
+									   Grid.Row="0"
+									   Grid.RowSpan="3"
+									   Grid.Column="0"
+									   Grid.ColumnSpan="3"
+									   ZIndex="1700" />
+
+		<overlays:HelpOverlayView x:Name="HelpOverlayControl"
+								   Grid.Row="0"
+								   Grid.RowSpan="3"
+								   Grid.Column="0"
+								   Grid.ColumnSpan="3"
+								   ZIndex="1710" />
+
+		<overlays:AboutOverlayView x:Name="AboutOverlayControl"
+									Grid.Row="0"
+									Grid.RowSpan="3"
+									Grid.Column="0"
+									Grid.ColumnSpan="3"
+									ZIndex="1720" />
+
+		<views:WorkspaceView x:Name="WorkspaceControl"
+							  Grid.Row="1"
+							  Grid.Column="2"
+							  ZIndex="0" />
+
+		<Button x:Name="AppKeyboardFocusSink"
+				Grid.Row="0"
+				Grid.Column="0"
+				AutomationProperties.IsInAccessibleTree="False"
+				WidthRequest="1"
+				HeightRequest="1"
+				Opacity="0"
+				Text=""
+				ZIndex="9000" />
+
+		<overlays:MediaViewerOverlayView x:Name="MediaViewerOverlayControl"
+										  Grid.Row="0"
+										  Grid.RowSpan="3"
+										  Grid.Column="0"
+										  Grid.ColumnSpan="3"
+										  ZIndex="9100" />
+
+		<overlays:WorkflowDropdownView x:Name="WorkflowDropdownControl"
+										Grid.Row="0"
+										Grid.RowSpan="2"
+										Grid.Column="1"
+										Grid.ColumnSpan="2"
+										InputTransparent="True"
+										ZIndex="1502" />
+
+		<overlays:WorkflowActionsMenuView x:Name="WorkflowActionsMenuControl"
+										   Grid.Row="0"
+										   Grid.RowSpan="2"
+										   Grid.Column="2"
+										   ZIndex="1501" />
+
+		<overlays:LoadingOverlayView x:Name="LoadingOverlayControl"
+									  Grid.Row="0"
+									  Grid.RowSpan="3"
+									  Grid.Column="0"
+									  Grid.ColumnSpan="3"
+									  IsVisible="True"
+									  ZIndex="2000" />
+
+		<overlays:BookmarkHudView x:Name="BookmarkHudControl"
+								   Grid.Row="0"
+								   Grid.RowSpan="3"
+								   Grid.Column="0"
+								   Grid.ColumnSpan="3" />
+
+		<Grid x:Name="StartupSplashOverlay"
+			  Grid.Row="0"
+			  Grid.RowSpan="3"
+			  Grid.Column="0"
+			  Grid.ColumnSpan="3"
+			  AutomationProperties.IsInAccessibleTree="False"
+			  BackgroundColor="{StaticResource MainStartupSplashColor}"
+			  IsVisible="True"
+			  Opacity="1"
+			  InputTransparent="False"
+			  ZIndex="20000">
+			<Image x:Name="StartupSplashLogo"
+				   Source="logo_neon_glass.png"
+				   WidthRequest="104"
+				   HeightRequest="104"
+				   HorizontalOptions="Center"
+				   VerticalOptions="Center"
+				   Aspect="AspectFit">
+			</Image>
+		</Grid>
+
+		<Border x:Name="AssetDragGhost"
+				Grid.Row="0"
+				Grid.RowSpan="3"
+				Grid.Column="0"
+				Grid.ColumnSpan="3"
+				AutomationProperties.IsInAccessibleTree="False"
+				HorizontalOptions="Start"
+				VerticalOptions="Start"
+				BackgroundColor="{StaticResource AssetDragGhostSurfaceColor}"
+				Stroke="{StaticResource AssetDragGhostStrokeColor}"
+				StrokeThickness="1"
+				StrokeShape="RoundRectangle 14"
+				Padding="10,7"
+				Opacity="0"
+				Scale="0.96"
+				IsVisible="False"
+				InputTransparent="True"
+				ZIndex="9900">
+			<Grid ColumnDefinitions="Auto,*"
+				  ColumnSpacing="8"
+				  MaximumWidthRequest="260">
+				<Label x:Name="AssetDragGhostIcon"
+					   Text="{loc:Loc pages.main_page.main_page.model}"
+					   Grid.Column="0"
+					   TextColor="{StaticResource AssetDragGhostIconColor}"
+					   FontSize="9"
+					   FontAttributes="Bold"
+					   VerticalOptions="Center" />
+				<Label x:Name="AssetDragGhostLabel"
+					   Grid.Column="1"
+					   TextColor="{StaticResource AssetDragGhostTextColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   LineBreakMode="TailTruncation"
+					   VerticalOptions="Center" />
+			</Grid>
+		</Border>
+
+		<Border x:Name="ModelThumbnailPreview"
+				Grid.Row="0"
+				Grid.RowSpan="3"
+				Grid.Column="0"
+				Grid.ColumnSpan="3"
+				AutomationProperties.IsInAccessibleTree="False"
+				HorizontalOptions="Start"
+				VerticalOptions="Start"
+				BackgroundColor="{StaticResource MainThumbnailSurfaceColor}"
+				StrokeThickness="0"
+				Padding="0"
+				Opacity="0"
+				IsVisible="False"
+				InputTransparent="True"
+				ZIndex="9901"
+				StrokeShape="RoundRectangle 8">
+			<Image x:Name="ModelThumbnailPreviewImage"
+				   Aspect="AspectFill"
+				   HorizontalOptions="Fill"
+				   VerticalOptions="Fill" />
+		</Border>
+
+		<overlays:NexusDialogOverlayView x:Name="NexusDialogOverlayControl"
+										  Grid.Row="0"
+										  Grid.RowSpan="3"
+										  Grid.Column="0"
+										  Grid.ColumnSpan="3"
+										  ZIndex="9850" />
+
+		<Grid x:Name="InputBlockerOverlay"
+			  Grid.Row="0" Grid.RowSpan="3"
+			  Grid.Column="0" Grid.ColumnSpan="3"
+			  BackgroundColor="Transparent"
+			  IsVisible="False"
+			  ZIndex="9999">
+			<BoxView x:Name="ShutdownBlockerBackdrop"
+					 Opacity="0"
+					 InputTransparent="True">
+				<BoxView.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="{StaticResource MainShutdownBackdropStartColor}" Offset="0.0" />
+						<GradientStop Color="{StaticResource MainShutdownBackdropMiddleColor}" Offset="0.46" />
+						<GradientStop Color="{StaticResource MainShutdownBackdropEndColor}" Offset="1.0" />
+					</LinearGradientBrush>
+				</BoxView.Background>
+			</BoxView>
+
+			<Ellipse WidthRequest="780"
+					 HeightRequest="780"
+					 HorizontalOptions="Center"
+					 VerticalOptions="Center"
+					 TranslationX="-260"
+					 TranslationY="120"
+					 Fill="{StaticResource MainShutdownCyanGlowColor}"
+					 Opacity="0.22"
+					 InputTransparent="True" />
+
+			<Ellipse WidthRequest="620"
+					 HeightRequest="620"
+					 HorizontalOptions="Center"
+					 VerticalOptions="Center"
+					 TranslationX="310"
+					 TranslationY="-180"
+					 Fill="{StaticResource MainShutdownGreenGlowColor}"
+					 Opacity="0.14"
+					 InputTransparent="True" />
+
+			<Border x:Name="ShutdownBlockerPanel"
+					HorizontalOptions="Center"
+					VerticalOptions="Center"
+					WidthRequest="560"
+					MaximumWidthRequest="680"
+					BackgroundColor="{StaticResource MainShutdownPanelColor}"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 34"
+					Padding="34,30"
+					Opacity="0"
+					InputTransparent="True">
+				<Grid RowDefinitions="Auto,Auto,Auto,Auto"
+					  RowSpacing="16">
+					<Grid WidthRequest="128"
+						  HeightRequest="128"
+						  HorizontalOptions="Center">
+						<Ellipse x:Name="ShutdownBlockerLogoGroundGlow"
+								 WidthRequest="82"
+								 HeightRequest="12"
+								 HorizontalOptions="Center"
+								 VerticalOptions="Center"
+								 TranslationY="43"
+								 Fill="{StaticResource MainAccentColor}"
+								 Opacity="0.24"
+								 InputTransparent="True">
+						</Ellipse>
+						<Image x:Name="ShutdownBlockerLogo"
+							   Source="logo_neon_glass.png"
+							   WidthRequest="74"
+							   HeightRequest="74"
+							   Aspect="AspectFit"
+							   HorizontalOptions="Center"
+							   VerticalOptions="Center"
+							   InputTransparent="True">
+						</Image>
+					</Grid>
+
+					<VerticalStackLayout Grid.Row="1"
+										 Spacing="8"
+										 HorizontalOptions="Center">
+						<Label x:Name="ShutdownBlockerTitleLabel"
+							   Text="{loc:Loc pages.main_page.main_page.preparing_restart}"
+							   TextColor="{StaticResource MainShutdownTitleColor}"
+							   FontSize="20"
+							   FontAttributes="Bold"
+							   CharacterSpacing="1.8"
+							   HorizontalTextAlignment="Center" />
+
+						<Label x:Name="ShutdownBlockerDetailLabel"
+							   Text="{loc:Loc pages.main_page.main_page.stopping_probes_and_server_process}"
+							   TextColor="{StaticResource MainShutdownDetailColor}"
+							   FontSize="13"
+							   HorizontalTextAlignment="Center"
+							   LineBreakMode="WordWrap"
+							   MaximumWidthRequest="460" />
+					</VerticalStackLayout>
+
+					<Grid Grid.Row="2"
+						  HeightRequest="4"
+						  WidthRequest="300"
+						  HorizontalOptions="Center"
+						  Margin="0,4,0,0">
+						<ProgressBar x:Name="ShutdownBlockerProgressBar"
+									 Progress="0"
+									 ProgressColor="{StaticResource MainShutdownProgressColor}"
+									 BackgroundColor="{StaticResource MainShutdownProgressTrackColor}"
+									 HeightRequest="4" />
+					</Grid>
+
+					<Border Grid.Row="3"
+							HorizontalOptions="Center"
+							BackgroundColor="{StaticResource MainShutdownLockPillColor}"
+							StrokeThickness="0"
+							StrokeShape="RoundRectangle 16"
+							Padding="14,8">
+						<HorizontalStackLayout Spacing="8">
+							<Ellipse WidthRequest="6"
+									 HeightRequest="6"
+									 Fill="{StaticResource MainShutdownLockDotColor}"
+									 VerticalOptions="Center" />
+							<Label Text="{loc:Loc pages.main_page.main_page.input_is_locked_until_current_operation_completes}"
+								   TextColor="{StaticResource MainShutdownLockTextColor}"
+								   FontSize="11"
+								   CharacterSpacing="0.6" />
+						</HorizontalStackLayout>
+					</Border>
+				</Grid>
+			</Border>
+		</Grid>
+
+		<views:HeaderView x:Name="HeaderControl"
+						   Grid.Row="0"
+						   Grid.Column="1"
+						   Grid.ColumnSpan="2"
+						   ZIndex="1000" />
+
+		<overlays:CanvasToolbarView x:Name="ToolbarControl"
+									 Grid.Row="2"
+									 Grid.Column="1"
+									 Grid.ColumnSpan="2"
+									 ZIndex="100" />
+
+		<overlays:CanvasModeMenuView x:Name="CanvasModeMenuControl"
+									  Grid.Row="0"
+									  Grid.RowSpan="3"
+									  Grid.Column="0"
+									  Grid.ColumnSpan="3"
+									  ZIndex="1504" />
+
+		<Border x:Name="ToastBorder"
+				Grid.Row="0"
+				Grid.Column="1"
+				Grid.ColumnSpan="2"
+				HorizontalOptions="Center"
+				VerticalOptions="Start"
+				Margin="0,54,0,0"
+				BackgroundColor="{StaticResource MainToastSurfaceColor}"
+				Stroke="{StaticResource MainToastStrokeColor}"
+				StrokeThickness="1"
+				StrokeShape="RoundRectangle 18"
+				Padding="14,9"
+				Opacity="0"
+				IsVisible="False"
+				InputTransparent="True"
+				ZIndex="9800">
+			<HorizontalStackLayout Spacing="9">
+				<Ellipse x:Name="ToastAccentDot"
+						 WidthRequest="7"
+						 HeightRequest="7"
+						 Fill="{StaticResource MainToastAccentColor}"
+						 VerticalOptions="Center" />
+				<Label x:Name="ToastMessageLabel"
+					   TextColor="{StaticResource MainToastTextColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   LineBreakMode="TailTruncation"
+					   MaxLines="1"
+					   VerticalOptions="Center" />
+			</HorizontalStackLayout>
+		</Border>
+	</Grid>
+</ContentPage>

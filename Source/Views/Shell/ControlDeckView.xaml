@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:components="clr-namespace:ComfyUI_Nexus.Views.Components"
+			 xmlns:config="clr-namespace:ComfyUI_Nexus.Configuration"
+			 x:Class="ComfyUI_Nexus.Views.ControlDeckView"
+			 x:Name="ControlDeckRoot">
+	<Border BackgroundColor="{StaticResource DeckPanelColor}"
+			Stroke="{StaticResource DeckStrokeColor}"
+			StrokeThickness="1">
+		<Grid RowDefinitions="Auto, Auto, Auto, Auto, *">
+			<Border Grid.Row="0" BackgroundColor="{StaticResource DeckHeaderColor}" Padding="12,8" StrokeThickness="0">
+				<Label Text="NEXUS CONTROL DECK" TextColor="{StaticResource DeckAccentColor}" FontSize="10" FontAttributes="Bold" CharacterSpacing="1" />
+			</Border>
+
+			<Border Grid.Row="1"
+					Margin="10,10,10,2"
+					Padding="10,8"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 12">
+				<Border.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="{StaticResource DeckPulsePanelGradientStartColor}" Offset="0" />
+						<GradientStop Color="{StaticResource DeckPulsePanelGradientMiddleColor}" Offset="0.58" />
+						<GradientStop Color="{StaticResource DeckPulsePanelGradientEndColor}" Offset="1" />
+					</LinearGradientBrush>
+				</Border.Background>
+
+				<Grid RowDefinitions="Auto, 4, Auto" RowSpacing="6">
+					<Grid ColumnDefinitions="Auto, *, Auto">
+						<HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+							<BoxView WidthRequest="6"
+									 HeightRequest="6"
+									 CornerRadius="3"
+									 Color="{StaticResource DeckAccentColor}"
+									 Opacity="0.92"
+									 VerticalOptions="Center" />
+							<Label Text="NEXUS PULSE"
+								   TextColor="{StaticResource DeckTextSoftColor}"
+								   FontSize="10"
+								   FontAttributes="Bold"
+								   CharacterSpacing="1.2"
+								   VerticalOptions="Center" />
+						</HorizontalStackLayout>
+
+						<Label x:Name="PulseBridgeStatusLabel"
+							   Grid.Column="2"
+							   Text="BRIDGE ACTIVE"
+							   TextColor="{StaticResource DeckPulseLiveTextColor}"
+							   FontSize="9"
+							   FontAttributes="Bold"
+							   CharacterSpacing="0.8"
+							   VerticalOptions="Center" />
+					</Grid>
+
+					<Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="3">
+						<BoxView x:Name="PulseRunBar" Grid.Column="0" Color="{StaticResource DeckAccentColor}" Opacity="0.86" CornerRadius="2" />
+						<BoxView x:Name="PulseWebBar" Grid.Column="1" Color="{StaticResource DeckPulseIdleColor}" Opacity="0.46" CornerRadius="2" />
+					</Grid>
+
+					<Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="4">
+						<Label x:Name="PulseRunLabel"
+							   Text="RUN"
+							   TextColor="{StaticResource DeckTextMutedColor}"
+							   FontSize="8"
+							   FontAttributes="Bold"
+							   HorizontalTextAlignment="Start" />
+						<Label x:Name="PulseWebLabel"
+							   Grid.Column="1"
+							   Text="WEB"
+							   TextColor="{StaticResource DeckTextMutedColor}"
+							   FontSize="8"
+							   FontAttributes="Bold"
+							   HorizontalTextAlignment="End" />
+					</Grid>
+				</Grid>
+			</Border>
+
+			<VerticalStackLayout Grid.Row="2" Padding="12,10" Spacing="8">
+				<Button Text="REBOOT SYSTEM  F5"
+						Command="{Binding ManualRebootCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.reboot}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.reboot_help}"
+						TextColor="{StaticResource DeckAccentColor}"
+						/>
+
+				<Button x:Name="BridgeDiagnosticsButton"
+						Text="BRIDGE TRACE: ON"
+						Command="{Binding ToggleBridgeDiagnosticsCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.bridge_trace}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.bridge_trace_help}"
+						TextColor="{StaticResource DeckActionColor}"
+						/>
+
+				<Button x:Name="WebLogsButton"
+						Text="WEB LOGS: OFF"
+						Command="{Binding ToggleWebLogsCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.web_logs}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.web_logs_help}"
+						TextColor="{StaticResource DeckToggleInactiveTextColor}"
+						BorderColor="{StaticResource DeckToggleInactiveBorderColor}"
+						/>
+
+				<Button x:Name="DevToolsButton"
+						Text="DEVTOOLS: OFF"
+						Command="{Binding ToggleDevToolsCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.devtools}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.devtools_help}"
+						TextColor="{StaticResource DeckDevToolsActiveColor}"
+						BorderColor="{StaticResource DeckDevToolsInactiveBorderColor}"
+						/>
+
+				<Button x:Name="UiIsolationButton"
+						Text="UI ISOLATION: ON"
+						Command="{Binding ToggleUiIsolationCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.ui_isolation}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.ui_isolation_help}"
+						TextColor="{StaticResource DeckActionColor}"
+						BorderColor="{StaticResource DeckUiIsolationBorderColor}"
+						/>
+
+				<Button Text="PATCH LOCAL HUD"
+						Command="{Binding PatchLocalHudCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.patch_hud}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.patch_hud_help}"
+						TextColor="{StaticResource DeckPatchHudTextColor}"
+						BorderColor="{StaticResource DeckPatchHudBorderColor}"
+						/>
+
+				<Button Text="PATCH NEXUS BRIDGE"
+						Command="{Binding PatchNexusBridgeCommand, Source={x:Reference ControlDeckRoot}}"
+						Style="{StaticResource HudActionButtonStyle}"
+						SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.patch_bridge}"
+						SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.patch_bridge_help}"
+						TextColor="{StaticResource DeckPulseLiveTextColor}"
+						BorderColor="{StaticResource DeckUiIsolationBorderColor}"
+						/>
+			</VerticalStackLayout>
+
+			<BoxView Grid.Row="3" HeightRequest="1" Color="{StaticResource DeckStrokeColor}" Margin="0,5" />
+
+			<Grid Grid.Row="4" RowDefinitions="Auto, Auto, *">
+				<Border Grid.Row="0" BackgroundColor="{StaticResource DeckHeaderColor}" Padding="12,8" StrokeThickness="0">
+					<Grid ColumnDefinitions="Auto, *, Auto, Auto" ColumnSpacing="8">
+						<Label Text="NEXUS CONSOLE" TextColor="{StaticResource DeckAccentColor}" FontSize="10" FontAttributes="Bold" VerticalOptions="Center" />
+						<Label x:Name="LogFilePathLabel"
+							   Grid.Column="1"
+							   Text="Logs/nexus-latest.log"
+							   TextColor="{StaticResource DeckTextMutedColor}"
+							   FontSize="9"
+							   LineBreakMode="TailTruncation"
+							   VerticalOptions="Center"
+							   SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.log_file}" />
+						<Button Grid.Column="2"
+								Text="{loc:Loc views.shell.control_deck_view.log_open}"
+								Command="{Binding OpenFullLogCommand, Source={x:Reference ControlDeckRoot}}"
+								Style="{StaticResource HudMiniButtonStyle}"
+								SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.log_open}"
+								SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.log_file_help}"
+								TextColor="{StaticResource DeckAccentColor}" />
+						<Button Grid.Column="3"
+								Text="CLEAR"
+								Command="{Binding ClearLogCommand, Source={x:Reference ControlDeckRoot}}"
+								Style="{StaticResource HudMiniButtonStyle}"
+								SemanticProperties.Description="{loc:Loc views.shell.control_deck_view.clear}"
+								SemanticProperties.Hint="{loc:Loc views.shell.control_deck_view.clear_help}"
+								TextColor="{StaticResource DeckDangerColor}"
+								/>
+					</Grid>
+				</Border>
+
+				<Border Grid.Row="1"
+						Margin="10,8,10,6"
+						Padding="10,0"
+						BackgroundColor="{StaticResource DeckSearchColor}"
+						Stroke="{StaticResource DeckStrokeColor}"
+						StrokeThickness="1">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="6" />
+					</Border.StrokeShape>
+					<Entry x:Name="LogSearchEntry"
+						   Placeholder="Filter logs"
+						   PlaceholderColor="{StaticResource DeckPlaceholderColor}"
+						   TextColor="{StaticResource DeckSearchTextColor}"
+						   FontSize="12"
+						   ClearButtonVisibility="WhileEditing"
+						   TextChanged="OnLogSearchChanged" />
+				</Border>
+
+				<components:LogTailView x:Name="ConsoleLogTail"
+										Grid.Row="2"
+										Margin="10,0,10,8"
+										MaxRows="{x:Static config:LogOptions.MaxRenderedRows}"
+										PrewarmRows="50"
+										MaxFlushBatchSize="50" />
+			</Grid>
+		</Grid>
+	</Border>
+</ContentView>

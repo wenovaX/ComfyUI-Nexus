@@ -1,0 +1,72 @@
+---
+
+[h]添加模型：最先要做的事[/h]
+
+這個頁面不需要按順序閱讀，
+而是一個在工作中遇到困難時隨時查閱的 [b]參考頁面[/b]。
+
+---
+
+[h]模型沒有顯示 / 不確定放哪個資料夾[/h]
+
+AI 需要「原材料」才能畫畫。
+只需將下載的模型檔案放入對應的資料夾，AI 就會自動找到並使用它。
+
+→  [b]models（模型合集）：[/b] [folder:ComfyUI/models|models]
+→  [b]Checkpoint（核心模型）：[/b] [folder:ComfyUI/models/checkpoints|models/checkpoints]
+→  [b]LoRA（角色/風格）：[/b] [folder:ComfyUI/models/loras|models/loras]
+→  [b]VAE（色彩校正）：[/b] [folder:ComfyUI/models/vae|models/vae]
+→  [b]ControlNet（姿勢控制）：[/b] [folder:ComfyUI/models/controlnet|models/controlnet]
+
+[accent]如果放入了檔案但列表中看不到，
+請按 [b]F5 重新整理列表[/b]，或 [b]重新啟動[/b] 應用程式。[/accent]
+
+---
+
+[h]需要模型時（去哪裡找？）[/h]
+
+如果你是新手，請先從 [b]Civitai[/b] 開始。  [article:了解 Civitai|civitai]
+可以像逛商場一樣瀏覽預覽圖來挑選模型，是最直覺的方式。
+
+熟悉之後，也可以逛逛 [b]Hugging Face[/b]。  [article:了解 Hugging Face|hugging-face-downloads]
+那是一個像 Costco 一樣的巨大寶庫，可以在那裡發掘尚未上架市場的原石。
+
+---
+
+[h]下載時只需確認這些[/h]
+
+在模型詳情頁面檢查以下三點，就能避免大多數失誤。
+
+1. [b]確認 Base Model 版本[/b]
+→ 確認是 [b]SD 1.5[/b] 還是 [b]SDXL[/b]。
+→ 之後使用的 LoRA 或 ControlNet 也必須配合此版本。
+
+2. [b]查看製作者說明[/b]
+→ 可能會列出推薦 VAE、觸發詞、推薦解析度和取樣器設定。
+→ 需要單獨 VAE 的模型通常會在說明或下載資訊中標註。
+
+3. [b]整理檔案名稱[/b]
+→ 下載時請將檔案名稱整理得直觀易懂。
+→ 例如：sdxl_real_modelname_v1.safetensors / sd15_anime_modelname.safetensors
+→ 區分 SD1.5 / SDXL / 風格 / 版本，日後搜尋時會大大節省時間。
+
+---
+
+[h]給未來的自己的路線圖（以後再來看）[/h]
+
+現在只需一個 Checkpoint 就足夠了。
+但當以下時刻來臨時，記得回來看看這個頁面。
+
+1. [b]「顏色好灰暗！」[/b]
+→ 你需要 [b]VAE[/b] 的時刻到了。
+([folder:ComfyUI/models/vae|models/vae])
+
+2. [b]「我想做這個角色！」[/b]
+→ 你需要 [b]LoRA[/b] 的時刻到了。
+([folder:ComfyUI/models/loras|models/loras])
+
+3. [b]「我想固定姿勢！」[/b]
+→ 你需要 [b]ControlNet[/b] 的時刻到了。
+([folder:ComfyUI/models/controlnet|models/controlnet])
+
+---

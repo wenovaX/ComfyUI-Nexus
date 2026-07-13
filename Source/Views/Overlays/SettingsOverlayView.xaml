@@ -1,0 +1,1357 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.SettingsOverlayView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<Grid BackgroundColor="{StaticResource SettingsBackdropColor}"
+		  Padding="34">
+		<Grid x:Name="SettingsPanelHost"
+			  HorizontalOptions="Center"
+			  VerticalOptions="Center">
+			<Border x:Name="SettingsPanelBorder"
+					WidthRequest="980"
+					HeightRequest="680"
+					HorizontalOptions="Center"
+					VerticalOptions="Center"
+					BackgroundColor="{StaticResource SettingsPanelColor}"
+					Stroke="{StaticResource SettingsPanelStrokeColor}"
+					StrokeThickness="1"
+					Padding="0">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="26" />
+			</Border.StrokeShape>
+
+			<Grid>
+				<Grid x:Name="SettingsPanelPlaceholder"
+					  InputTransparent="True">
+					<VerticalStackLayout HorizontalOptions="Center"
+										 VerticalOptions="Center"
+										 Spacing="10">
+						<Grid WidthRequest="108"
+							  HeightRequest="84"
+							  HorizontalOptions="Center">
+							<Ellipse WidthRequest="82"
+									 HeightRequest="18"
+									 Fill="{StaticResource SettingsAccentColor}"
+									 Opacity="0.14"
+									 HorizontalOptions="Center"
+									 VerticalOptions="End"
+									 Margin="0,0,0,4" />
+							<Image Source="logo_neon_glass.png"
+								   WidthRequest="76"
+								   HeightRequest="76"
+								   Aspect="AspectFit"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Start"
+								   AutomationProperties.IsInAccessibleTree="False" />
+						</Grid>
+					</VerticalStackLayout>
+				</Grid>
+
+			<Grid x:Name="SettingsContentRoot"
+				  RowDefinitions="Auto,Auto,*,Auto">
+				<Grid Grid.Row="0"
+					  ColumnDefinitions="*,Auto"
+					  Padding="28,24,24,18">
+					<VerticalStackLayout Spacing="4">
+						<Label Text="{loc:Loc views.overlays.settings_overlay_view.nexus_settings}"
+							   TextColor="{StaticResource SettingsTitleColor}"
+							   FontSize="20"
+							   FontAttributes="Bold" />
+						<Label Text="{loc:Loc views.overlays.settings_overlay_view.comfyui_runtime_toolchain_server_launch_and_maintenance}"
+							   TextColor="{StaticResource SettingsSubtitleColor}"
+							   FontSize="12" />
+					</VerticalStackLayout>
+					<Button Grid.Column="1"
+							Text="{loc:Loc common.close}"
+							Clicked="OnCloseClicked"
+							Style="{StaticResource SettingsHeaderButtonStyle}" />
+				</Grid>
+
+				<VerticalStackLayout Grid.Row="1"
+									 Margin="28,0,24,16"
+									 Spacing="10">
+					<Border x:Name="RestartRequiredBanner"
+							IsVisible="False"
+							BackgroundColor="#1Fffaa00"
+							Stroke="#66ffaa00"
+							StrokeThickness="1"
+							Padding="14,10">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="14" />
+						</Border.StrokeShape>
+						<Grid ColumnDefinitions="*,Auto"
+							  RowDefinitions="Auto,Auto"
+							  ColumnSpacing="14"
+							  RowSpacing="3">
+							<Label Text="{loc:Loc views.overlays.settings_overlay_view.restart_required_to_apply_pending_changes}"
+								   TextColor="#ffe6b0"
+								   FontSize="12"
+								   FontAttributes="Bold"
+								   VerticalOptions="Center" />
+							<Label x:Name="RestartReasonLabel"
+								   Grid.Row="1"
+								   Grid.Column="0"
+								   TextColor="#d8b879"
+								   FontSize="10" />
+							<Button Grid.Column="1"
+									Grid.RowSpan="2"
+									x:Name="RestartServerButton"
+									Text="{loc:Loc common.restart_server}"
+									Clicked="OnRestartClicked"
+									Style="{StaticResource SettingsRestartButtonStyle}" />
+						</Grid>
+					</Border>
+					<Border x:Name="PendingBootChecklistPanel"
+							IsVisible="False"
+							BackgroundColor="#1A31d8ff"
+							Stroke="#3831d8ff"
+							StrokeThickness="1"
+							Padding="14,8">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="14" />
+						</Border.StrokeShape>
+						<Grid ColumnDefinitions="Auto,*,Auto,Auto"
+							  RowDefinitions="Auto,Auto"
+							  ColumnSpacing="12"
+							  RowSpacing="7">
+							<Label Text="{loc:Loc views.overlays.settings_overlay_view.next_boot_checklist}"
+								   TextColor="#bfefff"
+								   FontSize="11"
+								   FontAttributes="Bold"
+								   VerticalOptions="Center" />
+							<Label x:Name="PendingBootChecklistPreviewLabel"
+								   Grid.Column="1"
+								   TextColor="#6f8795"
+								   FontSize="10"
+								   HorizontalTextAlignment="End"
+								   VerticalOptions="Center"
+								   LineBreakMode="TailTruncation" />
+							<Label x:Name="PendingBootChecklistSummaryLabel"
+								   Grid.Column="2"
+								   TextColor="#8fdcff"
+								   FontSize="10"
+								   FontAttributes="Bold"
+								   HorizontalTextAlignment="End"
+								   VerticalOptions="Center" />
+							<Button x:Name="PendingBootChecklistToggleButton"
+									Grid.Column="3"
+									Text="{loc:Loc views.overlays.settings_overlay_view.expand}"
+									Clicked="OnPendingBootChecklistToggleClicked"
+									Style="{StaticResource SettingsMicroButtonStyle}" />
+							<VerticalStackLayout x:Name="PendingBootTaskList"
+												 Grid.Row="1"
+												 Grid.ColumnSpan="4"
+												 Spacing="6" />
+						</Grid>
+					</Border>
+				</VerticalStackLayout>
+
+				<Grid Grid.Row="2"
+					  ColumnDefinitions="210,*"
+					  Padding="22,0,22,0"
+					  ColumnSpacing="18">
+					<Border Grid.Column="0"
+							BackgroundColor="{StaticResource SettingsNavPanelColor}"
+							Stroke="{StaticResource SettingsNavPanelStrokeColor}"
+							StrokeThickness="1"
+							Padding="10">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="20" />
+						</Border.StrokeShape>
+						<VerticalStackLayout Spacing="6">
+							<Button Text="Nexus" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnNexusClicked" />
+							<Button Text="ComfyUI" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnComfyClicked" />
+							<Button Text="{loc:Loc views.overlays.settings_overlay_view.tools}" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnToolsClicked" />
+							<Button Text="{loc:Loc views.overlays.settings_overlay_view.server}" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnServerClicked" />
+							<Button Text="{loc:Loc views.overlays.settings_overlay_view.maintenance}" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnMaintenanceClicked" />
+							<Button Text="{loc:Loc views.overlays.settings_overlay_view.extensions}" Style="{StaticResource SettingsNavButtonStyle}" Clicked="OnExtensionsClicked" />
+						</VerticalStackLayout>
+					</Border>
+
+					<Border Grid.Column="1"
+							BackgroundColor="{StaticResource SettingsContentPanelColor}"
+							Stroke="{StaticResource SettingsContentPanelStrokeColor}"
+							StrokeThickness="1"
+							Padding="0">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="20" />
+						</Border.StrokeShape>
+						<ScrollView x:Name="SettingsScrollView">
+							<VerticalStackLayout Padding="24"
+												 Spacing="16">
+								<VerticalStackLayout x:Name="NexusSection" Spacing="10">
+									<Label Text="Nexus" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto,Auto,Auto"
+											  RowSpacing="10">
+											<Label Text="{loc:Loc views.overlays.settings_overlay_view.language}" Style="{StaticResource SettingsKeyStyle}" />
+											<Label Grid.Row="1"
+												   Text="{loc:Loc views.overlays.settings_overlay_view.choose_the_language_used_by_the_nexus_shell}"
+												   Style="{StaticResource SettingsHintStyle}" />
+											<Picker x:Name="LanguagePicker"
+													Grid.Row="2"
+													SelectedIndexChanged="OnLanguagePickerSelectedIndexChanged"
+													Title="{loc:Loc views.overlays.settings_overlay_view.select_language}"
+													TextColor="#f4feff"
+													TitleColor="#6f8ca5"
+													BackgroundColor="#152334" />
+										</Grid>
+									</Border>
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="8">
+											<Label x:Name="ProductNameLabel" Style="{StaticResource SettingsKeyStyle}" />
+											<Label x:Name="VersionValueLabel" Grid.Row="1" Style="{StaticResource SettingsValueStyle}" />
+											<Label x:Name="ServerUrlValueLabel" Grid.Row="2" Style="{StaticResource SettingsValueStyle}" />
+											<Label x:Name="SettingsStateValueLabel" Grid.Row="3" Style="{StaticResource SettingsValueStyle}" />
+										</Grid>
+									</Border>
+								</VerticalStackLayout>
+
+								<VerticalStackLayout x:Name="ComfySection" Spacing="10">
+									<Label Text="ComfyUI" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="12">
+											<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.runtime_source}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label x:Name="InstallModeValueLabel" Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="UseLocalRuntimeButton"
+														Grid.Column="1"
+														Text="{loc:Loc views.overlays.settings_overlay_view.local}"
+														Clicked="OnUseLocalRuntimeClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+												<Button x:Name="UseCustomComfyButton"
+														Grid.Column="2"
+														Text="{loc:Loc views.overlays.settings_overlay_view.custom}"
+														Clicked="OnSelectComfyPathClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+											</Grid>
+											<Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+												<VerticalStackLayout Spacing="4">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.comfy_core_source}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label x:Name="ComfyCoreSourceValueLabel" Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="UseRemoteComfyCoreButton"
+														Grid.Column="1"
+														Text="{loc:Loc setup.comfy_core.option_remote_latest}"
+														Clicked="OnUseRemoteComfyCoreClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+												<Button x:Name="UseBuiltInComfyCoreButton"
+														Grid.Column="2"
+														Text="{loc:Loc setup.comfy_core.option_builtin_source}"
+														Clicked="OnUseBuiltInComfyCoreClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+											</Grid>
+											<Border Grid.Row="2"
+													Style="{StaticResource SettingsInsetBoxStyle}"
+													StrokeThickness="0"
+													Padding="12,9">
+												<Label x:Name="ComfyPathValueLabel"
+													   Style="{StaticResource SettingsValueStyle}"
+													   LineBreakMode="TailTruncation" />
+											</Border>
+											<Grid Grid.Row="3" ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
+												<Button x:Name="OpenComfyFolderButton"
+														Text="{loc:Loc views.overlays.settings_overlay_view.open_folder}"
+														Clicked="OnOpenComfyFolderClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+												<Button x:Name="ChangeComfyPathButton"
+														Grid.Column="1"
+														Text="{loc:Loc views.overlays.settings_overlay_view.change_path}"
+														Clicked="OnSelectComfyPathClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+												<Button x:Name="CheckComfyUpdatesButton"
+														Grid.Column="2"
+														Text="{loc:Loc views.overlays.settings_overlay_view.check_updates}"
+														Clicked="OnCheckComfyUpdatesClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+												<Button x:Name="ComfyApplyUpdateButton"
+														Grid.Column="3"
+														Text="{loc:Loc views.overlays.settings_overlay_view.update_now}"
+														IsVisible="False"
+														IsEnabled="False"
+														Clicked="OnApplyComfyUpdateClicked"
+														Style="{StaticResource SettingsRestartButtonStyle}" />
+											</Grid>
+											<Label x:Name="ComfyUpdateValueLabel"
+												   Grid.Row="4"
+												   Text="{loc:Loc views.overlays.settings_overlay_view.check_repository_status_to_see_whether_this_comfyui_chec}"
+												   Style="{StaticResource SettingsHintStyle}" />
+										</Grid>
+									</Border>
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<VerticalStackLayout Spacing="11">
+											<Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+												<VerticalStackLayout Spacing="4">
+													<Label Text="{loc:Loc settings.model_libraries.title}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label Text="{loc:Loc settings.model_libraries.description}"
+														   Style="{StaticResource SettingsHintStyle}" />
+												</VerticalStackLayout>
+												<Button Grid.Column="1"
+														Text="{loc:Loc settings.model_libraries.add_library}"
+														Clicked="OnAddModelLibraryClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+												<Button x:Name="SyncModelLibraryStructureButton"
+														Grid.Column="2"
+														Text="{loc:Loc settings.model_libraries.sync_structure}"
+														Clicked="OnSyncModelLibraryStructureClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+											</Grid>
+											<VerticalStackLayout x:Name="ModelLibrariesList" Spacing="8" />
+											<Grid RowDefinitions="Auto,Auto,Auto"
+												  RowSpacing="8"
+												  BackgroundColor="#0Dffffff"
+												  Padding="12,10">
+												<Grid ColumnDefinitions="*,Auto,Auto"
+													  ColumnSpacing="8">
+													<VerticalStackLayout Spacing="3">
+														<Label Text="{loc:Loc settings.model_duplicates.title}"
+															   Style="{StaticResource SettingsKeyStyle}" />
+														<Label Text="{loc:Loc settings.model_duplicates.description}"
+															   Style="{StaticResource SettingsHintStyle}" />
+													</VerticalStackLayout>
+													<Button x:Name="ScanModelDuplicatesButton"
+															Grid.Column="1"
+															Text="{loc:Loc settings.model_duplicates.scan}"
+															Clicked="OnScanModelDuplicatesClicked"
+															Style="{StaticResource SettingsSecondaryButtonStyle}" />
+													<Button x:Name="OpenModelDuplicateReportButton"
+															Grid.Column="2"
+															Text="{loc:Loc settings.model_duplicates.open_report}"
+															Clicked="OnOpenModelDuplicateReportClicked"
+															Style="{StaticResource SettingsTextButtonStyle}" />
+												</Grid>
+												<Label x:Name="ModelDuplicateStatusLabel"
+													   Grid.Row="1"
+													   Text="{loc:Loc settings.model_duplicates.ready}"
+													   Style="{StaticResource SettingsHintStyle}" />
+												<Grid Grid.Row="2"
+													  ColumnDefinitions="Auto,Auto,Auto,*"
+													  ColumnSpacing="7">
+													<Button x:Name="OpenDuplicateLocation1Button"
+															Text="{loc:Loc settings.model_duplicates.open_location_1}"
+															Clicked="OnOpenDuplicateLocation1Clicked"
+															Style="{StaticResource SettingsTextButtonStyle}" />
+													<Button x:Name="OpenDuplicateLocation2Button"
+															Grid.Column="1"
+															Text="{loc:Loc settings.model_duplicates.open_location_2}"
+															Clicked="OnOpenDuplicateLocation2Clicked"
+															Style="{StaticResource SettingsTextButtonStyle}" />
+													<Button x:Name="NextModelDuplicateButton"
+															Grid.Column="2"
+															Text="{loc:Loc settings.model_duplicates.next}"
+															Clicked="OnNextModelDuplicateClicked"
+															Style="{StaticResource SettingsTextButtonStyle}" />
+												</Grid>
+											</Grid>
+											<Label x:Name="ModelLibrariesStatusLabel"
+												   IsVisible="False"
+												   Style="{StaticResource SettingsHintStyle}" />
+											<Label Text="{loc:Loc settings.model_libraries.restart_hint}"
+												   Style="{StaticResource SettingsHintStyle}" />
+										</VerticalStackLayout>
+									</Border>
+								</VerticalStackLayout>
+
+								<VerticalStackLayout x:Name="ToolsSection" Spacing="10">
+									<Label Text="{loc:Loc views.overlays.settings_overlay_view.tools}" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto" RowSpacing="16">
+											<VerticalStackLayout Spacing="8">
+												<Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+													<VerticalStackLayout Spacing="5">
+														<Label Text="Git" Style="{StaticResource SettingsKeyStyle}" />
+														<Label x:Name="GitVersionValueLabel" Style="{StaticResource SettingsValueStyle}" />
+													</VerticalStackLayout>
+													<Button x:Name="UseSystemGitButton" Grid.Column="1" Text="{loc:Loc views.overlays.settings_overlay_view.system}" Clicked="OnUseSystemGitClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+													<Button x:Name="UseBuiltInGitButton" Grid.Column="2" Text="{loc:Loc views.overlays.settings_overlay_view.built_in}" Clicked="OnUseBuiltInGitClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+													<Button x:Name="UseCustomGitButton" Grid.Column="3" Text="{loc:Loc views.overlays.settings_overlay_view.custom}" Clicked="OnSelectCustomGitClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+												</Grid>
+												<Label x:Name="GitPathValueLabel" Style="{StaticResource SettingsValueStyle}" LineBreakMode="TailTruncation" />
+											</VerticalStackLayout>
+										</Grid>
+									</Border>
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+											  RowSpacing="13">
+											<Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="Python" Style="{StaticResource SettingsKeyStyle}" />
+													<Label x:Name="PythonVersionValueLabel" Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="UseSystemPythonButton" Grid.Column="1" Text="{loc:Loc views.overlays.settings_overlay_view.system}" Clicked="OnUseSystemPythonClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+												<Button x:Name="UseBuiltInPythonButton" Grid.Column="2" Text="{loc:Loc views.overlays.settings_overlay_view.built_in}" Clicked="OnUseBuiltInPythonClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+												<Button x:Name="UseCustomPythonButton" Grid.Column="3" Text="{loc:Loc views.overlays.settings_overlay_view.custom}" Clicked="OnSelectCustomPythonClicked" Style="{StaticResource SettingsChipButtonStyle}" />
+											</Grid>
+											<Label x:Name="PythonPathValueLabel"
+												   Grid.Row="1"
+												   Style="{StaticResource SettingsValueStyle}"
+												   LineBreakMode="TailTruncation" />
+											<BoxView Grid.Row="2" HeightRequest="1" BackgroundColor="#20344a" Opacity="0.75" />
+											<Grid Grid.Row="3" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.runtime_mode}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label x:Name="PythonRuntimeSummaryLabel"
+														   Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="UseVenvButton"
+														Grid.Column="1"
+														Text="VENV"
+														Clicked="OnUseVenvClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+												<Button x:Name="UseConfiguredPythonButton"
+														Grid.Column="2"
+														Text="DIRECT"
+														Clicked="OnUseConfiguredPythonClicked"
+														Style="{StaticResource SettingsChipButtonStyle}" />
+											</Grid>
+											<BoxView Grid.Row="4" HeightRequest="1" BackgroundColor="#20344a" Opacity="0.75" />
+											<Grid Grid.Row="5" ColumnDefinitions="*,Auto"
+												  ColumnSpacing="8">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.virtual_environment}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label x:Name="VenvStateValueLabel" Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<HorizontalStackLayout x:Name="VenvActionGroup"
+														Grid.Column="1"
+														Spacing="8"
+														HorizontalOptions="End"
+														VerticalOptions="Center">
+													<Button x:Name="CreateVenvButton"
+															Text="{loc:Loc views.overlays.settings_overlay_view.create}"
+															Clicked="OnCreateVenvClicked"
+															Style="{StaticResource SettingsSecondaryButtonStyle}" />
+													<Button x:Name="ResetVenvButton"
+															Text="{loc:Loc views.overlays.settings_overlay_view.reset}"
+															Clicked="OnResetVenvClicked"
+															Style="{StaticResource SettingsRestartButtonStyle}" />
+													<Button x:Name="DeleteVenvButton"
+															Text="{loc:Loc views.overlays.settings_overlay_view.delete}"
+															Clicked="OnDeleteVenvClicked"
+															Style="{StaticResource SettingsSecondaryButtonStyle}" />
+												</HorizontalStackLayout>
+											</Grid>
+											<Label x:Name="VenvPathValueLabel"
+												   Grid.Row="6"
+												   Style="{StaticResource SettingsValueStyle}"
+												   LineBreakMode="TailTruncation" />
+											<Label x:Name="VenvDetailValueLabel"
+												   Grid.Row="7"
+												   Style="{StaticResource SettingsHintStyle}" />
+											<BoxView Grid.Row="8" HeightRequest="1" BackgroundColor="#20344a" Opacity="0.75" />
+											<Grid Grid.Row="9" ColumnDefinitions="*,Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc settings.pip_cache.title}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label Text="{loc:Loc settings.pip_cache.description}"
+														   Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="PipCacheUsePipDefaultButton"
+														Grid.Column="1"
+														Text="{loc:Loc settings.pip_cache.use_pip_default}"
+														Clicked="OnUsePipDefaultCacheClicked"
+														Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+												<Button x:Name="PipCacheUseDefaultButton"
+														Grid.Column="2"
+														Text="{loc:Loc settings.pip_cache.use_default}"
+														Clicked="OnUseDefaultPipCacheClicked"
+														Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+												<Button x:Name="PipCacheChangeButton"
+														Grid.Column="3"
+														Text="{loc:Loc settings.pip_cache.change}"
+														Clicked="OnChangePipCacheClicked"
+														Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+												<Button x:Name="PipCacheOpenButton"
+														Grid.Column="4"
+														Text="{loc:Loc common.open}"
+														Clicked="OnOpenPipCacheClicked"
+														Style="{StaticResource SettingsTextButtonStyle}" />
+												<Button x:Name="PipCacheClearButton"
+														Grid.Column="5"
+														Text="{loc:Loc settings.pip_cache.clear}"
+														Clicked="OnClearPipCacheClicked"
+														Style="{StaticResource SettingsTextButtonStyle}" />
+											</Grid>
+											<Label x:Name="PipCachePathValueLabel"
+												   Grid.Row="10"
+												   Style="{StaticResource SettingsValueStyle}"
+												   LineBreakMode="TailTruncation" />
+											<Label x:Name="PipCacheDetailValueLabel"
+												   Grid.Row="11"
+												   Style="{StaticResource SettingsHintStyle}" />
+											<Label x:Name="PythonRuntimeQueueLabel"
+												   Grid.Row="12"
+												   TextColor="#8fdcff"
+												   FontSize="10" />
+										</Grid>
+									</Border>
+								</VerticalStackLayout>
+
+								<VerticalStackLayout x:Name="ServerSection" Spacing="10">
+									<Label Text="{loc:Loc views.overlays.settings_overlay_view.server}" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid ColumnDefinitions="1.1*,0.55*,1.9*" ColumnSpacing="16">
+											<VerticalStackLayout Spacing="7">
+												<Label Text="{loc:Loc views.overlays.settings_overlay_view.host}" Style="{StaticResource SettingsKeyStyle}" />
+												<Entry x:Name="HostEntry"
+													   TextChanged="OnDraftTextChanged"
+													   Style="{StaticResource SettingsEntryStyle}" />
+											</VerticalStackLayout>
+											<VerticalStackLayout Grid.Column="1" Spacing="7">
+												<Label Text="{loc:Loc views.overlays.settings_overlay_view.port}" Style="{StaticResource SettingsKeyStyle}" />
+												<Entry x:Name="PortEntry"
+													   Keyboard="Numeric"
+													   TextChanged="OnDraftTextChanged"
+													   Style="{StaticResource SettingsEntryStyle}" />
+											</VerticalStackLayout>
+											<VerticalStackLayout Grid.Column="2" Spacing="7">
+												<Label Text="GPU" Style="{StaticResource SettingsKeyStyle}" />
+												<Border Style="{StaticResource SettingsInsetBoxStyle}"
+														Stroke="#1431d8ff"
+														StrokeThickness="1"
+														Padding="12,0"
+														HeightRequest="56">
+													<Grid>
+														<Grid ColumnDefinitions="*,Auto"
+															  ColumnSpacing="10"
+															  HeightRequest="40"
+															  VerticalOptions="Center">
+															<VerticalStackLayout Spacing="1"
+																				 VerticalOptions="Center">
+																<Label x:Name="SelectedGpuLabel"
+																	   Text="GPU 0"
+																	   TextColor="#e8f8ff"
+																	   FontSize="12"
+																	   FontAttributes="Bold"
+																	   HeightRequest="17"
+																	   VerticalTextAlignment="Center"
+																	   LineBreakMode="TailTruncation" />
+																<Label x:Name="SelectedGpuDetailLabel"
+																	   Text="{loc:Loc views.overlays.settings_overlay_view.detecting_gpu}"
+																	   TextColor="#7fa0b8"
+																	   FontSize="10"
+																	   HeightRequest="15"
+																	   VerticalTextAlignment="Center"
+																	   LineBreakMode="TailTruncation" />
+															</VerticalStackLayout>
+															<Label Grid.Column="1"
+																   Text="v"
+																   TextColor="#8fdcff"
+																   FontSize="14"
+																   FontAttributes="Bold"
+																   HeightRequest="20"
+																   VerticalOptions="Center" />
+														</Grid>
+														<Picker x:Name="GpuPicker"
+																Title="{loc:Loc views.overlays.settings_overlay_view.select_gpu}"
+																Opacity="0.01"
+																TextColor="Transparent"
+																TitleColor="Transparent"
+																FontSize="12"
+																FontAttributes="Bold"
+																BackgroundColor="Transparent"
+																HorizontalOptions="Fill"
+																				VerticalOptions="Fill"
+																				HeightRequest="56"
+																				Margin="0"
+																				SelectedIndexChanged="OnGpuPickerSelectedIndexChanged" />
+													</Grid>
+												</Border>
+											</VerticalStackLayout>
+										</Grid>
+									</Border>
+								</VerticalStackLayout>
+								<VerticalStackLayout x:Name="MaintenanceSection" Spacing="10">
+									<Label Text="{loc:Loc views.overlays.settings_overlay_view.maintenance}" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="12">
+											<Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.runtime_recovery}" Style="{StaticResource SettingsKeyStyle}" />
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.clear_the_current_server_log_runtime_repair_is_available}"
+														   Style="{StaticResource SettingsValueStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="MaintenanceClearServerLogButton"
+														Grid.Column="1"
+														Text="{loc:Loc views.overlays.settings_overlay_view.clear_log}"
+														Clicked="OnMaintenanceClearServerLogClicked"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+											</Grid>
+											<BoxView Grid.Row="1" HeightRequest="1" BackgroundColor="#20344a" Opacity="0.75" />
+											<Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="10">
+												<Grid Grid.Row="0"
+													  RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+													  RowSpacing="10">
+													<Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+														<VerticalStackLayout Spacing="5">
+															<Label Text="{loc:Loc views.overlays.settings_overlay_view.runtime_backup}" Style="{StaticResource SettingsKeyStyle}" />
+															<Label Text="{loc:Loc settings.runtime_backup.description}"
+																   Style="{StaticResource SettingsValueStyle}" />
+														</VerticalStackLayout>
+														<Button x:Name="MaintenanceRestoreRuntimeButton"
+																  Grid.Column="1"
+																  Text="{loc:Loc views.overlays.settings_overlay_view.restore}"
+																  Clicked="OnMaintenanceRestoreRuntimeClicked"
+																  Style="{StaticResource SettingsSecondaryButtonStyle}" />
+														<Button x:Name="MaintenanceDeleteBackupButton"
+																Grid.Column="2"
+																Text="{loc:Loc views.overlays.settings_overlay_view.delete}"
+																Clicked="OnMaintenanceDeleteBackupClicked"
+																Style="{StaticResource SettingsSecondaryButtonStyle}" />
+														<Button x:Name="MaintenanceOpenBackupFolderButton"
+																Grid.Column="3"
+																Text="{loc:Loc views.overlays.settings_overlay_view.open_backups}"
+																Clicked="OnMaintenanceOpenBackupFolderClicked"
+																Style="{StaticResource SettingsSecondaryButtonStyle}" />
+													</Grid>
+
+													<Grid Grid.Row="1"
+														  ColumnDefinitions="*,Auto,Auto"
+														  ColumnSpacing="8"
+														  BackgroundColor="#0Dffffff"
+														  Padding="12,9">
+														<VerticalStackLayout Spacing="3">
+															<Label Text="{loc:Loc settings.runtime_backup.destination}" Style="{StaticResource SettingsKeyStyle}" />
+															<Label x:Name="RuntimeBackupPathLabel"
+																   Style="{StaticResource SettingsValueStyle}"
+																   LineBreakMode="TailTruncation" />
+															<Label x:Name="RuntimeBackupFreeSpaceLabel"
+																   Style="{StaticResource SettingsHintStyle}" />
+														</VerticalStackLayout>
+														<Button x:Name="RuntimeBackupChangePathButton"
+																Grid.Column="1"
+																Text="{loc:Loc settings.runtime_backup.change}"
+																Clicked="OnRuntimeBackupChangePathClicked"
+																Style="{StaticResource SettingsTextButtonStyle}" />
+														<Button x:Name="RuntimeBackupOpenPathButton"
+																Grid.Column="2"
+																Text="{loc:Loc settings.runtime_backup.open}"
+																Clicked="OnMaintenanceOpenBackupFolderClicked"
+																Style="{StaticResource SettingsTextButtonStyle}" />
+													</Grid>
+
+													<Grid Grid.Row="2"
+														  ColumnDefinitions="Auto,Auto,20,Auto,*,Auto"
+														  ColumnSpacing="7">
+														<Label Text="{loc:Loc settings.runtime_backup.format}"
+															   VerticalOptions="Center"
+															   Style="{StaticResource SettingsKeyStyle}" />
+														<HorizontalStackLayout Grid.Column="1"
+																						 VerticalOptions="Center"
+																						 Spacing="5">
+															<Button x:Name="RuntimeBackupFolderFormatButton"
+																	Text="{loc:Loc settings.runtime_backup.folder}"
+																	Clicked="OnRuntimeBackupFolderFormatClicked"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+															<Button x:Name="RuntimeBackupZipFormatButton"
+																	Text="{loc:Loc settings.runtime_backup.zip}"
+																	Clicked="OnRuntimeBackupZipFormatClicked"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+														</HorizontalStackLayout>
+														<Label Grid.Column="3"
+															   Text="{loc:Loc settings.runtime_backup.include}"
+															   VerticalOptions="Center"
+															   Style="{StaticResource SettingsKeyStyle}" />
+														<FlexLayout Grid.Column="4"
+																	VerticalOptions="Center"
+																	Direction="Row"
+																	Wrap="Wrap"
+																	AlignItems="Center"
+																	JustifyContent="Start">
+															<Button x:Name="RuntimeBackupModelsTargetButton"
+																	Text="{loc:Loc settings.runtime_backup.models}"
+																	Clicked="OnRuntimeBackupModelsTargetClicked"
+																	Margin="0,2.5,5,2.5"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+															<Button x:Name="RuntimeBackupCustomNodesTargetButton"
+																	Text="{loc:Loc settings.runtime_backup.custom_nodes}"
+																	Clicked="OnRuntimeBackupCustomNodesTargetClicked"
+																	Margin="0,2.5,5,2.5"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+															<Button x:Name="RuntimeBackupInputTargetButton"
+																	Text="{loc:Loc settings.runtime_backup.input}"
+																	Clicked="OnRuntimeBackupInputTargetClicked"
+																	Margin="0,2.5,5,2.5"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+															<Button x:Name="RuntimeBackupOutputTargetButton"
+																	Text="{loc:Loc settings.runtime_backup.output}"
+																	Clicked="OnRuntimeBackupOutputTargetClicked"
+																	Margin="0,2.5,5,2.5"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+															<Button x:Name="RuntimeBackupWorkflowsTargetButton"
+																	Text="{loc:Loc settings.runtime_backup.workflows}"
+																	Clicked="OnRuntimeBackupWorkflowsTargetClicked"
+																	Margin="0,2.5,0,2.5"
+																	Style="{StaticResource SettingsBackupOptionButtonStyle}" />
+														</FlexLayout>
+														<Button x:Name="MaintenanceBackupRuntimeButton"
+																Grid.Column="5"
+																VerticalOptions="Center"
+																Text="{loc:Loc views.overlays.settings_overlay_view.backup}"
+																Clicked="OnMaintenanceBackupRuntimeClicked"
+																Style="{StaticResource SettingsSecondaryButtonStyle}" />
+													</Grid>
+
+													<Grid Grid.Row="3"
+														  RowDefinitions="Auto,Auto"
+														  RowSpacing="6"
+														  HeightRequest="72"
+														  BackgroundColor="#0917222f"
+														  Padding="12,9">
+														<Grid ColumnDefinitions="16,*" ColumnSpacing="8">
+															<ActivityIndicator x:Name="RuntimeBackupActivity"
+																			   WidthRequest="16"
+																			   HeightRequest="16"
+																			   Color="#31d8ff"
+																			   IsVisible="False"
+																			   IsRunning="False" />
+															<Label x:Name="RuntimeBackupAnalysisLabel"
+																   Grid.Column="1"
+																   Text="{loc:Loc settings.runtime_backup.ready_to_calculate}"
+																   Style="{StaticResource SettingsValueStyle}"
+																   LineBreakMode="WordWrap"
+																   MaxLines="2" />
+														</Grid>
+														<ProgressBar x:Name="MaintenanceBackupProgressBar"
+																	 Grid.Row="1"
+																	 Progress="0"
+																	 HeightRequest="4"
+																	 ProgressColor="#31d8ff"
+																	 BackgroundColor="#18344a" />
+													</Grid>
+
+													<VerticalStackLayout x:Name="RuntimeBackupExternalLibrariesPanel"
+																		 Grid.Row="4"
+																		 IsVisible="False"
+																		 Spacing="4">
+														<Label Text="{loc:Loc settings.runtime_backup.external_libraries_excluded}"
+															   Style="{StaticResource SettingsHintStyle}" />
+														<FlexLayout x:Name="RuntimeBackupExternalLibrariesList"
+																	Direction="Row"
+																	Wrap="Wrap"
+																	AlignItems="Center" />
+													</VerticalStackLayout>
+												</Grid>
+												<Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+													<VerticalStackLayout Spacing="5">
+														<Label Text="{loc:Loc views.overlays.settings_overlay_view.settings_reset}" Style="{StaticResource SettingsKeyStyle}" />
+														<Label Text="{loc:Loc views.overlays.settings_overlay_view.reset_nexus_settings_to_defaults_installed_runtime_files}"
+															   Style="{StaticResource SettingsValueStyle}" />
+													</VerticalStackLayout>
+													<Button x:Name="MaintenanceResetSettingsButton"
+															Grid.Column="1"
+															Text="{loc:Loc views.overlays.settings_overlay_view.reset_settings}"
+															Clicked="OnMaintenanceResetSettingsClicked"
+															Style="{StaticResource SettingsRestartButtonStyle}" />
+												</Grid>
+												<Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+													<VerticalStackLayout Spacing="5">
+														<Label Text="{loc:Loc views.overlays.settings_overlay_view.local_runtime_reset}" Style="{StaticResource SettingsKeyStyle}" />
+														<Label Text="{loc:Loc views.overlays.settings_overlay_view.deletes_localruntime_installed_on_next_boot_project_back}"
+															   Style="{StaticResource SettingsValueStyle}" />
+													</VerticalStackLayout>
+													<Button x:Name="MaintenancePurgeRuntimeButton"
+															Grid.Column="1"
+															Text="{loc:Loc views.overlays.settings_overlay_view.reset_local_runtime}"
+															Clicked="OnMaintenancePurgeRuntimeClicked"
+															Style="{StaticResource SettingsRestartButtonStyle}" />
+												</Grid>
+												<Grid Grid.Row="3" ColumnDefinitions="*" ColumnSpacing="8">
+													<Label x:Name="MaintenanceStatusValueLabel"
+														   Text="{loc:Loc views.overlays.settings_overlay_view.dangerous_actions_ask_for_confirmation_before_running}"
+														   Style="{StaticResource SettingsHintStyle}"
+														   VerticalOptions="Center" />
+												</Grid>
+												<Border x:Name="ComfyOperationLogPanel"
+														Grid.Row="4"
+														IsVisible="False"
+														Style="{StaticResource SettingsInsetBoxStyle}"
+														Stroke="#2031d8ff"
+														StrokeThickness="1"
+														Padding="12,10">
+													<Grid RowDefinitions="Auto,Auto"
+														  RowSpacing="7">
+														<Grid ColumnDefinitions="*,Auto"
+															  ColumnSpacing="10">
+															<HorizontalStackLayout Spacing="8">
+																<Label x:Name="ComfyOperationLogTitleLabel"
+																	   Text="{loc:Loc views.overlays.settings_overlay_view.maintenance_log}"
+																	   TextColor="#8fdcff"
+																	   FontSize="10"
+																	   FontAttributes="Bold"
+																	   VerticalTextAlignment="Center" />
+																<Label x:Name="ComfyOperationLogStateLabel"
+																	   Text="{loc:Loc settings.pending_tasks.running}"
+																	   TextColor="#8fdcff"
+																	   FontSize="10"
+																	   FontAttributes="Bold"
+																	   VerticalTextAlignment="Center" />
+															</HorizontalStackLayout>
+															<Button Grid.Column="1"
+																	Text="{loc:Loc views.overlays.settings_overlay_view.view_full_log}"
+																	Clicked="OnViewComfyOperationLogClicked"
+																	Style="{StaticResource SettingsTextButtonStyle}" />
+														</Grid>
+														<Label x:Name="ComfyOperationLogPreviewLabel"
+															   Grid.Row="1"
+															   TextColor="#cbefff"
+															   FontSize="10"
+															   LineBreakMode="TailTruncation"
+															   MaxLines="5" />
+													</Grid>
+												</Border>
+												<Label x:Name="MaintenanceQueueValueLabel"
+													   Grid.Row="5"
+													   TextColor="#8fdcff"
+													   FontSize="10" />
+											</Grid>
+										</Grid>
+									</Border>
+								</VerticalStackLayout>
+
+								<VerticalStackLayout x:Name="ExtensionsSection" Spacing="10">
+									<Label Text="{loc:Loc views.overlays.settings_overlay_view.extensions}" Style="{StaticResource SettingsSectionTitleStyle}" />
+									<Border Style="{StaticResource SettingsCardStyle}">
+										<VerticalStackLayout Spacing="12">
+											<Grid ColumnDefinitions="*,Auto"
+												  ColumnSpacing="12">
+												<VerticalStackLayout Spacing="5">
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.hud_sample_workflows}"
+														   Style="{StaticResource SettingsKeyStyle}" />
+													<Label Text="{loc:Loc views.overlays.settings_overlay_view.restore_hud_samples_description}"
+														   Style="{StaticResource SettingsHintStyle}" />
+													<Label x:Name="HudSampleRestoreStatusLabel"
+														   IsVisible="False"
+														   Style="{StaticResource SettingsHintStyle}" />
+												</VerticalStackLayout>
+												<Button x:Name="ExtensionsRestoreHudSamplesButton"
+														Grid.Column="1"
+														Text="{loc:Loc views.overlays.settings_overlay_view.restore_samples}"
+														Clicked="OnExtensionsRestoreHudSamplesClicked"
+														VerticalOptions="Center"
+														Style="{StaticResource SettingsSecondaryButtonStyle}" />
+											</Grid>
+
+											<BoxView HeightRequest="1"
+													 Color="{StaticResource SettingsPanelStrokeColor}" />
+
+											<Grid x:Name="ManagedExtensionsArea">
+												<VerticalStackLayout Spacing="12">
+													<Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" ColumnSpacing="8">
+														<VerticalStackLayout Spacing="5">
+															<Label Text="{loc:Loc views.overlays.settings_overlay_view.essential_custom_nodes}"
+																   Style="{StaticResource SettingsKeyStyle}" />
+															<Label x:Name="ExtensionsValueLabel"
+																   Style="{StaticResource SettingsValueStyle}" />
+															<Label x:Name="ExtensionsStatusValueLabel"
+																   Style="{StaticResource SettingsHintStyle}" />
+														</VerticalStackLayout>
+														<Button x:Name="ExtensionsScanButton"
+																Grid.Column="1"
+																Text="{loc:Loc views.overlays.settings_overlay_view.scan}"
+																Clicked="OnExtensionsScanClicked"
+																Style="{StaticResource SettingsSecondaryButtonStyle}" />
+														<Button x:Name="ExtensionsSyncUpdateButton"
+																Grid.Column="2"
+																Text="{loc:Loc views.overlays.settings_overlay_view.sync_update}"
+																Clicked="OnExtensionsSyncUpdateClicked"
+																Style="{StaticResource SettingsRestartButtonStyle}" />
+														<Button x:Name="ExtensionsReinstallButton"
+																Grid.Column="3"
+																Text="{loc:Loc views.overlays.settings_overlay_view.reinstall}"
+																Clicked="OnExtensionsReinstallClicked"
+																Style="{StaticResource SettingsRestartButtonStyle}" />
+														<Button x:Name="ExtensionsOpenFolderButton"
+																Grid.Column="4"
+																Text="{loc:Loc views.overlays.settings_overlay_view.open_folder}"
+																Clicked="OnExtensionsOpenFolderClicked"
+																Style="{StaticResource SettingsSecondaryButtonStyle}" />
+													</Grid>
+													<VerticalStackLayout x:Name="ManagedExtensionSelectionList"
+														   Spacing="6" />
+												</VerticalStackLayout>
+
+												<Border x:Name="ManagedExtensionsBlocker"
+														IsVisible="False"
+														InputTransparent="False"
+														BackgroundColor="#D90B1420"
+														StrokeThickness="0"
+														Padding="24">
+													<Border.StrokeShape>
+														<RoundRectangle CornerRadius="10" />
+													</Border.StrokeShape>
+													<VerticalStackLayout HorizontalOptions="Center"
+																		 VerticalOptions="Center"
+																		 Spacing="8">
+														<ActivityIndicator x:Name="ManagedExtensionsActivity"
+																		   IsRunning="False"
+																		   Color="{StaticResource SettingsAccentColor}"
+																		   WidthRequest="24"
+																		   HeightRequest="24" />
+														<Label x:Name="ManagedExtensionsBlockerTitleLabel"
+															   TextColor="{StaticResource SettingsTitleColor}"
+															   FontSize="12"
+															   FontAttributes="Bold"
+															   HorizontalTextAlignment="Center" />
+														<Label x:Name="ManagedExtensionsBlockerDetailLabel"
+															   TextColor="{StaticResource SettingsSubtitleColor}"
+															   FontSize="10"
+															   HorizontalTextAlignment="Center" />
+													</VerticalStackLayout>
+												</Border>
+											</Grid>
+										</VerticalStackLayout>
+									</Border>
+								</VerticalStackLayout>
+
+							</VerticalStackLayout>
+						</ScrollView>
+					</Border>
+				</Grid>
+
+				<Grid Grid.Row="3"
+					  ColumnDefinitions="*,Auto,Auto"
+					  Padding="28,16,24,22"
+					  ColumnSpacing="10">
+					<Grid ColumnDefinitions="Auto,*"
+						  ColumnSpacing="10"
+						  VerticalOptions="Center">
+						<Border x:Name="SettingsStatusPill"
+								BackgroundColor="#1731d8ff"
+								StrokeThickness="0"
+								Padding="10,5"
+								VerticalOptions="Center">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="10" />
+							</Border.StrokeShape>
+							<Label x:Name="SettingsStatusLabel"
+								   Text="{loc:Loc common.saved}"
+								   TextColor="#d8fff4"
+								   FontSize="10"
+								   FontAttributes="Bold" />
+						</Border>
+						<Label x:Name="SettingsStatusDetailLabel"
+							   Grid.Column="1"
+							   Text="{loc:Loc settings.status.saved_detail}"
+							   TextColor="#6f8ca5"
+							   FontSize="11"
+							   VerticalOptions="Center"
+							   LineBreakMode="TailTruncation" />
+					</Grid>
+					<Button x:Name="DiscardButton"
+							Grid.Column="1"
+							Text="{loc:Loc views.overlays.settings_overlay_view.discard}"
+							IsEnabled="False"
+							Clicked="OnDiscardClicked"
+							Style="{StaticResource SettingsHeaderButtonStyle}" />
+					<Button x:Name="SaveButton"
+							Grid.Column="2"
+							Text="{loc:Loc views.overlays.settings_overlay_view.save_changes}"
+							IsEnabled="False"
+							Clicked="OnSaveClicked"
+							Style="{StaticResource SettingsPrimaryButtonStyle}" />
+				</Grid>
+			</Grid>
+			</Grid>
+			</Border>
+		</Grid>
+
+		<ContentView x:Name="SettingsOperationBlocker"
+					 IsVisible="False"
+					 Opacity="0"
+					 InputTransparent="False"
+					 BackgroundColor="#A8050A14">
+			<Grid>
+				<Ellipse WidthRequest="420"
+						 HeightRequest="420"
+						 Fill="#1231D8FF"
+						 Opacity="0.2"
+						 HorizontalOptions="Center"
+						 VerticalOptions="Center"
+						 TranslationX="-120"
+						 TranslationY="80" />
+				<Ellipse WidthRequest="360"
+						 HeightRequest="360"
+						 Fill="#10FFAA00"
+						 Opacity="0.16"
+						 HorizontalOptions="Center"
+						 VerticalOptions="Center"
+						 TranslationX="150"
+						 TranslationY="-80" />
+				<Border WidthRequest="430"
+						HorizontalOptions="Center"
+						VerticalOptions="Center"
+						BackgroundColor="#F208101B"
+						StrokeThickness="0"
+						Padding="26,22">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="24" />
+					</Border.StrokeShape>
+					<Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+						  RowSpacing="10">
+						<Grid WidthRequest="64"
+							  HeightRequest="56"
+							  HorizontalOptions="Center">
+							<Ellipse x:Name="SettingsOperationBlockerLogoGroundGlow"
+									 WidthRequest="40"
+									 HeightRequest="8"
+									 Fill="#6631d8ff"
+									 Opacity="0.28"
+									 HorizontalOptions="Center"
+									 VerticalOptions="End"
+									 Margin="0,0,0,1" />
+							<Image x:Name="SettingsOperationBlockerLogo"
+								   Source="logo_neon_glass.png"
+								   WidthRequest="44"
+								   HeightRequest="44"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Start"
+								   Aspect="AspectFit" />
+						</Grid>
+						<Label x:Name="SettingsOperationBlockerTitleLabel"
+							   Grid.Row="1"
+							   Text="{loc:Loc views.overlays.settings_overlay_view.queueing_task}"
+							   TextColor="#f4feff"
+							   FontSize="15"
+							   FontAttributes="Bold"
+							   CharacterSpacing="1.2"
+							   HorizontalTextAlignment="Center" />
+						<Label x:Name="SettingsOperationBlockerDetailLabel"
+							   Grid.Row="2"
+							   Text="{loc:Loc views.overlays.settings_overlay_view.applying_settings_safely}"
+							   TextColor="#8fb9d8"
+							   FontSize="11"
+							   HorizontalTextAlignment="Center"
+							   LineBreakMode="WordWrap" />
+						<Grid x:Name="SettingsOperationBlockerProgressGrid"
+							  Grid.Row="3"
+							  IsVisible="False"
+							  RowDefinitions="Auto,Auto"
+							  RowSpacing="5"
+							  Margin="16,2,16,0">
+							<ProgressBar x:Name="SettingsOperationBlockerProgressBar"
+										 Progress="0"
+										 HeightRequest="4"
+										 ProgressColor="#31d8ff"
+										 BackgroundColor="#14243a" />
+							<Label x:Name="SettingsOperationBlockerProgressLabel"
+								   Grid.Row="1"
+								   Text="0%"
+								   TextColor="#8fdcff"
+								   FontSize="10"
+								   FontAttributes="Bold"
+								   CharacterSpacing="1.1"
+								   HorizontalTextAlignment="Center" />
+						</Grid>
+						<Button x:Name="SettingsOperationBlockerCancelButton"
+								Grid.Row="4"
+								Text="{loc:Loc common.cancel}"
+								IsVisible="False"
+								Clicked="OnSettingsOperationBlockerCancelClicked"
+								HorizontalOptions="Center"
+								Style="{StaticResource SettingsTextButtonStyle}" />
+					</Grid>
+				</Border>
+			</Grid>
+		</ContentView>
+
+		<ContentView x:Name="ComfyOperationLogModal"
+					 IsVisible="False"
+					 InputTransparent="False"
+					 BackgroundColor="#B8050A14">
+			<Border WidthRequest="760"
+					HeightRequest="480"
+					HorizontalOptions="Center"
+					VerticalOptions="Center"
+					BackgroundColor="#FA08101B"
+					Stroke="#3031d8ff"
+					StrokeThickness="1"
+					Padding="20">
+				<Border.StrokeShape>
+					<RoundRectangle CornerRadius="22" />
+				</Border.StrokeShape>
+				<Grid RowDefinitions="Auto,*"
+					  RowSpacing="14">
+					<Grid ColumnDefinitions="*,Auto"
+						  ColumnSpacing="12">
+						<VerticalStackLayout Spacing="3">
+							<Label x:Name="ComfyOperationLogModalTitleLabel"
+								   Text="{loc:Loc views.overlays.settings_overlay_view.comfyui_operation_log}"
+								   TextColor="#f4feff"
+								   FontSize="16"
+								   FontAttributes="Bold" />
+							<Label Text="{loc:Loc views.overlays.settings_overlay_view.full_process_output_for_the_latest_settings_operation}"
+								   TextColor="#7fa0b8"
+								   FontSize="11" />
+						</VerticalStackLayout>
+						<Button Grid.Column="1"
+								Text="{loc:Loc common.close}"
+								Clicked="OnCloseComfyOperationLogClicked"
+								Style="{StaticResource SettingsHeaderButtonStyle}" />
+					</Grid>
+					<Border Grid.Row="1"
+							BackgroundColor="#66040A12"
+							Stroke="#1831d8ff"
+							StrokeThickness="1"
+							Padding="14">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="16" />
+						</Border.StrokeShape>
+						<ScrollView>
+							<Label x:Name="ComfyOperationLogFullLabel"
+								   TextColor="#cbefff"
+								   FontSize="11"
+								   LineBreakMode="WordWrap" />
+						</ScrollView>
+					</Border>
+				</Grid>
+			</Border>
+		</ContentView>
+	</Grid>
+
+	<ContentView.Resources>
+		<Color x:Key="SettingsBackdropColor">#B8050A14</Color>
+		<Color x:Key="SettingsPanelColor">#F20A101B</Color>
+		<Color x:Key="SettingsPanelStrokeColor">#2631d8ff</Color>
+		<Color x:Key="SettingsAccentColor">#31d8ff</Color>
+		<Color x:Key="SettingsTitleColor">#f4feff</Color>
+		<Color x:Key="SettingsSubtitleColor">#8fb9d8</Color>
+		<Color x:Key="SettingsNavPanelColor">#73101928</Color>
+		<Color x:Key="SettingsNavPanelStrokeColor">#1831d8ff</Color>
+		<Color x:Key="SettingsContentPanelColor">#52070D17</Color>
+		<Color x:Key="SettingsContentPanelStrokeColor">#1231d8ff</Color>
+
+		<Style x:Key="SettingsNavButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="Transparent" />
+			<Setter Property="TextColor" Value="#a9cce2" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="HeightRequest" Value="38" />
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="Padding" Value="14,0" />
+			<Setter Property="HorizontalOptions" Value="Fill" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#1431d8ff" />
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Disabled">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#0617222f" />
+								<Setter Property="TextColor" Value="#55748c" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsSectionTitleStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="#f4feff" />
+			<Setter Property="FontSize" Value="17" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="Margin" Value="0,8,0,0" />
+		</Style>
+		<Style x:Key="SettingsKeyStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="#7fa0b8" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontAttributes" Value="Bold" />
+		</Style>
+		<Style x:Key="SettingsValueStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="#e8f8ff" />
+			<Setter Property="FontSize" Value="12" />
+		</Style>
+		<Style x:Key="SettingsHintStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="#6f8ca5" />
+			<Setter Property="FontSize" Value="10" />
+		</Style>
+		<Style x:Key="SettingsEntryStyle" TargetType="Entry">
+			<Setter Property="BackgroundColor" Value="#0Dffffff" />
+			<Setter Property="TextColor" Value="#e8f8ff" />
+			<Setter Property="PlaceholderColor" Value="#55748c" />
+			<Setter Property="FontSize" Value="12" />
+			<Setter Property="HeightRequest" Value="38" />
+		</Style>
+		<Style x:Key="SettingsAccentButtonBaseStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="#0Affffff" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="CornerRadius" Value="10" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#1831d8ff" />
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Disabled">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#0617222f" />
+								<Setter Property="TextColor" Value="#55748c" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsChipButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsAccentButtonBaseStyle}">
+			<Setter Property="TextColor" Value="#9fb8c8" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="HeightRequest" Value="32" />
+			<Setter Property="Padding" Value="14,0" />
+		</Style>
+		<Style x:Key="SettingsHeaderButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="#0Affffff" />
+			<Setter Property="TextColor" Value="#dff8ff" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="HeightRequest" Value="38" />
+			<Setter Property="Padding" Value="16,0" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#1831d8ff" />
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Disabled">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#0617222f" />
+								<Setter Property="TextColor" Value="#55748c" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsHeaderButtonStyle}">
+			<Setter Property="BackgroundColor" Value="#1431d8ff" />
+			<Setter Property="TextColor" Value="#55748c" />
+		</Style>
+		<Style x:Key="SettingsRestartButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="#22ffaa00" />
+			<Setter Property="TextColor" Value="#fff2d0" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="CornerRadius" Value="10" />
+			<Setter Property="HeightRequest" Value="34" />
+			<Setter Property="Padding" Value="14,0" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#40ffaa00" />
+								<Setter Property="TextColor" Value="#fff8df" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsAccentButtonBaseStyle}">
+			<Setter Property="TextColor" Value="#ccecff" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="HeightRequest" Value="34" />
+			<Setter Property="Padding" Value="13,0" />
+		</Style>
+		<Style x:Key="SettingsBackupOptionButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="#0Affffff" />
+			<Setter Property="TextColor" Value="#7893a8" />
+			<Setter Property="FontSize" Value="9" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="CornerRadius" Value="8" />
+			<Setter Property="MinimumHeightRequest" Value="0" />
+			<Setter Property="MinimumWidthRequest" Value="0" />
+			<Setter Property="HeightRequest" Value="30" />
+			<Setter Property="Padding" Value="11,0" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#2031d8ff" />
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Pressed">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#3031d8ff" />
+								<Setter Property="TextColor" Value="#ffffff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Disabled">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#0617222f" />
+								<Setter Property="TextColor" Value="#41576a" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsTextButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="Transparent" />
+			<Setter Property="TextColor" Value="#8fdcff" />
+			<Setter Property="FontSize" Value="10" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="MinimumHeightRequest" Value="0" />
+			<Setter Property="MinimumWidthRequest" Value="0" />
+			<Setter Property="HeightRequest" Value="22" />
+			<Setter Property="Padding" Value="4,0" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Disabled">
+							<VisualState.Setters>
+								<Setter Property="TextColor" Value="#55748c" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+		<Style x:Key="SettingsMicroButtonStyle" TargetType="Button" BasedOn="{StaticResource SettingsAccentButtonBaseStyle}">
+			<Setter Property="TextColor" Value="#8fdcff" />
+			<Setter Property="FontSize" Value="8" />
+			<Setter Property="CornerRadius" Value="7" />
+			<Setter Property="MinimumHeightRequest" Value="0" />
+			<Setter Property="MinimumWidthRequest" Value="0" />
+			<Setter Property="HeightRequest" Value="19" />
+			<Setter Property="Padding" Value="8,0" />
+		</Style>
+		<Style x:Key="SettingsCardStyle" TargetType="Border">
+			<Setter Property="BackgroundColor" Value="#62101928" />
+			<Setter Property="Stroke" Value="#1431d8ff" />
+			<Setter Property="StrokeThickness" Value="1" />
+			<Setter Property="Padding" Value="16,14" />
+			<Setter Property="StrokeShape" Value="RoundRectangle 16" />
+		</Style>
+		<Style x:Key="SettingsInsetBoxStyle" TargetType="Border">
+			<Setter Property="BackgroundColor" Value="#0Dffffff" />
+			<Setter Property="StrokeShape" Value="RoundRectangle 12" />
+		</Style>
+	</ContentView.Resources>
+</ContentView>

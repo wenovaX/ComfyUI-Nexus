@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:local="clr-namespace:ComfyUI_Nexus.Views.Components"
+			 x:Class="ComfyUI_Nexus.Views.Components.FolderBrowserView"
+			 BackgroundColor="Transparent">
+
+	<Border StrokeThickness="0"
+			StrokeShape="RoundRectangle 16"
+			BackgroundColor="{StaticResource FolderBrowserPanelColor}">
+
+		<Grid RowDefinitions="Auto,Auto,Auto,*" Padding="0, 20" RowSpacing="12">
+
+			<!-- 1. Guidance Section -->
+			<Label Text="{loc:Loc views.components.folder_browser_view.browse_or_paste_folder_path}"
+				   TextColor="{StaticResource FolderBrowserAccentColor}"
+				   FontSize="14"
+				   FontAttributes="Bold"
+				   CharacterSpacing="1"
+				   Margin="0,0,0,4"/>
+
+			<!-- 2. Path Input (Entry) -->
+			<Border Grid.Row="1"
+					HeightRequest="40"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 8"
+					BackgroundColor="{StaticResource FolderBrowserInputSurfaceColor}"
+					Padding="12,0">
+				<Entry x:Name="PathEntry"
+					   Text="C:\"
+					   TextColor="{StaticResource FolderBrowserTextColor}"
+					   FontSize="13"
+					   VerticalOptions="Center"
+					   BackgroundColor="Transparent"
+					   SemanticProperties.Description="{loc:Loc views.components.folder_browser_view.path_input}"
+					   SemanticProperties.Hint="{loc:Loc views.components.folder_browser_view.path_input_help}"
+					   ClearButtonVisibility="WhileEditing"
+					   Completed="OnPathEntryCompleted" />
+			</Border>
+
+			<!-- 3. Action Buttons Row -->
+			<Grid Grid.Row="2" ColumnDefinitions="Auto, Auto, *, Auto" ColumnSpacing="8">
+				<!-- UP BUTTON -->
+				<Border x:Name="UpButtonBorder"
+						WidthRequest="80" HeightRequest="32"
+						StrokeThickness="1" Stroke="{StaticResource FolderBrowserParentStrokeColor}" StrokeShape="RoundRectangle 6"
+						BackgroundColor="Transparent"
+						AutomationProperties.IsInAccessibleTree="True"
+						SemanticProperties.Description="{loc:Loc views.components.folder_browser_view.parent}"
+						SemanticProperties.Hint="{loc:Loc views.components.folder_browser_view.parent_help}">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnUpClicked" />
+						<PointerGestureRecognizer PointerEntered="OnUpHovered" PointerExited="OnUpUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="UpNormal" />
+							<VisualState x:Name="UpPointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="{StaticResource FolderBrowserParentHoverColor}" />
+									<Setter Property="Stroke" Value="{StaticResource White}" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.parent}" TextColor="{StaticResource FolderBrowserParentAccentColor}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+
+				<!-- DRIVES BUTTON -->
+				<Border x:Name="DrivesButtonBorder"
+						Grid.Column="1"
+						WidthRequest="80" HeightRequest="32"
+						StrokeThickness="1" Stroke="{StaticResource FolderBrowserDrivesStrokeColor}" StrokeShape="RoundRectangle 6"
+						BackgroundColor="Transparent"
+						AutomationProperties.IsInAccessibleTree="True"
+						SemanticProperties.Description="{loc:Loc views.components.folder_browser_view.drives}"
+						SemanticProperties.Hint="{loc:Loc views.components.folder_browser_view.drives_help}">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnDrivesClicked" />
+						<PointerGestureRecognizer PointerEntered="OnDrivesHovered" PointerExited="OnDrivesUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="DrivesNormal" />
+							<VisualState x:Name="DrivesPointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="{StaticResource FolderBrowserDrivesHoverColor}" />
+									<Setter Property="Stroke" Value="{StaticResource White}" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.drives}" TextColor="{StaticResource FolderBrowserAccentColor}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+
+				<!-- NATIVE BROWSE BUTTON -->
+				<Border x:Name="NativeBrowseButtonBorder"
+						Grid.Column="3"
+						WidthRequest="120" HeightRequest="32"
+						StrokeThickness="1" Stroke="{StaticResource FolderBrowserNativeStrokeColor}" StrokeShape="RoundRectangle 6"
+						BackgroundColor="{StaticResource FolderBrowserNativeSurfaceColor}"
+						AutomationProperties.IsInAccessibleTree="True"
+						SemanticProperties.Description="{loc:Loc views.components.folder_browser_view.browse}"
+						SemanticProperties.Hint="{loc:Loc views.components.folder_browser_view.browse_help}">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Tapped="OnNativeBrowseClicked" />
+						<PointerGestureRecognizer PointerEntered="OnNativeBrowseHovered" PointerExited="OnNativeBrowseUnhovered" />
+					</Border.GestureRecognizers>
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroup>
+							<VisualState x:Name="NativeBrowseNormal" />
+							<VisualState x:Name="NativeBrowsePointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="{StaticResource FolderBrowserParentHoverColor}" />
+									<Setter Property="Stroke" Value="{StaticResource White}" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateManager.VisualStateGroups>
+					<Label Text="{loc:Loc views.components.folder_browser_view.browse}" TextColor="{StaticResource White}" HorizontalOptions="Center" VerticalOptions="Center" FontSize="11" FontAttributes="Bold" />
+				</Border>
+			</Grid>
+
+			<!-- 4. Folder List -->
+			<CollectionView x:Name="FolderList"
+							Grid.Row="3"
+							SelectionMode="Single"
+							SelectionChanged="OnFolderSelected"
+							Margin="0,8,0,0">
+				<CollectionView.ItemTemplate>
+					<DataTemplate x:DataType="local:FileSystemItem">
+						<Border StrokeThickness="0" BackgroundColor="Transparent" Padding="8">
+							<VisualStateManager.VisualStateGroups>
+								<VisualStateGroup>
+									<VisualState x:Name="ItemNormal" />
+									<VisualState x:Name="ItemPointerOver">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="{StaticResource FolderBrowserInputSurfaceColor}" />
+										</VisualState.Setters>
+									</VisualState>
+									<VisualState x:Name="ItemSelected">
+										<VisualState.Setters>
+											<Setter Property="BackgroundColor" Value="{StaticResource FolderBrowserItemSelectedColor}" />
+										</VisualState.Setters>
+									</VisualState>
+								</VisualStateGroup>
+							</VisualStateManager.VisualStateGroups>
+
+							<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+								<Image Source="{Binding IconSource}"
+									   WidthRequest="18"
+									   HeightRequest="18"
+									   AutomationProperties.IsInAccessibleTree="False"
+									   VerticalOptions="Center" />
+								<Label Grid.Column="1" Text="{Binding Name}" TextColor="{StaticResource FolderBrowserTextColor}" VerticalOptions="Center" FontSize="14" />
+							</Grid>
+						</Border>
+					</DataTemplate>
+				</CollectionView.ItemTemplate>
+			</CollectionView>
+		</Grid>
+	</Border>
+</ContentView>

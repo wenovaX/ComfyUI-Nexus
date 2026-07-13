@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.WorkspaceView">
+	<Grid x:Name="WorkspaceChromeGrid"
+		  RowDefinitions="*"
+		  ColumnDefinitions="60,*"
+		  RowSpacing="0"
+		  ColumnSpacing="0"
+		  BackgroundColor="{StaticResource WorkspaceShellColor}">
+		<Border x:Name="CanvasFrameBorder"
+				Grid.Row="0"
+				Grid.Column="0"
+				Grid.ColumnSpan="2"
+				StrokeThickness="0"
+				Stroke="Transparent"
+				StrokeShape="Rectangle"
+				BackgroundColor="Transparent">
+
+			<ContentView BackgroundColor="{StaticResource WorkspaceShellColor}">
+				<WebView x:Name="ComfyWebView"
+						 HorizontalOptions="Fill"
+						 VerticalOptions="Fill"
+						 BackgroundColor="{StaticResource WorkspaceShellColor}"
+						 Navigated="OnWebViewNavigated" />
+			</ContentView>
+		</Border>
+	</Grid>
+</ContentView>

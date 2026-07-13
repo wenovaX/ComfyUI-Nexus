@@ -1,0 +1,31 @@
+namespace ComfyUI_Nexus.Platform;
+
+public enum NexusKey
+{
+	Unknown,
+	A,
+	B,
+	C,
+	D,
+	H,
+	L,
+	M,
+	O,
+	S,
+	V,
+	W,
+	X,
+	Period,
+	Enter,
+	Space,
+	Escape,
+	Backspace,
+	Tab,
+	Delete,
+	Left,
+	Up,
+	Down,
+	Right,
+	F2,
+	F5,
+}

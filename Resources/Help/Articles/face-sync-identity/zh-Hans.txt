@@ -1,0 +1,90 @@
+---
+
+[h]高级任务：固定主角的面部[/h]
+
+是否因为每次生成图像时主角的脸都会改变而感到苦恼？
+将特定人物的脸一致地应用到所有生成图像中的技术，被称为**“人脸同步 (Face Sync)”**。
+
+[accent]🔥 难度声明：该任务是需要安装额外库并收集专用模型的 [b]“终极深造任务”[/b]。
+强烈建议您在完全熟悉了基础图像生成后，再轻松地开启这场冒险！[/accent]
+
+---
+
+[h]向 AI 问路[/h]
+
+复制以下提示词，并将其粘贴到您喜欢的 AI（如 GPT、Gemini 或 Copilot）中。
+您将获得即使是完全的新手也能跟上的步骤指南，涵盖从下载模型到连接节点的全过程。
+
+[copy:复制 AI 提示词|将以下提示词粘贴到您喜欢的 AI 中，例如 GPT、Gemini 或 Copilot。|将提示词复制到剪贴板。|已复制|已复制到剪贴板。]
+我想在 ComfyUI 中创建一个使用 IP-Adapter FaceID 固定特定人物面部的工作流。
+
+请按顺序指导我完成以下步骤，以便完全的新手也能跟上：
+
+1. 所需模型文件的列表及其下载链接 (CLIP Vision, IP-Adapter FaceID 权重, InsightFace buffalo_l)
+2. 每个模型文件应放入 ComfyUI 的哪个文件夹
+3. 在 ComfyUI 中添加节点的顺序（从 Load Checkpoint 到 Save Image）
+4. 每个节点的输出连接到哪里（包括插槽名称）
+5. IP-Adapter 节点 weight 值的推荐范围
+6. 参考面部照片的推荐尺寸和裁剪提示
+7. 如何在最后添加 FaceDetailer 节点来优化面部细节
+
+我的基础模型：[在此处输入 SD 1.5 或 SDXL]
+[/copy]
+
+---
+
+[h]已为您配备的默认武器[/h]
+
+值得庆幸的是，IP-Adapter 节点已经包含在 Nexus 的 [b]基础安装包[/b] 中。
+因此，您完全不需要浪费时间去下载和安装任何额外的自定义节点！
+
+在工作流编辑区域点击鼠标右键并搜索“IPAdapter”。
+通过自己动手连接端子、亲自唤醒这个强大节点的实验过程，去体验那份纯粹的探索乐趣吧。
+
+→ [link:🔗 IP-Adapter 官方 GitHub (参考用)|https://github.com/cubiq/ComfyUI_IPAdapter_plus]
+
+---
+
+[h]冒险家的武器管理工具：ComfyUI-Manager[/h]
+
+虽然这次的节点已经由 Nexus 预先为您装备好，
+但在未来的高级冒险旅程中，您不可避免地需要去收集新的自定义节点并管理版本。
+
+点击工作流屏幕右下角的 [b]“Manager”[/b] 按钮。
+学会在这个中央控制台里搜索扩展节点并独立管理各种依赖项，
+是成为一名顶尖构建者（Senior Builder）的核心必经之路。
+
+---
+
+[h]冒险必备的 3 件原材料[/h]
+
+要亲自构建这个魔法，您必须将以下 3 件核心原材料收集并放入正确的路径中：
+
+[b]1. CLIP Vision 模型 (AI 的第二只眼睛)[/b]
+→ [b]收集品：[/b] 探索并找到契合您基础模型的版本——基于 SD 1.5 的 [b]ViT-H[/b] 或基于 SDXL 的 [b]ViT-bigG[/b]，并将其放置在 [folder:ComfyUI/models/clip_vision|models/clip_vision] 路径下。
+→ [link:🔗 CLIP Vision 探索起点|https://huggingface.co/h94/IP-Adapter/tree/main/models]
+
+[b]2. IP-Adapter FaceID 权重 (Weights/Presets)[/b]
+→ [b]收集品：[/b] 映射源人脸形态的预设文件。同样分为 SD 1.5 版和 SDXL 版。
+→ [b]路径：[/b] 放置在 [folder:ComfyUI/models/ipadapter|models/ipadapter] 路径下。
+→ [b]探索提示：[/b] 存在一个历史悠久的谜团——部分自定义加载器节点只挑食特定后缀名（例如 [b]`.bin` 后缀[/b]），因此在收集时需要格外注意。
+→ [link:🔗 FaceID 权重探索起点|https://huggingface.co/h94/IP-Adapter-FaceID/tree/main]
+
+[b]3. InsightFace 分析模型 (buffalo_l)[/b]
+→ [b]收集品：[/b] 从照片中精细测量人脸轮廓及五官精确坐标的隐形探测器引擎。检测精度最高的 [b]“buffalo_l”[/b] 模型是行业黄金标准，通常在首次运行时由后台自动构建并下载。
+
+---
+
+[h]决定性的一个提示[/h]
+
+通过自己连接节点成功固定了面部，但却发现五官周围显得轻微模糊或不够自然？
+
+[accent]💡 提示：尝试在您工作流的最后阶段整合 [b]Impact Pack 的 FaceDetailer 节点[/b]。[/accent]
+
+该节点的详细配置和协同机制，可访问 [link:🔗 Impact Pack 官方 GitHub|https://github.com/ltdrdata/ComfyUI-Impact-Pack] 官方仓库进行查阅。
+当这两件材料的秘密公式完成时，一幅近看也完美无瑕的“大师级画作”将在您眼前诞生。
+
+剩下的节点搭建和去噪值调优拼图，就请您亲自去碰撞和解开吧。
+冒险的终点，正有丰厚的奖励在等待着您！
+
+---

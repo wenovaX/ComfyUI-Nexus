@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Controls.OptionDeck.RunModeOptionDeckView"
+			 WidthRequest="150"
+			 HeightRequest="96"
+			 HorizontalOptions="Center"
+			 VerticalOptions="Start"
+			 TranslationY="14"
+			 IsClippedToBounds="False"
+			 ZIndex="-1">
+	<ContentView.GestureRecognizers>
+		<PointerGestureRecognizer PointerEntered="OnOptionsHostPointerEntered"
+								  PointerExited="OnOptionsHostPointerExited" />
+	</ContentView.GestureRecognizers>
+
+	<Grid x:Name="OptionsClip"
+		  HeightRequest="48"
+		  VerticalOptions="Start"
+		  IsClippedToBounds="True">
+		<Border x:Name="OptionsFrame"
+				HeightRequest="96"
+				VerticalOptions="Start"
+				BackgroundColor="{StaticResource RunModeDeckSurfaceColor}"
+				Stroke="{StaticResource RunModeDeckStrokeColor}"
+				StrokeThickness="1"
+				StrokeShape="RoundRectangle 10"
+				Opacity="0.94">
+		</Border>
+
+		<Grid RowDefinitions="18,22,1,22,1,22"
+			  Padding="4,4"
+			  RowSpacing="0">
+			<BoxView Grid.Row="0"
+					 BackgroundColor="Transparent"
+					 InputTransparent="True" />
+
+			<Border x:Name="SelectedOption"
+					Grid.Row="1"
+					BackgroundColor="Transparent"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 7"
+					SemanticProperties.Description="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.toggle}"
+					SemanticProperties.Hint="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.toggle_help}">
+				<Grid IsClippedToBounds="False">
+					<Ellipse x:Name="SelectedHoverGlow"
+							 Opacity="0"
+							 WidthRequest="118"
+							 HeightRequest="30"
+							 HorizontalOptions="Center"
+							 VerticalOptions="Center"
+							 InputTransparent="True">
+						<Ellipse.Fill>
+							<RadialGradientBrush Center="0.45,0.5" Radius="0.55">
+								<GradientStop Color="{StaticResource RunModeDeckHoverGlowColor}" Offset="0.0" />
+								<GradientStop Color="Transparent" Offset="1.0" />
+							</RadialGradientBrush>
+						</Ellipse.Fill>
+					</Ellipse>
+					<HorizontalStackLayout Spacing="7"
+										   Margin="10,0"
+										   HorizontalOptions="Start"
+										   VerticalOptions="Center"
+										   InputTransparent="True">
+						<Image x:Name="SelectedIcon"
+							   Source="mode_run.png"
+							   WidthRequest="13"
+							   HeightRequest="13"
+							   Aspect="AspectFit"
+							   Opacity="0.9" />
+						<Label x:Name="SelectedLabel"
+							   Text="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run}"
+							   FontSize="9"
+							   FontAttributes="Bold"
+							   TextColor="{StaticResource RunModeDeckTextColor}"
+							   CharacterSpacing="0.5"
+							   VerticalTextAlignment="Center" />
+					</HorizontalStackLayout>
+					<Image x:Name="Chevron"
+						   Source="run_mode_chevron.png"
+						   WidthRequest="9"
+						   HeightRequest="9"
+						   Aspect="AspectFit"
+						   Opacity="0.55"
+						   HorizontalOptions="End"
+						   VerticalOptions="Center"
+						   Margin="0,0,12,0"
+						   InputTransparent="True"
+						   Rotation="0" />
+					<BoxView x:Name="SeamGlow"
+							 HeightRequest="1"
+							 WidthRequest="94"
+							 HorizontalOptions="Center"
+							 VerticalOptions="End"
+							 Margin="0,0,0,-1"
+							 Opacity="0"
+							 InputTransparent="True">
+						<BoxView.Background>
+							<LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+								<GradientStop Color="Transparent" Offset="0.0" />
+								<GradientStop Color="{StaticResource RunModeDeckSeamCyanColor}" Offset="0.32" />
+								<GradientStop Color="{StaticResource RunModeDeckSeamDangerColor}" Offset="0.78" />
+								<GradientStop Color="Transparent" Offset="1.0" />
+							</LinearGradientBrush>
+						</BoxView.Background>
+					</BoxView>
+				</Grid>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnToggleClicked" />
+					<PointerGestureRecognizer PointerEntered="OnOptionPointerEntered"
+											  PointerExited="OnOptionPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+
+			<BoxView x:Name="FirstDivider"
+					 Grid.Row="2"
+					 HeightRequest="1"
+					 Margin="10,0"
+					 BackgroundColor="{StaticResource RunModeDeckDividerColor}"
+					 Opacity="0.65" />
+
+			<Border x:Name="CandidateOptionA"
+					Grid.Row="3"
+					BackgroundColor="Transparent"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 7"
+					SemanticProperties.Description="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_on_change}"
+					SemanticProperties.Hint="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_on_change_help}">
+				<Grid IsClippedToBounds="False">
+					<Ellipse x:Name="CandidateHoverGlowA"
+							 Opacity="0"
+							 WidthRequest="118"
+							 HeightRequest="30"
+							 HorizontalOptions="Center"
+							 VerticalOptions="Center"
+							 InputTransparent="True">
+						<Ellipse.Fill>
+							<RadialGradientBrush Center="0.45,0.5" Radius="0.55">
+								<GradientStop Color="{StaticResource RunModeDeckHoverGlowColor}" Offset="0.0" />
+								<GradientStop Color="Transparent" Offset="1.0" />
+							</RadialGradientBrush>
+						</Ellipse.Fill>
+					</Ellipse>
+					<HorizontalStackLayout Spacing="7"
+										   Margin="10,0"
+										   HorizontalOptions="Start"
+										   VerticalOptions="Center"
+										   InputTransparent="True">
+						<Image x:Name="CandidateIconA"
+							   Source="mode_onchange.png"
+							   WidthRequest="13"
+							   HeightRequest="13"
+							   Aspect="AspectFit"
+							   Opacity="0.9" />
+						<Label x:Name="CandidateLabelA"
+							   Text="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_on_change}"
+							   FontSize="9"
+							   FontAttributes="Bold"
+							   TextColor="{StaticResource RunModeDeckTextColor}"
+							   CharacterSpacing="0"
+							   VerticalTextAlignment="Center" />
+					</HorizontalStackLayout>
+				</Grid>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnCandidateClicked" />
+					<PointerGestureRecognizer PointerEntered="OnOptionPointerEntered"
+											  PointerExited="OnOptionPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+
+			<BoxView x:Name="SecondDivider"
+					 Grid.Row="4"
+					 HeightRequest="1"
+					 Margin="10,0"
+					 BackgroundColor="{StaticResource RunModeDeckDangerDividerColor}"
+					 Opacity="0.65" />
+
+			<Border x:Name="CandidateOptionB"
+					Grid.Row="5"
+					BackgroundColor="Transparent"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 7"
+					SemanticProperties.Description="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_instant}"
+					SemanticProperties.Hint="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_instant_help}">
+				<Grid IsClippedToBounds="False">
+					<Ellipse x:Name="CandidateHoverGlowB"
+							 Opacity="0"
+							 WidthRequest="118"
+							 HeightRequest="30"
+							 HorizontalOptions="Center"
+							 VerticalOptions="Center"
+							 InputTransparent="True">
+						<Ellipse.Fill>
+							<RadialGradientBrush Center="0.45,0.5" Radius="0.55">
+								<GradientStop Color="{StaticResource RunModeDeckInstantGlowColor}" Offset="0.0" />
+								<GradientStop Color="Transparent" Offset="1.0" />
+							</RadialGradientBrush>
+						</Ellipse.Fill>
+					</Ellipse>
+					<HorizontalStackLayout Spacing="7"
+										   Margin="10,0"
+										   HorizontalOptions="Start"
+										   VerticalOptions="Center"
+										   InputTransparent="True">
+						<Image x:Name="CandidateIconB"
+							   Source="mode_instant.png"
+							   WidthRequest="13"
+							   HeightRequest="13"
+							   Aspect="AspectFit"
+							   Opacity="0.9" />
+						<Label x:Name="CandidateLabelB"
+							   Text="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run_instant}"
+							   FontSize="9"
+							   FontAttributes="Bold"
+							   TextColor="{StaticResource RunModeDeckInstantTextColor}"
+							   CharacterSpacing="0"
+							   VerticalTextAlignment="Center" />
+					</HorizontalStackLayout>
+				</Grid>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnCandidateClicked" />
+					<PointerGestureRecognizer PointerEntered="OnOptionPointerEntered"
+											  PointerExited="OnOptionPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+		</Grid>
+	</Grid>
+</ContentView>

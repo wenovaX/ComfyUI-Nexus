@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.CanvasModeMenuView"
+			 x:Name="CanvasModeMenuRoot">
+	<Grid x:Name="CanvasModeOverlayRoot"
+		  IsVisible="False"
+		  InputTransparent="True">
+		<Grid.GestureRecognizers>
+			<TapGestureRecognizer Command="{Binding DismissCommand, Source={x:Reference CanvasModeMenuRoot}}" />
+		</Grid.GestureRecognizers>
+
+		<Grid.Resources>
+			<Style x:Key="CanvasModeRowStyle" TargetType="Border">
+				<Setter Property="BackgroundColor" Value="Transparent" />
+				<Setter Property="StrokeThickness" Value="0" />
+				<Setter Property="HeightRequest" Value="24" />
+				<Setter Property="HorizontalOptions" Value="Fill" />
+				<Setter Property="Padding" Value="8,0" />
+				<Setter Property="StrokeShape">
+					<Setter.Value>
+						<RoundRectangle CornerRadius="7" />
+					</Setter.Value>
+				</Setter>
+				<Setter Property="VisualStateManager.VisualStateGroups">
+					<VisualStateGroupList>
+						<VisualStateGroup x:Name="CommonStates">
+							<VisualState x:Name="Normal" />
+							<VisualState x:Name="PointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#1f3aa4c7" />
+								</VisualState.Setters>
+							</VisualState>
+							<VisualState x:Name="Pressed">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="#2b1b7ea6" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateGroupList>
+				</Setter>
+			</Style>
+		</Grid.Resources>
+
+		<Border x:Name="CanvasModeMenuBorder"
+				Opacity="0"
+				StrokeThickness="0"
+				Padding="6"
+				WidthRequest="146"
+				HorizontalOptions="End"
+				VerticalOptions="End"
+				Margin="0,0,198,30">
+			<Border.Background>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+					<GradientStop Color="#d90a111c" Offset="0.0" />
+					<GradientStop Color="#bf101d2e" Offset="0.52" />
+					<GradientStop Color="#d9070c15" Offset="1.0" />
+				</LinearGradientBrush>
+			</Border.Background>
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="12" />
+			</Border.StrokeShape>
+			<VerticalStackLayout Spacing="2">
+				<Border Style="{StaticResource CanvasModeRowStyle}"
+						SemanticProperties.Description="{loc:Loc common.select}"
+						SemanticProperties.Hint="{loc:Loc views.overlays.canvas_mode_menu_view.select_help}">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding SelectCommand, Source={x:Reference CanvasModeMenuRoot}}" />
+					</Border.GestureRecognizers>
+					<Grid ColumnDefinitions="3,*"
+						  ColumnSpacing="8">
+						<BoxView Grid.Column="0"
+								 Color="#71c8ff"
+								 WidthRequest="3"
+								 HeightRequest="10"
+								 CornerRadius="1.5"
+								 Opacity="0.92"
+								 VerticalOptions="Center" />
+						<Label Grid.Column="1"
+							   Text="{loc:Loc common.select}"
+							   TextColor="#d9f7ff"
+							   FontSize="10"
+							   FontAttributes="Bold"
+							   CharacterSpacing="0.9"
+							   VerticalOptions="Center" />
+					</Grid>
+				</Border>
+				<Border Style="{StaticResource CanvasModeRowStyle}"
+						SemanticProperties.Description="{loc:Loc common.hand}"
+						SemanticProperties.Hint="{loc:Loc views.overlays.canvas_mode_menu_view.hand_help}">
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding HandCommand, Source={x:Reference CanvasModeMenuRoot}}" />
+					</Border.GestureRecognizers>
+					<Grid ColumnDefinitions="3,*"
+						  ColumnSpacing="8">
+						<BoxView Grid.Column="0"
+								 Color="#7be495"
+								 WidthRequest="3"
+								 HeightRequest="10"
+								 CornerRadius="1.5"
+								 Opacity="0.92"
+								 VerticalOptions="Center" />
+						<Label Grid.Column="1"
+							   Text="{loc:Loc common.hand}"
+							   TextColor="#d9f7ff"
+							   FontSize="10"
+							   FontAttributes="Bold"
+							   CharacterSpacing="0.9"
+							   VerticalOptions="Center" />
+					</Grid>
+				</Border>
+			</VerticalStackLayout>
+		</Border>
+	</Grid>
+</ContentView>

@@ -1,0 +1,10 @@
+<Project>
+	<PropertyGroup>
+		<NexusVersion>1.0.0</NexusVersion>
+		<MauiVersion>10.0.80</MauiVersion>
+		<NexusDisplayName>Nexus for ComfyUI</NexusDisplayName>
+		<NexusShortName>Nexus</NexusShortName>
+		<NexusProjectName>ComfyUI Nexus</NexusProjectName>
+		<NexusRepositoryName>ComfyUI-Nexus</NexusRepositoryName>
+	</PropertyGroup>
+</Project>

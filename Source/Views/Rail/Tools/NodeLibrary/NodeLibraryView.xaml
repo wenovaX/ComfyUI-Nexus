@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+			 xmlns:virtualization="clr-namespace:ComfyUI_Nexus.Views.Controls.Virtualization"
+			 xmlns:local="clr-namespace:ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary"
+			 x:Class="ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary.NodeLibraryView"
+			 BackgroundColor="Transparent">
+
+	<ContentView.Resources>
+		<DataTemplate x:Key="HeaderTemplate" x:DataType="local:NodeItemViewModel">
+			<Grid ColumnDefinitions="Auto, Auto, Auto, *"
+				  HeightRequest="36"
+				  Padding="{Binding Padding}"
+				  AutomationProperties.IsInAccessibleTree="True"
+				  SemanticProperties.Description="{Binding DisplayName}"
+				  SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.section_help}">
+				<FlyoutBase.ContextFlyout>
+					<MenuFlyout>
+						<MenuFlyoutItem Text="{loc:Loc views.rail.tools.node_library.node_library_view.expand_all}" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ExpandAllCommand}" CommandParameter="{Binding}" />
+						<MenuFlyoutItem Text="{loc:Loc views.rail.tools.node_library.node_library_view.collapse_all}" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=CollapseAllCommand}" CommandParameter="{Binding}" />
+					</MenuFlyout>
+				</FlyoutBase.ContextFlyout>
+				<Grid.GestureRecognizers>
+					<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleSectionCommand}" CommandParameter="{Binding}" />
+				</Grid.GestureRecognizers>
+				<Image Grid.Column="0"
+					   Source="node_library_chevron.png"
+					   WidthRequest="12"
+					   HeightRequest="12"
+					   Margin="0,0,8,0"
+					   Rotation="{Binding ChevronRotation}"
+					   AutomationProperties.IsInAccessibleTree="False"
+					   VerticalOptions="Center" />
+				<Grid Grid.Column="2"
+					  WidthRequest="16"
+					  HeightRequest="16"
+					  Margin="0,0,6,0"
+					  VerticalOptions="Center"
+					  IsVisible="{Binding HasHeaderIcon}">
+					<Image Source="{Binding HeaderIcon}" Opacity="0.9" AutomationProperties.IsInAccessibleTree="False" />
+				</Grid>
+				<Label Grid.Column="3"
+					   Text="{Binding DisplayName}"
+					   TextColor="{Binding HeaderAccentColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   CharacterSpacing="0.8"
+					   VerticalOptions="Center" />
+			</Grid>
+		</DataTemplate>
+
+		<DataTemplate x:Key="CategoryTemplate" x:DataType="local:NodeItemViewModel">
+			<Grid ColumnDefinitions="Auto, Auto, *, Auto"
+				  HeightRequest="28"
+				  Padding="{Binding Padding}"
+				  AutomationProperties.IsInAccessibleTree="True"
+				  SemanticProperties.Description="{Binding DisplayName}"
+				  SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.category_help}">
+				<FlyoutBase.ContextFlyout>
+					<MenuFlyout>
+						<MenuFlyoutItem Text="{Binding BookmarkToggleText}" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</MenuFlyout>
+				</FlyoutBase.ContextFlyout>
+				<VisualStateManager.VisualStateGroups>
+					<VisualStateGroupList>
+						<VisualStateGroup x:Name="CommonStates">
+							<VisualState x:Name="Normal">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="Transparent" />
+								</VisualState.Setters>
+							</VisualState>
+							<VisualState x:Name="PointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="{StaticResource NodeRowHoverColor}" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateGroupList>
+				</VisualStateManager.VisualStateGroups>
+
+				<Grid.GestureRecognizers>
+					<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleCategoryCommand}" CommandParameter="{Binding}" />
+				</Grid.GestureRecognizers>
+
+				<Label Text="{Binding ChevronIcon}"
+					   TextColor="{StaticResource NodeChevronTextColor}"
+					   FontSize="11"
+					   WidthRequest="14"
+					   HorizontalTextAlignment="Center"
+					   VerticalOptions="Center" />
+
+				<Grid Grid.Column="1" WidthRequest="16" HeightRequest="16" Margin="4,0,8,0" VerticalOptions="Center">
+					<Image Source="node_library_input.png" Opacity="0.8" AutomationProperties.IsInAccessibleTree="False" />
+				</Grid>
+
+				<Label Grid.Column="2"
+					   Text="{Binding DisplayName}"
+					   TextColor="{StaticResource NodeItemTextColor}"
+					   FontSize="12"
+					   LineBreakMode="TailTruncation"
+					   VerticalOptions="Center" />
+
+				<Label Grid.Column="3"
+					   Text="{Binding BookmarkToggleIcon}"
+					   TextColor="{Binding BookmarkToggleColor}"
+					   FontSize="14"
+					   VerticalOptions="Center"
+					   HorizontalOptions="End"
+					   Margin="0,0,10,0"
+					   IsVisible="{Binding ShowBookmarkToggle}"
+					   AutomationProperties.IsInAccessibleTree="True"
+					   SemanticProperties.Description="{Binding BookmarkToggleText}"
+					   SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.bookmark_toggle_help}">
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroupList>
+							<VisualStateGroup x:Name="CommonStates">
+								<VisualState x:Name="Normal">
+									<VisualState.Setters>
+										<Setter Property="Scale" Value="1.0" />
+									</VisualState.Setters>
+								</VisualState>
+								<VisualState x:Name="PointerOver">
+									<VisualState.Setters>
+										<Setter Property="Scale" Value="1.3" />
+									</VisualState.Setters>
+								</VisualState>
+							</VisualStateGroup>
+						</VisualStateGroupList>
+					</VisualStateManager.VisualStateGroups>
+					<Label.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</Label.GestureRecognizers>
+				</Label>
+
+				<Label Grid.Column="3"
+					   Text="✕"
+					   TextColor="{StaticResource NodeRemoveColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   VerticalOptions="Center"
+					   HorizontalOptions="End"
+					   Margin="0,0,10,0"
+					   IsVisible="{Binding ShowBookmarkRemoveButton}"
+					   AutomationProperties.IsInAccessibleTree="True"
+					   SemanticProperties.Description="{Binding BookmarkToggleText}"
+					   SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.bookmark_toggle_help}">
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroupList>
+							<VisualStateGroup x:Name="CommonStates">
+								<VisualState x:Name="Normal">
+									<VisualState.Setters>
+										<Setter Property="TextColor" Value="{StaticResource NodeRemoveColor}" />
+										<Setter Property="Scale" Value="1.0" />
+									</VisualState.Setters>
+								</VisualState>
+								<VisualState x:Name="PointerOver">
+									<VisualState.Setters>
+										<Setter Property="TextColor" Value="{StaticResource NodeRemoveHoverColor}" />
+										<Setter Property="Scale" Value="1.2" />
+									</VisualState.Setters>
+								</VisualState>
+							</VisualStateGroup>
+						</VisualStateGroupList>
+					</VisualStateManager.VisualStateGroups>
+					<Label.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</Label.GestureRecognizers>
+				</Label>
+			</Grid>
+		</DataTemplate>
+
+		<DataTemplate x:Key="NodeTemplate" x:DataType="local:NodeItemViewModel">
+			<Grid ColumnDefinitions="Auto, Auto, *, Auto"
+				  HeightRequest="28"
+				  Padding="{Binding Padding}"
+				  AutomationProperties.IsInAccessibleTree="True"
+				  SemanticProperties.Description="{Binding DisplayName}"
+				  SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.node_help}">
+				<FlyoutBase.ContextFlyout>
+					<MenuFlyout>
+						<MenuFlyoutItem Text="{loc:Loc views.rail.tools.node_library.node_library_view.add_to_stage}" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=AddToStageCommand}" CommandParameter="{Binding}" />
+						<MenuFlyoutItem Text="{Binding BookmarkToggleText}" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</MenuFlyout>
+				</FlyoutBase.ContextFlyout>
+				<VisualStateManager.VisualStateGroups>
+					<VisualStateGroupList>
+						<VisualStateGroup x:Name="CommonStates">
+							<VisualState x:Name="Normal">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="Transparent" />
+								</VisualState.Setters>
+							</VisualState>
+							<VisualState x:Name="PointerOver">
+								<VisualState.Setters>
+									<Setter Property="BackgroundColor" Value="{StaticResource NodeRowHoverColor}" />
+								</VisualState.Setters>
+							</VisualState>
+						</VisualStateGroup>
+					</VisualStateGroupList>
+				</VisualStateManager.VisualStateGroups>
+
+				<Grid.GestureRecognizers>
+					<TapGestureRecognizer NumberOfTapsRequired="2" Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=DoubleTapNodeCommand}" CommandParameter="{Binding}" />
+					<DragGestureRecognizer CanDrag="True" DragStarting="OnNodeDragStarting" />
+				</Grid.GestureRecognizers>
+
+				<!-- Blank Chevron space to align with Category -->
+				<Label Text=" "
+					   WidthRequest="14"
+					   VerticalOptions="Center" />
+
+				<Grid Grid.Column="1" WidthRequest="16" HeightRequest="16" Margin="4,0,8,0" VerticalOptions="Center">
+					<Image Source="{Binding NodeIcon}" Opacity="0.8" AutomationProperties.IsInAccessibleTree="False" />
+				</Grid>
+
+				<Label Grid.Column="2"
+					   Text="{Binding DisplayName}"
+					   TextColor="{StaticResource NodeItemSecondaryTextColor}"
+					   FontSize="12"
+					   LineBreakMode="TailTruncation"
+					   VerticalOptions="Center" />
+
+				<Label Grid.Column="3"
+					   Text="{Binding BookmarkToggleIcon}"
+					   TextColor="{Binding BookmarkToggleColor}"
+					   FontSize="14"
+					   VerticalOptions="Center"
+					   HorizontalOptions="End"
+					   Margin="0,0,10,0"
+					   IsVisible="{Binding ShowBookmarkToggle}"
+					   AutomationProperties.IsInAccessibleTree="True"
+					   SemanticProperties.Description="{Binding BookmarkToggleText}"
+					   SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.bookmark_toggle_help}">
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroupList>
+							<VisualStateGroup x:Name="CommonStates">
+								<VisualState x:Name="Normal">
+									<VisualState.Setters>
+										<Setter Property="Scale" Value="1.0" />
+									</VisualState.Setters>
+								</VisualState>
+								<VisualState x:Name="PointerOver">
+									<VisualState.Setters>
+										<Setter Property="Scale" Value="1.3" />
+									</VisualState.Setters>
+								</VisualState>
+							</VisualStateGroup>
+						</VisualStateGroupList>
+					</VisualStateManager.VisualStateGroups>
+					<Label.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</Label.GestureRecognizers>
+				</Label>
+
+				<Label Grid.Column="3"
+					   Text="✕"
+					   TextColor="{StaticResource NodeRemoveColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   VerticalOptions="Center"
+					   HorizontalOptions="End"
+					   Margin="0,0,10,0"
+					   IsVisible="{Binding ShowBookmarkRemoveButton}"
+					   AutomationProperties.IsInAccessibleTree="True"
+					   SemanticProperties.Description="{Binding BookmarkToggleText}"
+					   SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.bookmark_toggle_help}">
+					<VisualStateManager.VisualStateGroups>
+						<VisualStateGroupList>
+							<VisualStateGroup x:Name="CommonStates">
+								<VisualState x:Name="Normal">
+									<VisualState.Setters>
+										<Setter Property="TextColor" Value="{StaticResource NodeRemoveColor}" />
+										<Setter Property="Scale" Value="1.0" />
+									</VisualState.Setters>
+								</VisualState>
+								<VisualState x:Name="PointerOver">
+									<VisualState.Setters>
+										<Setter Property="TextColor" Value="{StaticResource NodeRemoveHoverColor}" />
+										<Setter Property="Scale" Value="1.2" />
+									</VisualState.Setters>
+								</VisualState>
+							</VisualStateGroup>
+						</VisualStateGroupList>
+					</VisualStateManager.VisualStateGroups>
+					<Label.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type local:NodeLibraryView}}, Path=ToggleBookmarkCommand}" CommandParameter="{Binding}" />
+					</Label.GestureRecognizers>
+				</Label>
+			</Grid>
+		</DataTemplate>
+
+		<local:NodeItemTemplateSelector x:Key="NodeSelector"
+										HeaderTemplate="{StaticResource HeaderTemplate}"
+										CategoryTemplate="{StaticResource CategoryTemplate}"
+										NodeTemplate="{StaticResource NodeTemplate}" />
+	</ContentView.Resources>
+
+	<Grid RowDefinitions="Auto, Auto, Auto, *">
+		<!-- Header Section -->
+		<Border Grid.Row="0"
+				StrokeThickness="0"
+				Padding="12,20,12,20">
+			<Border.Background>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+					<GradientStop Color="{StaticResource NodeHeaderGradientStartColor}" Offset="0" />
+					<GradientStop Color="{StaticResource NodeHeaderGradientMiddleColor}" Offset="0.48" />
+					<GradientStop Color="{StaticResource NodeHeaderGradientEndColor}" Offset="1" />
+				</LinearGradientBrush>
+			</Border.Background>
+			<Grid ColumnDefinitions="Auto,*"
+				  ColumnSpacing="8">
+				<Image Source="rail_node_library.png"
+					   WidthRequest="18"
+					   HeightRequest="18"
+					   Opacity="0.92"
+					   AutomationProperties.IsInAccessibleTree="False"
+					   VerticalOptions="Center" />
+				<Label Text="{loc:Loc views.rail.tools.node_library.node_library_view.node_library}"
+					   Grid.Column="1"
+					   TextColor="{StaticResource NodeRailTitleColor}"
+					   FontSize="13"
+					   FontAttributes="Bold"
+					   CharacterSpacing="1.2"
+					   VerticalOptions="Center" />
+			</Grid>
+		</Border>
+
+		<!-- Search Area -->
+		<VerticalStackLayout Grid.Row="1" Margin="0,4,0,12" Spacing="6">
+			<!-- Main Search Input -->
+			<Grid Padding="12,0,12,0">
+				<Border x:Name="RailSearchBorder"
+						BackgroundColor="{StaticResource NodeSearchSurfaceColor}"
+						Stroke="Transparent"
+						StrokeThickness="0"
+						HeightRequest="30"
+						MinimumHeightRequest="30">
+					<Border.StrokeShape>
+						<shapes:RoundRectangle CornerRadius="4" />
+					</Border.StrokeShape>
+					<Grid ColumnDefinitions="*, Auto">
+						<Entry x:Name="RailSearchEntry"
+							   Grid.Column="0"
+							   Placeholder="{loc:Loc views.rail.tools.node_library.node_library_view.search_nodes}"
+							   PlaceholderColor="{StaticResource NodeSearchPlaceholderColor}"
+							   TextColor="{StaticResource NodeSearchTextColor}"
+							   FontSize="12"
+							   BackgroundColor="Transparent"
+							   SemanticProperties.Description="{loc:Loc views.rail.tools.node_library.node_library_view.search_nodes}"
+							   SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.search_nodes_help}"
+							   VerticalOptions="Center"
+							   HeightRequest="30"
+							   MinimumHeightRequest="30"
+							   ClearButtonVisibility="Never"
+							   TextChanged="OnSearchTextChanged"
+							   Focused="OnSearchEntryFocused"
+							   Unfocused="OnSearchEntryUnfocused" />
+						<Border x:Name="RailSearchClearButton"
+								Grid.Column="1"
+								WidthRequest="24"
+								HeightRequest="24"
+								StrokeThickness="0"
+								VerticalOptions="Center"
+								HorizontalOptions="Center"
+								IsVisible="False"
+								AutomationProperties.IsInAccessibleTree="True"
+								SemanticProperties.Description="{loc:Loc views.rail.tools.node_library.node_library_view.clear_search}"
+								SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.clear_search_help}">
+							<Border.StrokeShape>
+								<shapes:RoundRectangle CornerRadius="7" />
+							</Border.StrokeShape>
+							<Label x:Name="RailSearchClearLabel"
+								   Text="×"
+								   FontSize="14"
+								   FontAttributes="Bold"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Center"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center" />
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnClearSearchTapped" />
+							</Border.GestureRecognizers>
+						</Border>
+					</Grid>
+					<Border.GestureRecognizers>
+						<PointerGestureRecognizer PointerEntered="OnSearchPointerEntered"
+												PointerExited="OnSearchPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+			</Grid>
+
+			<!-- Airplane Toggle (Description Search) -->
+			<Border x:Name="DescSearchToggleBorder"
+					BackgroundColor="{StaticResource NodeSearchSurfaceColor}"
+					Stroke="{StaticResource NodeSearchToggleStrokeColor}"
+					StrokeThickness="1"
+					HeightRequest="22"
+					Margin="12,0,0,0"
+					HorizontalOptions="Start"
+					AutomationProperties.IsInAccessibleTree="True"
+					SemanticProperties.Description="{loc:Loc views.rail.tools.node_library.node_library_view.include_desc}"
+					SemanticProperties.Hint="{loc:Loc views.rail.tools.node_library.node_library_view.include_desc_help}">
+				<Border.StrokeShape>
+					<shapes:RoundRectangle CornerRadius="4" />
+				</Border.StrokeShape>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnDescSearchTapped" />
+					<PointerGestureRecognizer PointerEntered="OnTogglePointerEntered" PointerExited="OnTogglePointerExited" />
+				</Border.GestureRecognizers>
+				<HorizontalStackLayout Padding="10,0,10,0"  Spacing="6" VerticalOptions="Center">
+					<BoxView x:Name="DescSearchIndicator"
+							 Color="{StaticResource NodeSearchToggleIndicatorColor}"
+							 WidthRequest="6"
+							 HeightRequest="6"
+							 CornerRadius="3"
+							 VerticalOptions="Center" />
+					<Label x:Name="DescSearchLabel"
+						   Text="{loc:Loc views.rail.tools.node_library.node_library_view.include_desc}"
+						   TextColor="{StaticResource NodeSearchToggleTextColor}"
+						   FontSize="9"
+						   FontAttributes="Bold"
+						   CharacterSpacing="0.8"
+						   VerticalOptions="Center" />
+				</HorizontalStackLayout>
+			</Border>
+		</VerticalStackLayout>
+
+		<!-- Content Area -->
+		<virtualization:VirtualizedVerticalListView x:Name="LibraryVirtualList"
+													Grid.Row="3" />
+
+		<!-- Loading Overlay -->
+		<Grid x:Name="RailLoadingOverlay"
+			  Grid.RowSpan="4"
+			  IsVisible="False"
+			  ZIndex="2"
+			  BackgroundColor="{StaticResource NodeLoadingBackdropColor}"
+			  InputTransparent="False"
+			  Margin="0,58,0,0">
+			<Border BackgroundColor="{StaticResource NodeLoadingPanelColor}"
+					Stroke="{StaticResource NodeLoadingPanelStrokeColor}"
+					StrokeThickness="1"
+					Padding="14,12"
+					WidthRequest="220"
+					HorizontalOptions="Center"
+					VerticalOptions="Center">
+				<Border.StrokeShape>
+					<shapes:RoundRectangle CornerRadius="16" />
+				</Border.StrokeShape>
+				<Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+					<Grid WidthRequest="34" HeightRequest="34" VerticalOptions="Center">
+						<shapes:Ellipse Fill="{StaticResource NodeLoadingIconSurfaceColor}"
+										Stroke="{StaticResource NodeLoadingIconStrokeColor}"
+										StrokeThickness="1.2" />
+						<ActivityIndicator IsRunning="True"
+										   Color="{StaticResource NodeLoadingAccentColor}"
+										   WidthRequest="24"
+										   HeightRequest="24"
+										   AutomationProperties.IsInAccessibleTree="False"
+										   HorizontalOptions="Center"
+										   VerticalOptions="Center" />
+					</Grid>
+					<Label Grid.Column="1"
+						   Text="{loc:Loc views.rail.tools.node_library.node_library_view.updating_nodes}"
+						   TextColor="{StaticResource NodeLoadingTextColor}"
+						   FontSize="12"
+						   FontAttributes="Bold"
+						   LineBreakMode="TailTruncation"
+						   VerticalOptions="Center" />
+				</Grid>
+			</Border>
+		</Grid>
+	</Grid>
+</ContentView>

@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+show_help() {
+	cat <<'EOF'
+ComfyUI-Nexus portable release builder
+
+Usage:
+  ./dev-build-as-binary [configuration] <folder|single> [clean] [archive|zip] [--cert <name>]
+
+Arguments:
+  configuration   Build configuration. Defaults to Release.
+                  Common values: Release, Debug
+
+  folder          Required package mode.
+                  Produces root launcher + App folder + LocalRuntime.
+
+  single          Required package mode.
+                  Produces the older compact single-file app layout.
+
+  clean           Optional. Runs dotnet clean before publishing.
+                  Use this when SDK build outputs look stale.
+                  Omit it for repeatable release hashes between builds.
+
+  archive, zip    Optional. Creates the portable ZIP after packaging.
+                  Omit it for faster local test builds.
+
+  --cert <name>   Optional local code-signing certificate name.
+                  Signs unsigned release binaries before packaging.
+
+Examples:
+  ./dev-build-as-binary Release folder
+  ./dev-build-as-binary Release single
+  ./dev-build-as-binary Release folder clean
+  ./dev-build-as-binary Release folder archive
+  ./dev-build-as-binary Release single clean
+  ./dev-build-as-binary Debug folder
+  ./dev-build-as-binary Release folder --cert develop
+
+Notes:
+  This script is an MSYS2/Git Bash wrapper around dev-build-as-binary.bat.
+  Release staging folders are still cleaned every run.
+EOF
+}
+
+case "${1:-}" in
+	-h|--help|help)
+		show_help
+		exit 0
+		;;
+esac
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+bat_path="$script_dir/dev-build-as-binary.bat"
+
+if [[ ! -f "$bat_path" ]]; then
+	echo "[Nexus] ERROR: dev-build-as-binary.bat was not found next to this script." >&2
+	exit 1
+fi
+
+configuration="Release"
+package_arg=""
+clean_arg=""
+archive_arg=""
+cert_name=""
+
+if [[ $# -gt 0 ]]; then
+	case "${1,,}" in
+		folder|single|clean|archive|zip|--cert|--cert=*)
+			;;
+		*)
+			configuration="$1"
+			shift
+			;;
+	esac
+fi
+
+while [[ $# -gt 0 ]]; do
+	arg="$1"
+	case "${arg,,}" in
+		folder|single)
+			package_arg="$arg"
+			shift
+			;;
+		clean)
+			clean_arg="clean"
+			shift
+			;;
+		archive|zip)
+			archive_arg="archive"
+			shift
+			;;
+		--cert)
+			if [[ $# -lt 2 || -z "${2:-}" ]]; then
+				echo "[Nexus] ERROR: --cert requires a certificate name." >&2
+				exit 1
+			fi
+			cert_name="$2"
+			shift 2
+			;;
+		--cert=*)
+			cert_name="${arg#*=}"
+			if [[ -z "$cert_name" ]]; then
+				echo "[Nexus] ERROR: --cert requires a certificate name." >&2
+				exit 1
+			fi
+			shift
+			;;
+		*)
+			echo "[Nexus] ERROR: unknown argument: $arg" >&2
+			echo >&2
+			show_help >&2
+			exit 1
+			;;
+	esac
+done
+
+if [[ -z "$package_arg" ]]; then
+	echo "[Nexus] ERROR: package mode is required." >&2
+	echo >&2
+	show_help >&2
+	exit 1
+fi
+
+if command -v cygpath >/dev/null 2>&1; then
+	bat_path="$(cygpath -w "$bat_path")"
+fi
+
+bat_args=("$configuration" "$package_arg")
+[[ -n "$clean_arg" ]] && bat_args+=("clean")
+[[ -n "$archive_arg" ]] && bat_args+=("archive")
+[[ -n "$cert_name" ]] && bat_args+=("--cert" "$cert_name")
+
+cmd.exe //d //c call "$bat_path" "${bat_args[@]}"

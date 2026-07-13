@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.HelpOverlayView"
+			 IsVisible="False"
+			 Opacity="0"
+			 InputTransparent="True">
+	<ContentView.Resources>
+		<Color x:Key="HelpBackdropColor">#B8050A14</Color>
+		<Color x:Key="HelpPanelColor">#F20A101B</Color>
+		<Color x:Key="HelpPanelStrokeColor">#2631d8ff</Color>
+		<Color x:Key="HelpTitleColor">#f4feff</Color>
+		<Color x:Key="HelpSubtitleColor">#8fb9d8</Color>
+		<Color x:Key="HelpNavPanelColor">#0A0F18</Color>
+		<Color x:Key="HelpNavStrokeColor">#1E344F66</Color>
+		<Color x:Key="HelpCardColor">#11111A24</Color>
+		<Color x:Key="HelpCardStrokeColor">#26344F66</Color>
+		<Color x:Key="HelpAccentColor">#31d8ff</Color>
+		<Color x:Key="HelpValueColor">#dff8ff</Color>
+
+		<Style x:Key="HelpHeaderButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="#1231d8ff" />
+			<Setter Property="TextColor" Value="{StaticResource HelpValueColor}" />
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="HeightRequest" Value="36" />
+			<Setter Property="Padding" Value="16,0" />
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#2431d8ff" />
+								<Setter Property="TextColor" Value="#ffffff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Pressed">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#3631d8ff" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+
+		<Style x:Key="HelpLinkLabelStyle" TargetType="Label">
+			<Setter Property="TextColor" Value="#7ee7ff" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="TextDecorations" Value="Underline" />
+			<Setter Property="LineBreakMode" Value="TailTruncation" />
+			<Setter Property="HorizontalOptions" Value="Start" />
+			<Setter Property="Margin" Value="0,-2,0,-2" />
+		</Style>
+
+		<Style x:Key="HelpFolderLinkLabelStyle" TargetType="Label">
+			<Setter Property="BackgroundColor" Value="#12224430" />
+			<Setter Property="TextColor" Value="#b8f7d4" />
+			<Setter Property="FontSize" Value="14" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="FontFamily" Value="Consolas" />
+			<Setter Property="Padding" Value="8,2" />
+			<Setter Property="LineBreakMode" Value="TailTruncation" />
+			<Setter Property="HorizontalOptions" Value="Start" />
+			<Setter Property="Margin" Value="0,-2,0,-2" />
+		</Style>
+
+		<Style x:Key="HelpNavButtonStyle" TargetType="Button">
+			<Setter Property="BackgroundColor" Value="Transparent" />
+			<Setter Property="TextColor" Value="#b8dff2" />
+			<Setter Property="FontSize" Value="13" />
+			<Setter Property="FontAttributes" Value="Bold" />
+			<Setter Property="HeightRequest" Value="40" />
+			<Setter Property="Padding" Value="13,0" />
+			<Setter Property="CornerRadius" Value="12" />
+			<Setter Property="HorizontalOptions" Value="Fill" />
+			<Setter Property="VisualStateManager.VisualStateGroups">
+				<VisualStateGroupList>
+					<VisualStateGroup x:Name="CommonStates">
+						<VisualState x:Name="Normal" />
+						<VisualState x:Name="PointerOver">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#1231d8ff" />
+								<Setter Property="TextColor" Value="#f4feff" />
+							</VisualState.Setters>
+						</VisualState>
+						<VisualState x:Name="Pressed">
+							<VisualState.Setters>
+								<Setter Property="BackgroundColor" Value="#2031d8ff" />
+							</VisualState.Setters>
+						</VisualState>
+					</VisualStateGroup>
+				</VisualStateGroupList>
+			</Setter>
+		</Style>
+
+	</ContentView.Resources>
+
+	<Grid BackgroundColor="{StaticResource HelpBackdropColor}"
+		  Padding="34">
+		<Grid x:Name="HelpPanelHost"
+			  HorizontalOptions="Center"
+			  VerticalOptions="Center">
+			<Border x:Name="HelpPanelBorder"
+					WidthRequest="900"
+					HeightRequest="620"
+					HorizontalOptions="Start"
+					VerticalOptions="Start"
+					BackgroundColor="{StaticResource HelpPanelColor}"
+					Stroke="{StaticResource HelpPanelStrokeColor}"
+					StrokeThickness="1"
+					Padding="0">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="28" />
+			</Border.StrokeShape>
+
+			<Grid>
+				<Grid x:Name="HelpPanelPlaceholder"
+					  InputTransparent="True">
+					<VerticalStackLayout HorizontalOptions="Center"
+										 VerticalOptions="Center"
+										 Spacing="10">
+						<Grid WidthRequest="108"
+							  HeightRequest="84"
+							  HorizontalOptions="Center">
+							<Ellipse WidthRequest="82"
+									 HeightRequest="18"
+									 Fill="{StaticResource HelpAccentColor}"
+									 Opacity="0.14"
+									 HorizontalOptions="Center"
+									 VerticalOptions="End"
+									 Margin="0,0,0,4" />
+							<Image Source="logo_neon_glass.png"
+								   WidthRequest="76"
+								   HeightRequest="76"
+								   Aspect="AspectFit"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Start"
+								   AutomationProperties.IsInAccessibleTree="False" />
+						</Grid>
+					</VerticalStackLayout>
+				</Grid>
+
+			<Grid x:Name="HelpContentRoot"
+				  RowDefinitions="Auto,*"
+				  RowSpacing="0">
+				<Grid Grid.Row="0"
+					  ColumnDefinitions="*,Auto"
+					  Padding="30,26,26,20">
+					<VerticalStackLayout Spacing="5">
+						<Label x:Name="HelpTitleLabel"
+							   Text="NEXUS HELP"
+							   TextColor="{StaticResource HelpTitleColor}"
+							   FontSize="21"
+							   FontAttributes="Bold" />
+						<Label x:Name="HelpSubtitleLabel"
+							   Text="A practical field notebook for models, nodes, references, and links you actually revisit."
+							   TextColor="{StaticResource HelpSubtitleColor}"
+							   FontSize="12" />
+					</VerticalStackLayout>
+					<Button Grid.Column="1"
+							Text="{loc:Loc common.close}"
+							Clicked="OnCloseClicked"
+							Style="{StaticResource HelpHeaderButtonStyle}" />
+				</Grid>
+
+				<Grid Grid.Row="1"
+					  ColumnDefinitions="260,*"
+					  ColumnSpacing="18"
+					  Margin="30,0,30,30">
+					<Border BackgroundColor="{StaticResource HelpNavPanelColor}"
+							Stroke="{StaticResource HelpNavStrokeColor}"
+							StrokeThickness="1"
+							Padding="12">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="18" />
+						</Border.StrokeShape>
+						<ScrollView>
+							<VerticalStackLayout x:Name="HelpItemsStack" Spacing="7" />
+						</ScrollView>
+					</Border>
+
+					<Border Grid.Column="1"
+							BackgroundColor="{StaticResource HelpCardColor}"
+							Stroke="{StaticResource HelpCardStrokeColor}"
+							StrokeThickness="1"
+							Padding="22,20">
+						<Border.StrokeShape>
+							<RoundRectangle CornerRadius="22" />
+						</Border.StrokeShape>
+						<Grid>
+							<Border x:Name="HelpDetailAccentStroke"
+									WidthRequest="92"
+									HeightRequest="3"
+									HorizontalOptions="End"
+									VerticalOptions="Start"
+									Margin="0,0,4,0"
+									BackgroundColor="{StaticResource HelpAccentColor}">
+								<Border.StrokeShape>
+									<RoundRectangle CornerRadius="3" />
+								</Border.StrokeShape>
+							</Border>
+							<ScrollView x:Name="HelpDetailScrollView"
+										Margin="0,10,0,0">
+								<VerticalStackLayout Spacing="14"
+													 Padding="0,0,18,0">
+									<Label x:Name="HelpDetailTitleLabel"
+										   TextColor="#f4feff"
+										   FontSize="24"
+										   FontAttributes="Bold" />
+									<VerticalStackLayout x:Name="HelpDetailBodyStack"
+														 Spacing="4" />
+									<Label x:Name="HelpDetailHintLabel"
+										   TextColor="#6d879b"
+										   FontSize="11"
+										   LineHeight="1.18" />
+								</VerticalStackLayout>
+							</ScrollView>
+						</Grid>
+					</Border>
+				</Grid>
+			</Grid>
+			</Grid>
+			</Border>
+		</Grid>
+	</Grid>
+</ContentView>

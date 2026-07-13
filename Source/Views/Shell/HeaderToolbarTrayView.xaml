@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:optionDeck="clr-namespace:ComfyUI_Nexus.Views.Controls.OptionDeck"
+			 x:Class="ComfyUI_Nexus.Views.HeaderToolbarTrayView"
+			 x:Name="HeaderToolbarTrayRoot">
+	<ContentView.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="../../../Resources/Styles/HeaderToolbarTrayStyles.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</ContentView.Resources>
+
+	<Grid x:Name="WorkflowToolBarStack"
+		  VerticalOptions="Start"
+		  HeightRequest="{StaticResource ToolbarHeightCompact}"
+		  Padding="0,2,4,2"
+		  BackgroundColor="{StaticResource ToolbarShellColor}"
+		  IsClippedToBounds="False">
+
+		<!-- Left: Graph Navigation -->
+		<HorizontalStackLayout Grid.Column="0" Spacing="4" VerticalOptions="Start">
+			<Border WidthRequest="{StaticResource ToolbarButtonSize}"
+					HeightRequest="{StaticResource ToolbarButtonSize}"
+					BackgroundColor="Transparent"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 4"
+					ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.enter_app_mode}"
+					AutomationProperties.IsInAccessibleTree="True"
+					SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.enter_app_mode}"
+					SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.enter_app_mode_help}">
+				<Label Text="&#x229E;"
+					   FontSize="14"
+					   TextColor="{StaticResource ToolbarTextSoftColor}"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   InputTransparent="True" />
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Command="{Binding EnterAppModeCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+					<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+
+			<Border x:Name="MainMenuButton"
+					HeightRequest="{StaticResource ToolbarButtonSize}"
+					Padding="6,0"
+					BackgroundColor="Transparent"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 4"
+					ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.main_menu}"
+					AutomationProperties.IsInAccessibleTree="True"
+					SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.main_menu}"
+					SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.main_menu_help}">
+				<HorizontalStackLayout Spacing="4" InputTransparent="True" VerticalOptions="Center">
+					<Image Source="rail_comfy_menu.png"
+						   WidthRequest="13"
+						   HeightRequest="13"
+						   Aspect="AspectFit"
+						   VerticalOptions="Center"
+						   AutomationProperties.IsInAccessibleTree="False"
+						   InputTransparent="True" />
+					<Label Text="{loc:Loc views.shell.header_toolbar_tray_view.menu}" FontSize="11" TextColor="{StaticResource ToolbarTextMutedColor}" VerticalOptions="Center" />
+				</HorizontalStackLayout>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Command="{Binding GuardedMainMenuCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+					<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+		</HorizontalStackLayout>
+
+		<!-- Center: BatchNumber [Play | Stop] JobTab -->
+		<Grid x:Name="CommandDeckHost"
+			  Grid.Column="1"
+			  WidthRequest="{StaticResource ToolbarCommandDeckWidth}"
+			  HeightRequest="{StaticResource ToolbarCommandDeckHeight}"
+			  HorizontalOptions="Center"
+			  VerticalOptions="Start"
+			  TranslationY="-1"
+			  IsClippedToBounds="False"
+			  ZIndex="1">
+			<Grid WidthRequest="{StaticResource ToolbarCommandDeckWidth}"
+				  HeightRequest="{StaticResource ToolbarCommandDeckHeight}"
+				  HorizontalOptions="Center"
+				  VerticalOptions="Start"
+				  IsClippedToBounds="False">
+
+			<Border BackgroundColor="{StaticResource ToolbarCommandSurfaceColor}"
+					Stroke="{StaticResource ToolbarCommandStrokeColor}"
+					StrokeThickness="1"
+					StrokeShape="RoundRectangle 12"
+					Padding="3"
+					Opacity="0.96"
+					HeightRequest="{StaticResource ToolbarCommandSurfaceHeight}"
+					VerticalOptions="Start">
+			</Border>
+
+			<Grid ColumnDefinitions="65,158,65"
+				  ColumnSpacing="5"
+				  Padding="5,0"
+				  HeightRequest="{StaticResource ToolbarCommandDeckHeight}"
+				  VerticalOptions="Start"
+				  IsClippedToBounds="False">
+
+				<Border Grid.Column="0"
+						HeightRequest="{StaticResource ToolbarCommandSurfaceHeight}"
+						VerticalOptions="Start"
+						HorizontalOptions="Fill"
+						BackgroundColor="Transparent"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 8"
+						AutomationProperties.IsInAccessibleTree="True"
+						SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.queue_count}"
+						SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.queue_count_help}">
+					<Grid ColumnDefinitions="*,26"
+						  HeightRequest="{StaticResource ToolbarCommandSurfaceHeight}"
+						  VerticalOptions="Center">
+						<Grid Grid.Column="0" BackgroundColor="Transparent">
+							<Grid.GestureRecognizers>
+								<PointerGestureRecognizer PointerEntered="OnQueueCountPointerEntered"
+														  PointerExited="OnQueueCountPointerExited"
+														  PointerPressed="OnQueueCountPointerPressed"
+														  PointerReleased="OnQueueCountPointerReleased" />
+								<PanGestureRecognizer PanUpdated="OnQueueCountPanUpdated" />
+							</Grid.GestureRecognizers>	
+							<Ellipse x:Name="QueueCountHoverGlow"
+									 Opacity="0"
+									 WidthRequest="48"
+									 HeightRequest="34"
+									 HorizontalOptions="Center"
+									 VerticalOptions="Center"
+									 InputTransparent="True">
+								<Ellipse.Fill>
+									<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+										<GradientStop Color="{StaticResource ToolbarHoverGlowColor}" Offset="0.0" />
+										<GradientStop Color="Transparent" Offset="1.0" />
+									</RadialGradientBrush>
+								</Ellipse.Fill>
+							</Ellipse>
+							<Label x:Name="QueueCountLabel"
+								   Text="1"
+								   TextColor="{StaticResource ToolbarTextWhiteColor}"
+								   FontSize="12"
+								   FontAttributes="Bold"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center"
+								   VerticalOptions="Center"
+								   InputTransparent="True" />
+							<Entry x:Name="QueueCountEntry"
+								   Text="1"
+								   TextColor="Transparent"
+								   FontSize="11"
+								   HorizontalTextAlignment="Center"
+								   BackgroundColor="Transparent"
+								   HeightRequest="24"
+								   VerticalOptions="Center"
+								   TextChanged="OnQueueCountTextChanged"
+								   IsVisible="False" />
+						</Grid>
+
+						<VerticalStackLayout Grid.Column="1"
+											 HeightRequest="23"
+											 Spacing="1"
+											 Padding="0,2"
+											 VerticalOptions="Center">
+							<Border x:Name="QueueIncrementButton"
+									WidthRequest="28"
+									HeightRequest="9"
+									HorizontalOptions="Center"
+									BackgroundColor="Transparent"
+									StrokeThickness="0"
+									AutomationProperties.IsInAccessibleTree="True"
+									SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.increment_queue_count}"
+									SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.increment_queue_count_help}">
+								<Grid IsClippedToBounds="False">
+									<Ellipse x:Name="QueueIncrementHoverGlow"
+											 Opacity="0"
+											 WidthRequest="38"
+											 HeightRequest="20"
+											 HorizontalOptions="Center"
+											 VerticalOptions="Center"
+											 InputTransparent="True">
+										<Ellipse.Fill>
+											<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+												<GradientStop Color="{StaticResource ToolbarQueueAdjustGlowColor}" Offset="0.0" />
+												<GradientStop Color="Transparent" Offset="1.0" />
+											</RadialGradientBrush>
+										</Ellipse.Fill>
+									</Ellipse>
+									<Label Text="&#x02C4;" FontSize="9" TextColor="{StaticResource ToolbarGlyphColor}" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True" />
+								</Grid>
+								<Border.GestureRecognizers>
+									<PointerGestureRecognizer PointerEntered="OnQueueButtonPointerEntered" PointerExited="OnQueueButtonPointerExited" PointerPressed="OnQueueAdjustPointerPressed" PointerReleased="OnQueueAdjustPointerReleased" />
+								</Border.GestureRecognizers>
+							</Border>
+
+							<Border x:Name="QueueDecrementButton"
+									WidthRequest="28"
+									HeightRequest="9"
+									HorizontalOptions="Center"
+									BackgroundColor="Transparent"
+									StrokeThickness="0"
+									AutomationProperties.IsInAccessibleTree="True"
+									SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.decrement_queue_count}"
+									SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.decrement_queue_count_help}">
+								<Grid IsClippedToBounds="False">
+									<Ellipse x:Name="QueueDecrementHoverGlow"
+											 Opacity="0"
+											 WidthRequest="38"
+											 HeightRequest="20"
+											 HorizontalOptions="Center"
+											 VerticalOptions="Center"
+											 InputTransparent="True">
+										<Ellipse.Fill>
+											<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+												<GradientStop Color="{StaticResource ToolbarQueueAdjustGlowColor}" Offset="0.0" />
+												<GradientStop Color="Transparent" Offset="1.0" />
+											</RadialGradientBrush>
+										</Ellipse.Fill>
+									</Ellipse>
+									<Label Text="&#x02C5;" FontSize="9" TextColor="{StaticResource ToolbarGlyphColor}" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True" />
+								</Grid>
+								<Border.GestureRecognizers>
+									<PointerGestureRecognizer PointerEntered="OnQueueButtonPointerEntered" PointerExited="OnQueueButtonPointerExited" PointerPressed="OnQueueAdjustPointerPressed" PointerReleased="OnQueueAdjustPointerReleased" />
+								</Border.GestureRecognizers>
+							</Border>
+						</VerticalStackLayout>
+					</Grid>
+				</Border>
+
+				<Border Grid.Column="1"
+						ZIndex="2"
+						WidthRequest="{StaticResource ToolbarCommandCoreWidth}"
+						VerticalOptions="Start"
+						HeightRequest="40"
+						Margin="0,-5,0,0"
+						BackgroundColor="{StaticResource ToolbarCommandCoreColor}"
+						StrokeThickness="1"
+						StrokeShape="RoundRectangle 12">
+					<Border.Stroke>
+						<LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+							<GradientStop Color="{StaticResource ToolbarAccentColor}" Offset="0.0" />
+							<GradientStop Color="{StaticResource ToolbarDividerColor}" Offset="0.5" />
+							<GradientStop Color="{StaticResource ToolbarDangerAccentColor}" Offset="1.0" />
+						</LinearGradientBrush>
+					</Border.Stroke>
+					<Grid ColumnDefinitions="*,1,*">
+						<Border Grid.Column="0"
+								BackgroundColor="Transparent"
+								StrokeThickness="0"
+								AutomationProperties.IsInAccessibleTree="True"
+								SemanticProperties.Description="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run}"
+								SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.run_help}">
+							<Grid IsClippedToBounds="False">
+								<Ellipse x:Name="MainActionPulseGlow" Opacity="0" WidthRequest="96" HeightRequest="62" Scale="0.82" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
+									<Ellipse.Fill>
+										<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+											<GradientStop Color="{StaticResource ToolbarDangerGlowCoreColor}" Offset="0.0" />
+											<GradientStop Color="{StaticResource ToolbarDangerGlowEdgeColor}" Offset="1.0" />
+										</RadialGradientBrush>
+									</Ellipse.Fill>
+								</Ellipse>
+								<Ellipse x:Name="MainActionHoverGlow" Opacity="0" WidthRequest="{StaticResource ToolbarActionGlowWidth}" HeightRequest="{StaticResource ToolbarActionGlowHeight}" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
+									<Ellipse.Fill>
+										<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+											<GradientStop x:Name="MainActionHoverGlowCore" Color="{StaticResource ToolbarMainActionGlowCoreColor}" Offset="0.0" />
+											<GradientStop x:Name="MainActionHoverGlowEdge" Color="{StaticResource ToolbarMainActionGlowEdgeColor}" Offset="1.0" />
+										</RadialGradientBrush>
+									</Ellipse.Fill>
+								</Ellipse>
+								<Image x:Name="MainActionIcon" Source="play_nexus.png" WidthRequest="{StaticResource ToolbarActionIconSize}" HeightRequest="{StaticResource ToolbarActionIconSize}" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" AutomationProperties.IsInAccessibleTree="False" InputTransparent="True" />
+								<Image x:Name="MainActionIconHover" Source="play_nexus_hover.png" WidthRequest="{StaticResource ToolbarActionIconSize}" HeightRequest="{StaticResource ToolbarActionIconSize}" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" AutomationProperties.IsInAccessibleTree="False" InputTransparent="True" Opacity="0" />
+							</Grid>
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Command="{Binding MainActionCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+								<PointerGestureRecognizer PointerEntered="OnMainActionPointerEntered" PointerExited="OnMainActionPointerExited" />
+							</Border.GestureRecognizers>
+						</Border>
+
+						<BoxView Grid.Column="1" WidthRequest="1" BackgroundColor="{StaticResource ToolbarDividerColor}" Opacity="0.75" Margin="0,5" />
+
+						<Border x:Name="StopActionButton"
+								Grid.Column="2"
+								BackgroundColor="Transparent"
+								StrokeThickness="0"
+								AutomationProperties.IsInAccessibleTree="True"
+								SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.stop}"
+								SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.stop_help}">
+							<Grid IsClippedToBounds="False">
+								<Ellipse x:Name="StopActionHoverGlow" Opacity="0" WidthRequest="{StaticResource ToolbarActionGlowWidth}" HeightRequest="{StaticResource ToolbarActionGlowHeight}" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
+									<Ellipse.Fill>
+										<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+											<GradientStop Color="{StaticResource ToolbarStopGlowCoreColor}" Offset="0.0" />
+											<GradientStop Color="{StaticResource ToolbarDangerGlowEdgeColor}" Offset="1.0" />
+										</RadialGradientBrush>
+									</Ellipse.Fill>
+								</Ellipse>
+								<Image x:Name="StopActionIcon" Source="stop_nexus.png" WidthRequest="{StaticResource ToolbarActionIconSize}" HeightRequest="{StaticResource ToolbarActionIconSize}" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" AutomationProperties.IsInAccessibleTree="False" InputTransparent="True" />
+								<Image x:Name="StopActionIconHover" Source="stop_nexus_hover.png" WidthRequest="{StaticResource ToolbarActionIconSize}" HeightRequest="{StaticResource ToolbarActionIconSize}" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" AutomationProperties.IsInAccessibleTree="False" InputTransparent="True" Opacity="0" />
+							</Grid>
+							<Border.GestureRecognizers>
+								<TapGestureRecognizer Command="{Binding StopActionCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+								<PointerGestureRecognizer PointerEntered="OnStopActionPointerEntered" PointerExited="OnStopActionPointerExited" />
+							</Border.GestureRecognizers>
+						</Border>
+					</Grid>
+				</Border>
+
+				<Border x:Name="ViewQueueButton"
+						Grid.Column="2"
+						HeightRequest="32"
+						Margin="-16,0,-3,0"
+						BackgroundColor="Transparent"
+						StrokeThickness="0"
+						StrokeShape="RoundRectangle 10"
+						VerticalOptions="Start"
+						HorizontalOptions="Fill"
+						AutomationProperties.IsInAccessibleTree="True"
+						SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.jobs}"
+						SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.jobs_help}">
+					<Grid HeightRequest="29"
+						  VerticalOptions="Center"
+						  IsClippedToBounds="False">
+						<Border x:Name="ViewQueueActiveFill"
+								Grid.ColumnSpan="2"
+								Opacity="0"
+								InputTransparent="True"
+								StrokeThickness="0">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="12" />
+							</Border.StrokeShape>
+						</Border>
+						<Border x:Name="ViewQueueActiveSheen"
+								Grid.ColumnSpan="2"
+								Opacity="0"
+								HeightRequest="10"
+								WidthRequest="66"
+								Rotation="-10"
+								TranslationY="-4"
+								HorizontalOptions="Center"
+								VerticalOptions="Start"
+								InputTransparent="True"
+								StrokeThickness="0">
+							<Border.StrokeShape>
+								<RoundRectangle CornerRadius="6" />
+							</Border.StrokeShape>
+							<Border.Background>
+								<LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+									<GradientStop Color="{StaticResource ToolbarSheenEdgeColor}" Offset="0.0" />
+									<GradientStop Color="{StaticResource ToolbarSheenCoreColor}" Offset="0.5" />
+									<GradientStop Color="{StaticResource ToolbarSheenEdgeColor}" Offset="1.0" />
+								</LinearGradientBrush>
+							</Border.Background>
+						</Border>
+						<Ellipse x:Name="ViewQueueHoverGlow"
+								 Grid.ColumnSpan="2"
+								 Opacity="0"
+								 WidthRequest="96"
+								 HeightRequest="46"
+								 HorizontalOptions="Center"
+								 VerticalOptions="Center"
+								 InputTransparent="True">
+							<Ellipse.Fill>
+								<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+									<GradientStop Color="{StaticResource ToolbarHoverGlowColor}" Offset="0.0" />
+									<GradientStop Color="Transparent" Offset="1.0" />
+								</RadialGradientBrush>
+							</Ellipse.Fill>
+						</Ellipse>
+						<HorizontalStackLayout Spacing="3"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center"
+											   InputTransparent="True">
+							<Image x:Name="ViewQueueIcon"
+								   Source="jobs_nexus.png"
+								   WidthRequest="16"
+								   HeightRequest="16"
+								   Aspect="AspectFit"
+								   VerticalOptions="Center"
+								   AutomationProperties.IsInAccessibleTree="False"
+								   InputTransparent="True" />
+							<Label x:Name="ViewQueueLabel"
+								   Text="{loc:Loc views.shell.header_toolbar_tray_view.jobs}"
+								   TextColor="{StaticResource ToolbarTextWhiteColor}"
+								   FontSize="10"
+								   FontAttributes="Bold"
+								   HorizontalTextAlignment="Center"
+								   VerticalTextAlignment="Center"
+								   VerticalOptions="Center"
+								   CharacterSpacing="1" />
+						</HorizontalStackLayout>
+					</Grid>
+					<Border.GestureRecognizers>
+						<TapGestureRecognizer Command="{Binding ViewQueueCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+						<PointerGestureRecognizer PointerEntered="OnQueueButtonPointerEntered" PointerExited="OnQueueButtonPointerExited" />
+					</Border.GestureRecognizers>
+				</Border>
+			</Grid>
+			</Grid>
+
+			<optionDeck:RunModeOptionDeckView x:Name="RunModeOptionDeck" />
+		</Grid>
+
+		<!-- Right: Utility Buttons -->
+		<HorizontalStackLayout Grid.Column="2"
+							   HorizontalOptions="End"
+							   Spacing="6"
+							   VerticalOptions="Start">
+			<!-- Manager Group -->
+			<Border x:Name="ManagerActionsGroup"
+					HeightRequest="26"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 8"
+					Padding="3,0"
+					VerticalOptions="Center">
+				<Border.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="{StaticResource ToolbarManagerGradientStartColor}" Offset="0" />
+						<GradientStop Color="{StaticResource ToolbarManagerGradientEndColor}" Offset="1" />
+					</LinearGradientBrush>
+				</Border.Background>
+				<HorizontalStackLayout Spacing="2" VerticalOptions="Center">
+					<Border x:Name="ManagerButton"
+							ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.comfyui_manager}"
+							HeightRequest="24"
+							StrokeThickness="0"
+							StrokeShape="RoundRectangle 7"
+							BackgroundColor="Transparent"
+							Padding="8,0"
+							AutomationProperties.IsInAccessibleTree="True"
+							SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.comfyui_manager}"
+							SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.comfyui_manager_help}">
+						<HorizontalStackLayout Spacing="4"
+											   HorizontalOptions="Center"
+											   VerticalOptions="Center"
+											   InputTransparent="True">
+							<Image Source="manager_nexus.png" WidthRequest="13" HeightRequest="13" VerticalOptions="Center" AutomationProperties.IsInAccessibleTree="False" />
+							<Label Text="{loc:Loc views.shell.header_toolbar_tray_view.manager}" FontSize="11" TextColor="{StaticResource ToolbarManagerLabelColor}" FontAttributes="Bold" VerticalOptions="Center" />
+						</HorizontalStackLayout>
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Command="{Binding ShowManagerCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+							<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="FavoritesButton"
+							ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.show_favorite_custom_node_list}"
+							Style="{StaticResource ToolbarIconButtonStyle}"
+							AutomationProperties.IsInAccessibleTree="True"
+							SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.show_favorite_custom_node_list}"
+							SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.show_favorite_custom_node_list_help}">
+						<Image Source="favorites_nexus.png" Style="{StaticResource ToolbarUtilityIconStyle}" AutomationProperties.IsInAccessibleTree="False" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Command="{Binding ShowFavoritesCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+							<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="UnloadModelsButton"
+							ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.unload_models}"
+							Style="{StaticResource ToolbarIconButtonStyle}"
+							AutomationProperties.IsInAccessibleTree="True"
+							SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.unload_models}"
+							SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.unload_models_help}">
+						<Image Source="unload_nexus.png" Style="{StaticResource ToolbarUtilityIconStyle}" AutomationProperties.IsInAccessibleTree="False" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Command="{Binding UnloadModelsCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+							<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="FreeCacheButton"
+							ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.free_model_and_node_cache}"
+							Style="{StaticResource ToolbarIconButtonStyle}"
+							AutomationProperties.IsInAccessibleTree="True"
+							SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.free_model_and_node_cache}"
+							SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.free_model_and_node_cache_help}">
+						<Image Source="cache_nexus.png" Style="{StaticResource ToolbarUtilityIconStyle}" AutomationProperties.IsInAccessibleTree="False" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Command="{Binding FreeCacheCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+							<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+						</Border.GestureRecognizers>
+					</Border>
+
+					<Border x:Name="ShareButton"
+							ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.share}"
+							Style="{StaticResource ToolbarIconButtonStyle}"
+							AutomationProperties.IsInAccessibleTree="True"
+							SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.share}"
+							SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.share_help}">
+						<Image Source="share_nexus.png" Style="{StaticResource ToolbarUtilityIconStyle}" AutomationProperties.IsInAccessibleTree="False" />
+						<Border.GestureRecognizers>
+							<TapGestureRecognizer Command="{Binding ShareCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+							<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+						</Border.GestureRecognizers>
+					</Border>
+				</HorizontalStackLayout>
+			</Border>
+
+			<Border x:Name="PropertiesButton"
+					ToolTipProperties.Text="{loc:Loc views.shell.header_toolbar_tray_view.toggle_properties_panel}"
+					WidthRequest="74"
+					HeightRequest="26"
+					StrokeThickness="0"
+					StrokeShape="RoundRectangle 9"
+					AutomationProperties.IsInAccessibleTree="True"
+					SemanticProperties.Description="{loc:Loc views.shell.header_toolbar_tray_view.toggle_properties_panel}"
+					SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.toggle_properties_panel_help}">
+				<Border.Background>
+					<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+						<GradientStop Color="{StaticResource ToolbarPropertiesGradientStartColor}" Offset="0" />
+						<GradientStop Color="{StaticResource ToolbarPropertiesGradientEndColor}" Offset="1" />
+					</LinearGradientBrush>
+				</Border.Background>
+				<Grid ColumnDefinitions="*,Auto" Padding="10,0,8,0" InputTransparent="True">
+					<Image Source="properties_panel.png"
+						   Grid.Column="0"
+						   WidthRequest="15"
+						   HeightRequest="15"
+						   HorizontalOptions="Center"
+						   AutomationProperties.IsInAccessibleTree="False"
+						   VerticalOptions="Center" />
+					<BoxView x:Name="PropertiesActiveAccent"
+							 Grid.Column="1"
+							 WidthRequest="3"
+							 HeightRequest="14"
+							 BackgroundColor="{StaticResource ToolbarPropertiesAccentColor}"
+							 VerticalOptions="Center"
+							 IsVisible="False"
+							 Opacity="0.9" />
+				</Grid>
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Command="{Binding TogglePropertiesCommand, Source={x:Reference HeaderToolbarTrayRoot}}" />
+					<PointerGestureRecognizer PointerEntered="OnToolbarButtonPointerEntered" PointerExited="OnToolbarButtonPointerExited" />
+				</Border.GestureRecognizers>
+			</Border>
+		</HorizontalStackLayout>
+	</Grid>
+</ContentView>

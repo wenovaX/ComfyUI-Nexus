@@ -1,0 +1,82 @@
+---
+
+[h]기본 무기와 최종 점검[/h]
+
+먼저 Nexus가 준비해둔 기본 무기들을 확인하고, Queue 버튼을 누르기 전 마지막 점검까지 마쳐보세요.
+비행기 조종사가 이륙 전 계기판을 살피듯 가볍게 훑어보는 것만으로도 실수를 크게 줄일 수 있습니다.
+
+---
+
+[h]기본으로 장착된 든든한 무기들[/h]
+
+ComfyUI의 진정한 힘은 '커스텀 노드(확장 기능)'에서 나옵니다. 
+Nexus가 엄선하여 미리 설치해둔 필수 패키지들을 소개합니다. 
+따로 설치할 필요 없이 바로 사용하실 수 있습니다!
+
+[b]1. ComfyUI Manager (만능 조수)[/b]  [link:🔗 GitHub|https://github.com/ltdrdata/ComfyUI-Manager]
+→ 새로운 노드를 설치하거나 업데이트하고, 부족한 모델을 찾아 다운로드해주는 만능 툴입니다. 
+→ 앞으로 가장 자주 보게 될 도구이며, Nexus 내에서 완벽하게 관리 및 통합됩니다. 
+→ 매니저를 통해 더 다채롭고 재미있는 커스텀 기능들을 손쉽게 접해보고 자신만의 모험을 떠나보세요!
+
+[b]2. ComfyUI HUD (헤드업 디스플레이)[/b]
+→ 복잡하고 어지러운 노드 스파게티 속에서, 
+핵심 조절판만 쏙 뽑아내어 화면에 예쁘게 띄워주는 혁신적인 편의 기능입니다. (Nexus 전용 내장 기능)
+
+[b]3. Impact Pack & Subpack (디테일러 & 얼굴 보정)[/b]  [link:🔗 GitHub|https://github.com/ltdrdata/ComfyUI-Impact-Pack]
+→ 뭉개진 얼굴을 고해상도로 예쁘게 복원해주는 Face Detailer를 포함해, 
+워크플로우를 자동화하고 퀄리티를 끌어올려주는 필수 도구 모음입니다.
+
+[b]4. IP-Adapter Plus (이미지 힌트 주입)[/b]  [link:🔗 GitHub|https://github.com/cubiq/ComfyUI_IPAdapter_plus]
+→ 텍스트 프롬프트 대신 '참고용 이미지'를 입력하여 
+구도나 스타일, 인물의 특징을 자연스럽게 반영해주는 강력한 도구입니다.
+
+[b]5. ControlNet Aux (컨트롤넷 전처리 도구)[/b]  [link:🔗 GitHub|https://github.com/Fannovel16/comfyui_controlnet_aux]
+→ 포즈(Openpose)나 깊이(Depth), 선(Canny)을 추출하는 전처리(Preprocessor) 노드 모음입니다.
+
+[b]6. AnimateDiff Evolved (부드러운 애니메이션)[/b]  [link:🔗 GitHub|https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved]
+→ 정적인 이미지를 넘어서, 
+자연스럽고 생동감 넘치는 움직이는 애니메이션(GIF/MP4)을 만들어주는 패키지입니다.
+
+[b]7. 기타 도구들 (페이스 분석 및 프롬프트 편의 기능)[/b]
+→ [b]FaceAnalysis[/b] [link:🔗 GitHub|https://github.com/chflame163/ComfyUI_FaceAnalysis]
+→ [b]PromptUtilities[/b] [link:🔗 GitHub|https://github.com/Moussekateer/ComfyUI-PromptUtilities]
+→ [b]AlekPet 노드[/b] [link:🔗 GitHub|https://github.com/AlekPet/ComfyUI_Custom_Nodes_AlekPet]
+
+등이 함께 설치되어 프롬프트 입력과 인물 분석을 더 편리하게 도와줍니다.
+
+---
+
+[h]이륙 전 필수 점검 항목[/h]
+
+작은 설정 하나가 생성 결과와 대기 시간을 크게 좌우합니다. 
+'Queue'를 누르기 전에 딱 3가지만 확인하세요!
+
+1. [b]모델 로드 확인 (Checkpoint)[/b]
+→ 내가 그리려는 화풍(SD 1.5 / SDXL)에 맞는 모델이 올바르게 선택되어 있는지 확인하세요. 
+→ 혹시 노드가 빨간색으로 빛나고 있다면 경로 설정 오류이니 파일을 다시 선택해 주세요.
+
+2. [b]해상도와 비율 (Latent Image)[/b]
+→ 모델 베이스에 적합한 해상도인가요? (SD1.5는 512, SDXL은 1024 추천)
+→ 무작정 해상도를 크게 키우면 그래픽카드 메모리 부족(OOM) 에러로 멈출 수 있습니다.
+
+3. [b]샘플러와 스텝 (Sampler & Steps)[/b]
+→ Steps가 너무 적으면 형체가 뭉개집니다. (최소 20회 이상 권장)
+→ CFG 스케일은 너무 높으면 이미지가 타버리거나 색감이 깨집니다. (보통 5~8 권장)
+
+---
+
+[h]에러가 났을 때 당황하지 않는 법[/h]
+
+→ [b]노드가 빨간색으로 변했어요![/b]
+경로가 잘못되었거나 설치되지 않은 커스텀 노드가 포함된 워크플로우를 불러왔을 때 발생합니다. 
+
+[b]ComfyUI Manager[/b]를 열어 'Install Missing Custom Nodes'를 클릭하면 
+부족한 노드를 자동으로 찾아 즉시 설치해줍니다!
+
+→ [b]생성 버튼을 눌렀는데 반응이 없거나 멈췄어요![/b]
+처음 모델을 로드할 때는 그래픽카드 메모리에 적재하느라 다소 시간이 걸릴 수 있습니다. 
+
+혹시 완전히 멈춘 것 같다면 하단 콘솔(Console) 로그를 확인해 
+메모리 부족(Out of Memory) 메시지가 없는지 체크해 보세요.
+
+---

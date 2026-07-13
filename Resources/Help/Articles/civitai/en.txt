@@ -1,0 +1,72 @@
+---
+
+[h]Civitai: The Largest AI Model Market[/h]
+
+[img:civitai_homepage.png|360]
+
+[link:Civitai|https://civitai.com] is not just a platform for downloading files.
+As you search for your desired art style, it becomes the massive "market" you will visit and explore most frequently.
+
+[accent]To find Stable Diffusion models and countless community-created assets,
+this is the premier space where you can visually verify and compare results before choosing.
+
+
+[b]Quick Access:[/b]
+
+→  [link:Civitai Home|https://civitai.com]
+→  [link:Browse Models|https://civitai.com/models][/accent]
+
+---
+
+[h]Recommended Usage[/h]
+
+1. Browse or search for models
+2. Open the model page
+3. Check the style and quality of preview images
+4. There may be multiple versions under the title, so check each version and download the one you prefer (.safetensors)
+
+[img:civitai_model_versions.png|360]
+
+[accent]Before downloading, always verify if the preview images display the consistent art style you want.[/accent]
+
+---
+
+[h]Practical Tips (Must-Know)[/h]
+
+→ First, verify whether the model is [b]SDXL or SD1.5[/b] on its page.
+  - The most accurate way is to check the description or tags.
+  - If there is no information, you can guess by the file size.
+    ([b]SD1.5 is usually 2-4GB[/b], while [b]SDXL models are usually 5-7GB or larger[/b]. Use this as a reference, as exceptions may exist depending on the model.)
+
+→ Some models with specially highlighted borders or icons may be paid or require additional conditions (subscriptions, credits, etc.).
+
+→ Some models require a separate VAE file.
+  - This is usually mentioned in the description or the download panel.
+
+→ Intuitively rename your files when downloading.
+  - Example: [b]sdxl_real_modelname_v1.safetensors[/b]
+  - This saves a massive amount of time when searching through your files later.
+
+→ Keep the [b]preview image[/b] together with the model file.
+  - Saving it with the exact same name makes it extremely easy to manage as a thumbnail later.
+
+---
+
+[h]Precautions[/h]
+
+→ Some models require login or may contain mature (NSFW) content.
+→ High popularity or ratings do not always mean the model is right for your computer environment.
+→ Result quality and VRAM requirements can vary drastically from model to model.
+→ Always check the creator's recommended settings (Sampler, Steps, VAE, etc.).
+
+---
+
+[h]When to Use This[/h]
+
+Civitai Use Cases:
+→ When you want to quickly pick a verified model among countless options
+→ When you want to check the latest trends in art styles or popular models
+→ When exploring new models (Checkpoint, LoRA) that suit your taste
+→ When you want to peek at the prompts and settings other people used
+
+---

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Overlays.WorkflowDropdownView"
+			 IsVisible="False"
+			 InputTransparent="True">
+	<Border x:Name="CustomDropdownOverlayBorder"
+			IsVisible="False"
+			BackgroundColor="{StaticResource WorkflowDropdownSurfaceColor}"
+			Stroke="{StaticResource WorkflowDropdownStrokeColor}"
+			StrokeThickness="1.5"
+			Padding="0"
+			Margin="0,0,15,0"
+			HorizontalOptions="End"
+			VerticalOptions="Start"
+			WidthRequest="220"
+			Opacity="0">
+		<Border.StrokeShape>
+			<RoundRectangle CornerRadius="8" />
+		</Border.StrokeShape>
+		<ScrollView MaximumHeightRequest="350">
+			<VerticalStackLayout x:Name="CustomDropdownListStack" Spacing="0" Padding="4" />
+		</ScrollView>
+	</Border>
+</ContentView>

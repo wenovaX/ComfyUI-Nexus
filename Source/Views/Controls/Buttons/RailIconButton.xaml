@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Controls.Buttons.RailIconButton"
+			 x:Name="RootView">
+	<Grid WidthRequest="40"
+		  HeightRequest="34"
+		  HorizontalOptions="Fill"
+		  VerticalOptions="Center">
+		<Border x:Name="ButtonBorder"
+				BackgroundColor="Transparent"
+				StrokeThickness="0"
+				WidthRequest="34"
+				HeightRequest="34"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				Opacity="0.96">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="{Binding CornerRadius, Source={x:Reference RootView}}" />
+			</Border.StrokeShape>
+			<Grid>
+				<Border x:Name="GlowSurface"
+						BackgroundColor="{StaticResource RailButtonGlowSurfaceColor}"
+						StrokeThickness="0"
+						Opacity="0">
+					<Border.StrokeShape>
+						<RoundRectangle CornerRadius="{Binding CornerRadius, Source={x:Reference RootView}}" />
+					</Border.StrokeShape>
+				</Border>
+
+				<Image x:Name="NormalIconImage"
+					   Source="{Binding IconSource, Source={x:Reference RootView}}"
+					   WidthRequest="26"
+					   HeightRequest="26"
+					   Aspect="AspectFit"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   InputTransparent="True" />
+
+				<Image x:Name="ActiveIconImage"
+					   Source="{Binding ActiveIconSource, Source={x:Reference RootView}}"
+					   WidthRequest="26"
+					   HeightRequest="26"
+					   Aspect="AspectFit"
+					   Opacity="0"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center"
+					   InputTransparent="True" />
+			</Grid>
+		</Border>
+	</Grid>
+</ContentView>

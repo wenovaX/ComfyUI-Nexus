@@ -1,0 +1,12 @@
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="ComfyUI_Nexus.Views.Components.LogTailView">
+	<ScrollView x:Name="TailScrollView"
+				Orientation="Vertical"
+				Scrolled="OnTailScrolled"
+				VerticalOptions="Fill">
+		<VerticalStackLayout x:Name="TailStack"
+							 Spacing="4"
+							 VerticalOptions="Start" />
+	</ScrollView>
+</ContentView>

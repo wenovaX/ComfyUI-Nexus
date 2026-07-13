@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 xmlns:loc="clr-namespace:ComfyUI_Nexus.Localization"
+			 xmlns:buttons="clr-namespace:ComfyUI_Nexus.Views.Controls.Buttons"
+			 xmlns:assets="clr-namespace:ComfyUI_Nexus.Views.Rail.Tools.Assets"
+			 xmlns:mediaAssets="clr-namespace:ComfyUI_Nexus.Views.Rail.Tools.MediaAssets"
+			 xmlns:nodes="clr-namespace:ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary"
+			 xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+			 x:Class="ComfyUI_Nexus.Views.Rail.RailView">
+
+	<ContentView.Resources>
+		<Style x:Key="RailToolSeparatorStyle" TargetType="Border">
+			<Setter Property="WidthRequest" Value="20" />
+			<Setter Property="HeightRequest" Value="1" />
+			<Setter Property="HorizontalOptions" Value="Center" />
+			<Setter Property="Opacity" Value="0.45" />
+			<Setter Property="Margin" Value="0,-2,0,-2" />
+		</Style>
+
+		<LinearGradientBrush x:Key="RailAssetsSeparatorBrush" StartPoint="0,0" EndPoint="1,0">
+			<GradientStop Color="{StaticResource RailAssetsSeparatorEdgeColor}" Offset="0" />
+			<GradientStop Color="{StaticResource RailAssetsSeparatorCoreColor}" Offset="0.48" />
+			<GradientStop Color="{StaticResource RailAssetsSeparatorEdgeColor}" Offset="1" />
+		</LinearGradientBrush>
+
+		<LinearGradientBrush x:Key="RailMediaAssetsSeparatorBrush" StartPoint="0,0" EndPoint="1,0">
+			<GradientStop Color="{StaticResource RailMediaSeparatorEdgeColor}" Offset="0" />
+			<GradientStop Color="{StaticResource RailMediaSeparatorCoreColor}" Offset="0.48" />
+			<GradientStop Color="{StaticResource RailMediaSeparatorEdgeColor}" Offset="1" />
+		</LinearGradientBrush>
+
+	</ContentView.Resources>
+
+	<Grid ColumnDefinitions="Auto,*">
+		<Border Grid.Column="0"
+				Grid.ColumnSpan="2"
+				BackgroundColor="Transparent"
+				StrokeThickness="0">
+			<Grid ColumnDefinitions="Auto,*">
+				<Border x:Name="RailToolsBorder"
+						Grid.Column="0"
+						BackgroundColor="{StaticResource RailToolsSurfaceColor}"
+						StrokeThickness="0"
+						Padding="0,15,0,12"
+						ZIndex="20"
+						WidthRequest="40">
+					<Grid RowDefinitions="*, Auto">
+						<VerticalStackLayout Grid.Row="0" Spacing="14">
+							<buttons:RailToolButton x:Name="AssetsToolButton"
+												   IconSource="rail_assets.png"
+												   ActiveIconSource="rail_assets_active.png"
+												   AccentColor="{StaticResource RailAssetsAccentColor}"
+												   TooltipText="{loc:Loc views.rail.rail_view.assets}" />
+
+							<Border Style="{StaticResource RailToolSeparatorStyle}"
+									Background="{StaticResource RailAssetsSeparatorBrush}" />
+
+							<buttons:RailToolButton x:Name="MediaAssetsToolButton"
+												   IconSource="rail_media_assets.png"
+												   ActiveIconSource="rail_media_assets_active.png"
+												   AccentColor="{StaticResource RailMediaAssetsAccentColor}"
+												   TooltipText="{loc:Loc views.rail.rail_view.media_assets}" />
+
+							<Border Style="{StaticResource RailToolSeparatorStyle}"
+									Background="{StaticResource RailMediaAssetsSeparatorBrush}" />
+
+							<buttons:RailToolButton x:Name="NodeLibraryToolButton"
+												   IconSource="rail_node_library.png"
+												   ActiveIconSource="rail_node_library_active.png"
+												   AccentColor="{StaticResource RailNodeLibraryAccentColor}"
+												   TooltipText="{loc:Loc views.rail.rail_view.node_library}" />
+
+						</VerticalStackLayout>
+
+						<VerticalStackLayout Grid.Row="1" Spacing="12">
+							<buttons:RailToggleButton x:Name="AppsToggleButton"
+													 IconSource="apps_nexus.png"
+													 ActiveIconSource="apps_nexus_active.png"
+													 TooltipText="{loc:Loc views.rail.rail_view.toggle_apps}" />
+							<buttons:RailIconButton x:Name="TemplatesButton"
+												   IconSource="templates_nexus.png"
+												   ActiveIconSource="templates_nexus_active.png"
+												   TooltipText="{loc:Loc views.rail.rail_view.templates}" />
+							<buttons:RailIconButton x:Name="SettingsButton"
+												   IconSource="settings_nexus.png"
+												   ActiveIconSource="settings_nexus_active.png"
+												   TooltipText="{loc:Loc views.rail.rail_view.settings}" />
+						</VerticalStackLayout>
+					</Grid>
+				</Border>
+
+				<Border x:Name="RailContentCard"
+						Grid.Column="1"
+						BackgroundColor="{StaticResource RailContentSurfaceColor}"
+						StrokeThickness="0"
+						IsVisible="False"
+						Padding="0,3,0,0"
+						ZIndex="1">
+					<Grid>
+						<Grid x:Name="RailContentHostGrid">
+							<assets:AssetsBrowserView x:Name="AssetsToolView" IsVisible="False" />
+							<mediaAssets:MediaAssetsView x:Name="MediaAssetsToolView" IsVisible="False" />
+							<nodes:NodeLibraryView x:Name="NodeLibraryToolView" IsVisible="False" />
+						</Grid>
+
+						<Grid x:Name="RailCollapseFlagButton"
+							  WidthRequest="54"
+							  HeightRequest="58"
+							  HorizontalOptions="End"
+							  VerticalOptions="Start"
+							  BackgroundColor="Transparent"
+							  AutomationProperties.IsInAccessibleTree="True"
+							  SemanticProperties.Description="{loc:Loc views.rail.rail_view.collapse}"
+							  SemanticProperties.Hint="{loc:Loc views.rail.rail_view.collapse_help}"
+							  ZIndex="10">
+							<Grid.GestureRecognizers>
+								<TapGestureRecognizer Tapped="OnCollapseFlagTapped" />
+								<PointerGestureRecognizer PointerEntered="OnCollapseFlagPointerEntered"
+														  PointerExited="OnCollapseFlagPointerExited" />
+							</Grid.GestureRecognizers>
+							<shapes:Path x:Name="RailCollapseFlagGlow"
+										 Data="M 54 0 L 0 29 L 54 58 Z"
+										 Fill="{StaticResource RailCollapseGlowColor}"
+										 Opacity="0.32"
+										 AutomationProperties.IsInAccessibleTree="False"
+										 HorizontalOptions="Fill"
+										 VerticalOptions="Fill" />
+							<shapes:Path x:Name="RailCollapseFlagShape"
+										 Data="M 54 0 L 7 29 L 54 58 Z"
+										 Fill="{StaticResource RailCollapseSurfaceColor}"
+										 Opacity="0.76"
+										 AutomationProperties.IsInAccessibleTree="False"
+										 HorizontalOptions="Fill"
+										 VerticalOptions="Fill" />
+							<shapes:Path x:Name="RailCollapseFlagChevron"
+										 Data="M 38 22 L 29 29 L 38 36"
+										 Stroke="{StaticResource RailCollapseChevronColor}"
+										 StrokeThickness="3"
+										 StrokeLineCap="Round"
+										 StrokeLineJoin="Round"
+										 Opacity="0.82"
+										 AutomationProperties.IsInAccessibleTree="False"
+										 HorizontalOptions="Fill"
+										 VerticalOptions="Fill" />
+						</Grid>
+					</Grid>
+				</Border>
+
+				<Grid x:Name="RailTransitionOverlay"
+					  Grid.Column="1"
+					  IsVisible="False"
+					  InputTransparent="False"
+					  AnchorX="0"
+					  ZIndex="2">
+					<Grid.Background>
+						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+							<GradientStop Color="{StaticResource RailTransitionStartColor}" Offset="0" />
+							<GradientStop Color="{StaticResource RailTransitionMiddleColor}" Offset="0.58" />
+							<GradientStop Color="{StaticResource RailTransitionEndColor}" Offset="1" />
+						</LinearGradientBrush>
+					</Grid.Background>
+				</Grid>
+
+				<Grid x:Name="RailTransitionBrand"
+					  Grid.Column="1"
+					  IsVisible="False"
+					  InputTransparent="True"
+					  Opacity="0"
+					  Scale="0.96"
+					  ZIndex="3">
+					<VerticalStackLayout HorizontalOptions="Center"
+										 VerticalOptions="Center"
+										 Spacing="8">
+						<Grid WidthRequest="82"
+							  HeightRequest="68"
+							  HorizontalOptions="Center">
+							<shapes:Ellipse WidthRequest="58"
+											HeightRequest="10"
+											Fill="{StaticResource RailCollapseGlowColor}"
+											Opacity="0.18"
+											HorizontalOptions="Center"
+											VerticalOptions="End"
+											Margin="0,0,0,4"
+											AutomationProperties.IsInAccessibleTree="False" />
+							<Image Source="logo_neon_glass.png"
+								   WidthRequest="54"
+								   HeightRequest="54"
+								   Aspect="AspectFit"
+								   HorizontalOptions="Center"
+								   VerticalOptions="Start"
+								   AutomationProperties.IsInAccessibleTree="False">
+							</Image>
+						</Grid>
+					</VerticalStackLayout>
+				</Grid>
+			</Grid>
+		</Border>
+	</Grid>
+</ContentView>
