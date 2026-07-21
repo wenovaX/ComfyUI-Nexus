@@ -15,46 +15,23 @@ public partial class MainPage
 	private const double RailResizeHandleIdleOpacity = 0.88;
 	private const double RailResizeGripHoverOpacity = 0.95;
 	private const double RailResizeGripIdleOpacity = 0.72;
-	private const uint ControlDeckShowLength = 150;
-	private const uint ControlDeckHideLength = 110;
 	private const uint RailOpenAnimationLength = 150;
 	private static readonly Color RailResizeGripDragColor = Color.FromArgb("#66ebff");
 	private static readonly Color RailResizeGripHoverColor = NexusColors.Accent;
 	private static readonly Color RailResizeGripIdleColor = Color.FromArgb("#17324a");
 
-	private async Task SetControlDeckVisibleAsync(bool isVisible)
+	private Task SetControlDeckVisibleAsync(bool isVisible)
 	{
-		if (_isControlDeckVisible == isVisible)
-		{
-			return;
-		}
-
-		_isControlDeckVisible = isVisible;
-		if (_isSystemLoading)
-		{
-			ApplyLeftChromeVisibilityState();
-			return;
-		}
-
 		if (isVisible)
 		{
-			ControlDeckColumn.Width = new GridLength(ShellLayoutOptions.ControlDeckExpandedWidth);
-			ControlDeckControl.WidthRequest = ShellLayoutOptions.ControlDeckExpandedWidth;
-			RefreshAvailableWidthAndTabs(ShellLayoutInvalidationReason.ControlDeckChanged);
-			ControlDeckControl.PrepareToShow();
-			await ControlDeckControl.AnimateShowAsync(ControlDeckShowLength, Easing.CubicOut);
+			_controlDeckWindow.Show(ConfigureControlDeck);
 		}
 		else
 		{
-			await ControlDeckControl.AnimateHideAsync(ControlDeckHideLength, Easing.CubicIn);
-			ControlDeckColumn.Width = new GridLength(0);
-			ControlDeckControl.WidthRequest = 0;
-			RefreshAvailableWidthAndTabs(ShellLayoutInvalidationReason.ControlDeckChanged);
-			ControlDeckControl.CompleteHide();
+			_controlDeckWindow.Close();
 		}
 
-		ApplyLeftChromeVisibilityState();
-		RefreshAvailableWidthAndTabs(ShellLayoutInvalidationReason.ControlDeckChanged);
+		return Task.CompletedTask;
 	}
 
 	private Task ToggleRailAsync()
@@ -240,12 +217,8 @@ public partial class MainPage
 	{
 		bool showRail = !_isSystemLoading || _isSuccessSequenceActive;
 		bool showResize = showRail && _isFileRailExpanded;
-		bool showDeck = (!_isSystemLoading || _isSuccessSequenceActive) && _isControlDeckVisible;
-
 		double railWidth = GetTargetRailWidth();
 
-		ControlDeckColumn.Width = new GridLength(showDeck ? ShellLayoutOptions.ControlDeckExpandedWidth : 0);
-		ControlDeckControl.WidthRequest = showDeck ? ShellLayoutOptions.ControlDeckExpandedWidth : 0;
 		RailControl.WidthRequest = showRail ? railWidth : 0;
 		RailControl.TranslationX = 0;
 		SyncWebRailWidth(showRail ? railWidth : 0);
@@ -253,8 +226,6 @@ public partial class MainPage
 		RailControl.IsVisible = showRail;
 		RailControl.Opacity = 1;
 		UpdateMediaViewerOverlayLayout();
-
-		ControlDeckControl.SetDisplayState(showDeck, 1);
 
 		RailResizeHandleControl.IsHandleVisible = showResize;
 		RailResizeHandleControl.TranslationX = GetRailResizeHandleX(railWidth);

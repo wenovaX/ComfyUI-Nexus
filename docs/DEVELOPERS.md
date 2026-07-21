@@ -34,8 +34,10 @@ Use **Nexus for ComfyUI** in public copy. See [PROJECTINFO.md](PROJECTINFO.md) f
 | Setup sequence | `InitiationSequenceRunner` | Required step order and completion |
 | Setup scrolling | `ProductSetupView` | Focus owner and all setup scroll movement |
 | Popup lifecycle | `NexusPopupManager` | Shell, animation, refresh, close |
-| Latest-wins work | `NexusLatestOperationCoordinator` | One running operation and one newest pending request |
+| UI operations | `NexusOperationController` | Latest refreshes, ordered serial messages, bounded background work |
 | Repeating motion | `NexusMotionController` | UI-thread motion, lifecycle stop, resting state |
+| Animated WebP states | `NexusVisualStateAnimator` / `NexusAnimatedWebpFrameCache` | Scoped cache, state mapping, loop, one-shot, final-frame hold |
+| Loading release | `LoadingOverlayController` | Block input until server, bridge, shell, and visible UI are ready |
 | Managed custom-node dependencies | `ManagedCustomNodeDependencyInstaller` | Explicit repository, requirements, or bootstrap install mode |
 | Web bridge | `NexusWebViewBridge` | Typed C# to JS calls |
 
@@ -59,7 +61,7 @@ Do not merge those meanings.
 
 ## Async And Lifecycle
 
-Use latest-wins work for refreshes where only the newest result matters:
+Use `NexusOperationController` latest work where only the newest result matters:
 
 - workflow index refresh
 - media snapshot bursts
@@ -68,6 +70,10 @@ Use latest-wins work for refreshes where only the newest result matters:
 
 New requests replace the pending request. They do not cancel the running request.<br>
 Before a side effect, check the operation lease. Drop stale results.
+
+Use ordered serial work for messages that must retain arrival order,
+such as boot-ready and lifecycle requests.<br>
+Do not use a serial key for high-rate telemetry.
 
 Use cancellation only for real ownership boundaries:
 
@@ -82,6 +88,10 @@ Use state, layout readiness, events, and dispatcher timers instead.
 Server shutdown is sequential: quiesce shell services, stop and verify the server process and listener, then continue to maintenance, boot, or app exit.<br>
 Do not call `Process.Kill(entireProcessTree: true)` from lifecycle code;<br>
 terminate a captured native process snapshot and verify every target exits.
+
+Loading initialization has one owner: `BeginSystemLoadingOnMainThreadAsync`.<br>
+Startup, Core Link selection, and refresh must enter it before WebView navigation.<br>
+Navigation events report state; they must not reset loading visuals or progress.
 
 ## MAUI And WinUI Safety
 
@@ -107,6 +117,10 @@ Do not:
 
 Do not use MAUI `Shadow` properties on Windows surfaces.<br>
 The native alpha-mask path has caused asynchronous handler-lifetime failures and is intentionally absent from Nexus UI.
+
+Use animated WebP for repeating visual effects when an authored asset fits the job.<br>
+Acquire the owner-scoped cache before a surface becomes interactive, then release it on hide or unload.<br>
+Do not restart a clip by replacing `Image.Source` or by rebuilding the visual tree.
 
 ## Managed Custom Nodes
 
@@ -203,3 +217,6 @@ dev-build-as-binary.bat Release folder clean archive --cert Release
 4. Classify the failure: UI lifetime, WebView/bridge, server process, or runtime package.
 
 Do not use a managed log absence as proof that the native UI was healthy.
+
+For a blocked UI, compare `[UI_TRACE]` with `[CONCURRENCY]` before changing timers or adding cancellation.
+The renderer can remain visible while the UI dispatcher is delayed.

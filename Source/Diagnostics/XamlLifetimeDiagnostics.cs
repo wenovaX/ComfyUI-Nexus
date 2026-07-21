@@ -5,12 +5,18 @@ namespace ComfyUI_Nexus.Diagnostics;
 internal static class XamlLifetimeDiagnostics
 {
 	private const string DisableTransformAnimationsVariable = "NEXUS_XAML_DISABLE_TRANSFORM_ANIMATIONS";
+	private const string DisableHeaderGpuIndicatorMotionVariable = "NEXUS_DISABLE_HEADER_GPU_INDICATOR_MOTION";
 	private static readonly ConcurrentDictionary<string, string> SurfaceStates = new(StringComparer.Ordinal);
 	private static readonly ConcurrentDictionary<string, string> ActiveAnimations = new(StringComparer.Ordinal);
 	private static readonly ConcurrentDictionary<string, string> MotionStates = new(StringComparer.Ordinal);
+	private static readonly ConcurrentDictionary<string, string> BrowserStates = new(StringComparer.Ordinal);
 
 	internal static bool AreTransformAnimationsDisabled
 		=> string.Equals(Environment.GetEnvironmentVariable(DisableTransformAnimationsVariable), "1", StringComparison.Ordinal);
+
+	internal static bool AreHeaderGpuIndicatorMotionsEnabled
+		=> !AreTransformAnimationsDisabled && !IsEnabled(DisableHeaderGpuIndicatorMotionVariable);
+
 
 	internal static void RecordSurface(string owner, string state)
 	{
@@ -64,6 +70,12 @@ internal static class XamlLifetimeDiagnostics
 		MotionStates.TryRemove(GetMotionKey(owner, name), out _);
 	}
 
+	internal static void RecordBrowser(string owner, string state)
+	{
+		BrowserStates[owner] = state;
+		NexusUiActionTrace.Record("Browser", owner, state);
+	}
+
 	internal static void WriteSnapshot(string reason)
 	{
 		NexusLog.Info($"[XAML_LIFETIME] {reason}; {GetSnapshot()}");
@@ -80,8 +92,14 @@ internal static class XamlLifetimeDiagnostics
 		string motions = MotionStates.Count == 0
 			? "none"
 			: string.Join(", ", MotionStates.Values.OrderBy(value => value));
-		return $"transformsDisabled={AreTransformAnimationsDisabled}; surfaces=[{surfaces}]; animations=[{animations}]; motions=[{motions}]";
+		string browsers = BrowserStates.Count == 0
+			? "none"
+			: string.Join(", ", BrowserStates.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"));
+		return $"transformsDisabled={AreTransformAnimationsDisabled}; headerGpuIndicatorMotionEnabled={AreHeaderGpuIndicatorMotionsEnabled}; surfaces=[{surfaces}]; animations=[{animations}]; motions=[{motions}]; browsers=[{browsers}]";
 	}
+
+	private static bool IsEnabled(string variable)
+		=> string.Equals(Environment.GetEnvironmentVariable(variable), "1", StringComparison.Ordinal);
 
 	private static string GetAnimationKey(IAnimatable owner, string name)
 		=> $"{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(owner):X8}:{name}";

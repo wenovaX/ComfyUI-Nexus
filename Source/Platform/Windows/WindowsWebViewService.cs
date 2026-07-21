@@ -6,40 +6,34 @@ namespace ComfyUI_Nexus.Platform.Windows
 #if WINDOWS || NET6_0_WINDOWS
 	public sealed class WindowsWebViewService : IPlatformWebViewService
 	{
+		public Task EnsureReadyAsync(INexusBrowserSurface surface)
+			=> surface is MauiWebViewBrowserSurface mauiSurface
+				? EnsureNativeReadyAsync(mauiSurface.NativeWebView)
+				: Task.CompletedTask;
+
 		public async Task ConfigureBridgeAsync(
-			WebView webView,
+			INexusBrowserSurface surface,
 			Func<string, Task> processMessageAsync,
 			Action<string?> navigationStarting,
 			Action? bridgeActivated = null,
 			Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler = null)
 		{
-			if (webView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+			if (surface is not MauiWebViewBrowserSurface mauiSurface ||
+				mauiSurface.NativeWebView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
 			{
 				return;
 			}
 
 			nativeWebView.AllowDrop = true;
 			await nativeWebView.EnsureCoreWebView2Async();
-			nativeWebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
-			TryEnableExternalDrop(nativeWebView);
-			TryAttachAcceleratorKeyHandler(nativeWebView, acceleratorKeyHandler);
-
-			nativeWebView.CoreWebView2.NavigationStarting += (sender, args) => {
-				navigationStarting(args.Uri);
-			};
-
-			await nativeWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(NexusDocumentBootstrapScript);
-
-			nativeWebView.WebMessageReceived += async (sender, args) => {
-				await processMessageAsync(args.WebMessageAsJson);
-			};
-
-			bridgeActivated?.Invoke();
+			var controller = TryGetController(nativeWebView);
+			await ConfigureCoreAsync(nativeWebView.CoreWebView2, controller, processMessageAsync, navigationStarting, bridgeActivated, acceleratorKeyHandler);
 		}
 
-		public async Task DisableBrowserReloadHandlingAsync(WebView webView, Func<Task> clearBeforeUnloadAsync)
+		public async Task DisableBrowserReloadHandlingAsync(INexusBrowserSurface surface, Func<Task> clearBeforeUnloadAsync)
 		{
-			if (webView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+			if (surface is not MauiWebViewBrowserSurface mauiSurface ||
+				mauiSurface.NativeWebView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
 			{
 				return;
 			}
@@ -47,39 +41,49 @@ namespace ComfyUI_Nexus.Platform.Windows
 			try
 			{
 				await nativeWebView.EnsureCoreWebView2Async();
-				nativeWebView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
-				await clearBeforeUnloadAsync();
+				await DisableReloadHandlingAsync(nativeWebView.CoreWebView2, clearBeforeUnloadAsync);
 			}
 			catch
 			{
 			}
 		}
 
-		public void Reload(WebView webView)
+		public void Reload(INexusBrowserSurface surface)
 		{
-			if (webView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+			if (surface is not MauiWebViewBrowserSurface mauiSurface)
+			{
+				return;
+			}
+
+			if (mauiSurface.NativeWebView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
 			{
 				nativeWebView.CoreWebView2.Reload();
 				return;
 			}
 
-			webView.Reload();
+			mauiSurface.NativeWebView.Reload();
 		}
 
-		public void Focus(WebView webView)
+		public void Focus(INexusBrowserSurface surface)
 		{
-			if (webView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+			if (surface is not MauiWebViewBrowserSurface mauiSurface)
+			{
+				return;
+			}
+
+			if (mauiSurface.NativeWebView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
 			{
 				nativeWebView.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
 				return;
 			}
 
-			webView.Focus();
+			mauiSurface.NativeWebView.Focus();
 		}
 
-		public async void SetDevToolsEnabled(WebView webView, bool isEnabled)
+		public async void SetDevToolsEnabled(INexusBrowserSurface surface, bool isEnabled)
 		{
-			if (webView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView) return;
+			if (surface is not MauiWebViewBrowserSurface mauiSurface ||
+				mauiSurface.NativeWebView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView) return;
 
 			try
 			{
@@ -90,22 +94,72 @@ namespace ComfyUI_Nexus.Platform.Windows
 			catch { }
 		}
 
-		private static void TryEnableExternalDrop(Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+		public async void OpenDevTools(INexusBrowserSurface surface)
 		{
+			if (surface is not MauiWebViewBrowserSurface mauiSurface ||
+				mauiSurface.NativeWebView.Handler?.PlatformView is not Microsoft.UI.Xaml.Controls.WebView2 nativeWebView) return;
+
 			try
 			{
-				var controllerProp = nativeWebView.GetType().GetProperty("CoreWebView2Controller");
-				var controller = controllerProp?.GetValue(nativeWebView);
-				var allowExternalDropProp = controller?.GetType().GetProperty("AllowExternalDrop");
-				allowExternalDropProp?.SetValue(controller, true);
+				await nativeWebView.EnsureCoreWebView2Async();
+				nativeWebView.CoreWebView2.Settings.AreDevToolsEnabled = true;
+				nativeWebView.CoreWebView2.OpenDevToolsWindow();
 			}
-			catch
-			{
-			}
+			catch { }
 		}
 
+		internal static async Task ConfigureCompositionBridgeAsync(
+			Microsoft.Web.WebView2.Core.CoreWebView2 coreWebView2,
+			Microsoft.Web.WebView2.Core.CoreWebView2CompositionController controller,
+			Func<string, Task> processMessageAsync,
+			Action<string?> navigationStarting,
+			Action? bridgeActivated,
+			Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler)
+			=> await ConfigureCoreAsync(coreWebView2, controller, processMessageAsync, navigationStarting, bridgeActivated, acceleratorKeyHandler);
+
+		internal static async Task DisableCompositionReloadHandlingAsync(
+			Microsoft.Web.WebView2.Core.CoreWebView2 coreWebView2,
+			Func<Task> clearBeforeUnloadAsync)
+			=> await DisableReloadHandlingAsync(coreWebView2, clearBeforeUnloadAsync);
+
+		private static Task EnsureNativeReadyAsync(WebView webView)
+			=> webView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView
+				? nativeWebView.EnsureCoreWebView2Async().AsTask()
+				: Task.CompletedTask;
+
+		private static async Task ConfigureCoreAsync(
+			Microsoft.Web.WebView2.Core.CoreWebView2 coreWebView2,
+			Microsoft.Web.WebView2.Core.CoreWebView2Controller? controller,
+			Func<string, Task> processMessageAsync,
+			Action<string?> navigationStarting,
+			Action? bridgeActivated,
+			Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler)
+		{
+			coreWebView2.Settings.IsWebMessageEnabled = true;
+			if (controller != null)
+			{
+				controller.AllowExternalDrop = true;
+				TryAttachAcceleratorKeyHandler(controller, acceleratorKeyHandler);
+			}
+
+			coreWebView2.NavigationStarting += (sender, args) => navigationStarting(args.Uri);
+			await coreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(NexusDocumentBootstrapScript);
+			coreWebView2.WebMessageReceived += async (sender, args) => await processMessageAsync(args.WebMessageAsJson);
+			bridgeActivated?.Invoke();
+		}
+
+		private static async Task DisableReloadHandlingAsync(Microsoft.Web.WebView2.Core.CoreWebView2 coreWebView2, Func<Task> clearBeforeUnloadAsync)
+		{
+			coreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;
+			await clearBeforeUnloadAsync();
+		}
+
+		private static Microsoft.Web.WebView2.Core.CoreWebView2Controller? TryGetController(Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
+			=> nativeWebView.GetType().GetProperty("CoreWebView2Controller")?.GetValue(nativeWebView)
+				as Microsoft.Web.WebView2.Core.CoreWebView2Controller;
+
 		private static void TryAttachAcceleratorKeyHandler(
-			Microsoft.UI.Xaml.Controls.WebView2 nativeWebView,
+			Microsoft.Web.WebView2.Core.CoreWebView2Controller controller,
 			Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler)
 		{
 			if (acceleratorKeyHandler == null)
@@ -116,13 +170,8 @@ namespace ComfyUI_Nexus.Platform.Windows
 			try
 			{
 				var keyboard = new WindowsKeyboardState();
-				var controllerProp = nativeWebView.GetType().GetProperty("CoreWebView2Controller");
-				if (controllerProp?.GetValue(nativeWebView) is not Microsoft.Web.WebView2.Core.CoreWebView2Controller controller)
+				controller.AcceleratorKeyPressed += (sender, args) =>
 				{
-					return;
-				}
-
-				controller.AcceleratorKeyPressed += (sender, args) => {
 					if (!args.KeyEventKind.ToString().Contains("KeyDown", StringComparison.OrdinalIgnoreCase))
 					{
 						return;
@@ -130,10 +179,10 @@ namespace ComfyUI_Nexus.Platform.Windows
 
 					var virtualKey = (global::Windows.System.VirtualKey)args.VirtualKey;
 					NexusKey key = keyboard.ToNexusKey(virtualKey);
-					NexusLog.Info($"[KEY:WEB_ACCEL_RAW] virtual={virtualKey} nexus={key} ctrl={keyboard.IsCtrlPressed()} shift={keyboard.IsShiftPressed()} alt={keyboard.IsAltPressed()}");
+					NexusLog.Trace($"[KEY:WEB_ACCEL_RAW] virtual={virtualKey} nexus={key} ctrl={keyboard.IsCtrlPressed()} shift={keyboard.IsShiftPressed()} alt={keyboard.IsAltPressed()}");
 					if (key == NexusKey.Unknown)
 					{
-						NexusLog.Info($"[KEY:WEB_ACCEL_PASS] virtual={virtualKey} reason=unknown-key");
+						NexusLog.Trace($"[KEY:WEB_ACCEL_PASS] virtual={virtualKey} reason=unknown-key");
 						return;
 					}
 
@@ -142,7 +191,7 @@ namespace ComfyUI_Nexus.Platform.Windows
 						keyboard.IsCtrlPressed(),
 						keyboard.IsShiftPressed(),
 						keyboard.IsAltPressed());
-					NexusLog.Info($"[KEY:WEB_ACCEL_RESULT] key={key} handled={handled}");
+					NexusLog.Trace($"[KEY:WEB_ACCEL_RESULT] key={key} handled={handled}");
 					if (handled)
 					{
 						args.Handled = true;

@@ -50,7 +50,7 @@ public partial class RailView : ContentView
 	private RailState _railState = RailState.Ready;
 	private readonly List<RailToolRegistration> _toolRegistrations = [];
 	private CancellationTokenSource? _prewarmCts;
-	private readonly NexusLatestOperationCoordinator _latestOperations = new("rail-view");
+	private readonly NexusOperationController _latestOperations = new("rail-view");
 	private bool _prewarmStoppedForShutdown;
 	private Task? _activeTransitionTask;
 	private string? _activeTransitionKey;
@@ -749,7 +749,7 @@ public partial class RailView : ContentView
 
 		try
 		{
-			NexusLog.Info($"[RAIL_VIEW] Prewarm rail data start. targetWidth={targetWidth:0.##}");
+			NexusLog.Trace($"[RAIL_VIEW] Prewarm rail data start. targetWidth={targetWidth:0.##}");
 
 			foreach (RailToolKind toolKind in GetStartupPrewarmTools())
 			{
@@ -757,7 +757,7 @@ public partial class RailView : ContentView
 				await YieldBetweenStartupPrewarmStepsAsync(prewarmCts.Token, toolKind);
 			}
 
-			NexusLog.Info("[RAIL_VIEW] Startup render prewarm skipped; data and view pools are ready.");
+			NexusLog.Trace("[RAIL_VIEW] Startup render prewarm skipped; data and view pools are ready.");
 		}
 		finally
 		{
@@ -769,7 +769,7 @@ public partial class RailView : ContentView
 			if (!prewarmCts.IsCancellationRequested)
 			{
 				RestorePrewarmVisualState(snapshot);
-				NexusLog.Info("[RAIL_VIEW] Prewarm rail data completed.");
+				NexusLog.Trace("[RAIL_VIEW] Prewarm rail data completed.");
 			}
 
 			prewarmCts.Dispose();
@@ -789,12 +789,12 @@ public partial class RailView : ContentView
 			return;
 		}
 
-		NexusLog.Info($"[RAIL_VIEW] Prewarm data start: {toolKind}");
-		NexusLog.Info($"[RAIL_VIEW] Prewarm pool start: {toolKind}");
+		NexusLog.Trace($"[RAIL_VIEW] Prewarm data start: {toolKind}");
+		NexusLog.Trace($"[RAIL_VIEW] Prewarm pool start: {toolKind}");
 		await tool.PrewarmAsync(cancellationToken);
-		NexusLog.Info($"[RAIL_VIEW] Prewarm pool completed: {toolKind}");
+		NexusLog.Trace($"[RAIL_VIEW] Prewarm pool completed: {toolKind}");
 		await NexusUiFrame.AwaitDispatcherTurnAsync(this, $"RAIL:Prewarm:{toolKind}");
-		NexusLog.Info($"[RAIL_VIEW] Prewarm data completed: {toolKind}");
+		NexusLog.Trace($"[RAIL_VIEW] Prewarm data completed: {toolKind}");
 	}
 
 	private static IEnumerable<RailToolKind> GetStartupPrewarmTools()
@@ -877,7 +877,7 @@ public partial class RailView : ContentView
 		BeginTransition();
 		int version = _transitionVersion;
 		_activeTransitionKey = requestKey;
-		Task transitionTask = _latestOperations.RequestAsync(
+		Task transitionTask = _latestOperations.RequestLatestAsync(
 			"transition",
 			lease => RunTransitionCoreAsync(requestKey, version, lease.LifecycleToken, transition));
 		_activeTransitionTask = transitionTask;

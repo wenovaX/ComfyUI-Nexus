@@ -12,7 +12,7 @@ namespace ComfyUI_Nexus.Ui;
 /// </summary>
 internal static class AssetActionDispatcher
 {
-	internal static async Task DispatchAsync(NexusWebViewBridge? bridge, WebView webView, AssetOpenRequest request)
+	internal static async Task DispatchAsync(NexusWebViewBridge? bridge, INexusBrowserSurface browserSurface, AssetOpenRequest request)
 	{
 		if (request == null) return;
 
@@ -34,7 +34,7 @@ internal static class AssetActionDispatcher
 					return;
 				}
 
-				await WebViewUtility.SimulateFileDropAsync(webView, request.FullPath);
+				await browserSurface.SimulateFileDropAsync(request.FullPath);
 				return;
 
 			case AssetInteractionMode.Model:
@@ -58,7 +58,7 @@ internal static class AssetActionDispatcher
 			default:
 				if (IsLocalWorkflowFile(request.FullPath))
 				{
-					await WebViewUtility.SimulateFileDropAsync(webView, request.FullPath);
+					await browserSurface.SimulateFileDropAsync(request.FullPath);
 					return;
 				}
 

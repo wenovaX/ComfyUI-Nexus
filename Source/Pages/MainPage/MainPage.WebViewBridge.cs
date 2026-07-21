@@ -8,17 +8,35 @@ namespace ComfyUI_Nexus;
 
 public partial class MainPage
 {
-	private void OnWebViewNavigated(object? sender, WebNavigatedEventArgs e)
+	private void OnWebViewNavigationStarting(string? uri)
 	{
-		Log($"Navigation event: {e.Result} -> {e.Url}");
-
-		if (e.Result == WebNavigationResult.Success && IsExpectedComfyNavigationUrl(e.Url))
+		if (_bridgeSession.BeginNavigation())
 		{
-			_loginSequence.NotifyNavigationSucceeded(e.Url);
+			RefreshControlDeckWebPulse(force: true);
 		}
-		else if (e.Result != WebNavigationResult.Success)
+
+		if (IsExpectedComfyNavigationUrl(uri))
 		{
-			_loginSequence.NotifyNavigationFailed($"{e.Result} -> {e.Url}");
+			UpdateRebootUI(true);
+		}
+	}
+
+	private void OnWebViewNavigated(object? sender, NexusBrowserNavigationEventArgs e)
+	{
+		Log($"Navigation event: {(e.IsSuccess ? "Success" : e.Detail)} -> {e.Url}");
+
+		if (e.IsSuccess && IsExpectedComfyNavigationUrl(e.Url))
+		{
+			_loginSequence.NotifyNavigationSucceeded(e.Url!);
+		}
+		else if (!e.IsSuccess)
+		{
+			if (_bridgeSession.MarkDisconnected())
+			{
+				RefreshControlDeckWebPulse(force: true);
+			}
+
+			_loginSequence.NotifyNavigationFailed($"{e.Detail} -> {e.Url}");
 		}
 	}
 
@@ -42,19 +60,20 @@ public partial class MainPage
 
 	private Task PrepareWebViewNavigationSuccessAsync()
 	{
-		Log("Neural Bridge Active. Injecting Identity & Waking Agent...");
+		Log("[Bridge] ComfyUI navigation ready. Preparing Nexus connection.");
 
 		_ = ProbeComfyUIWorkflowPath();
 		_isBooted = false;
 		_bootReadyHandled = false;
 		_stabilizedVisualStateApplied = false;
+		_webInputMode = false;
 
 		return Task.CompletedTask;
 	}
 
 	private void ApplyWebViewNavigationFailureUi(string detail)
 	{
-		Log("CONNECTION FAILED. RETRYING...");
+		Log("CONNECTION FAILED. Waiting for retry.");
 		_loadingOverlayController.Error(
 			LocalizationManager.Text("loading.comfy_unreachable_title"),
 			detail,
@@ -69,7 +88,7 @@ public partial class MainPage
 			return BridgeBootProbeResult.NativeUnavailable;
 		}
 
-		return await MainThread.InvokeOnMainThreadAsync(_webViewBridge.BootProtosAsync);
+		return await MainThread.InvokeOnMainThreadAsync(_webViewBridge.BootNexusAsync);
 	}
 
 	private void ApplyHandshakeTimeoutUi()
@@ -79,7 +98,7 @@ public partial class MainPage
 			return;
 		}
 
-		Log("BOOT ERROR: Agent PROTOS failed to respond. Check JS logs.");
+		Log("[Bridge] Nexus connection did not respond before the readiness deadline.");
 		UiThread.TryBeginInvoke(() =>
 		{
 			_loadingOverlayController.Error(
@@ -104,9 +123,7 @@ public partial class MainPage
 				return;
 			}
 
-			await PlatformManager.Current.WebView.DisableBrowserReloadHandlingAsync(
-				WorkspaceControl.BrowserView,
-				_webViewBridge.ClearBeforeUnloadAsync);
+			await WorkspaceControl.BrowserSurface.DisableReloadHandlingAsync(_webViewBridge.ClearBeforeUnloadAsync);
 		});
 	}
 }

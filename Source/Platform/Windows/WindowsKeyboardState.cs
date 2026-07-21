@@ -58,6 +58,7 @@ public sealed class WindowsKeyboardState : IPlatformKeyboardState
 			global::Windows.System.VirtualKey.Right => NexusKey.Right,
 			global::Windows.System.VirtualKey.F2 => NexusKey.F2,
 			global::Windows.System.VirtualKey.F5 => NexusKey.F5,
+			global::Windows.System.VirtualKey.F12 => NexusKey.F12,
 			_ when (int)key == 190 => NexusKey.Period,
 			_ => NexusKey.Unknown,
 		};

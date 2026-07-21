@@ -57,6 +57,7 @@ internal static class SessionHeartbeatDiagnostics
 					ExitDetail = "",
 					LogPath = NexusLog.CurrentLatestLogPath ?? "",
 					XamlLifetime = XamlLifetimeDiagnostics.GetSnapshot(),
+					Concurrency = NexusConcurrencyDiagnostics.GetSnapshot(),
 					UiTrace = NexusUiActionTrace.GetSnapshot()
 				};
 
@@ -86,6 +87,7 @@ internal static class SessionHeartbeatDiagnostics
 			_state.ExitDetail = detail;
 			_state.LastHeartbeatAt = DateTimeOffset.Now;
 			_state.XamlLifetime = XamlLifetimeDiagnostics.GetSnapshot();
+			_state.Concurrency = NexusConcurrencyDiagnostics.GetSnapshot();
 			_state.UiTrace = NexusUiActionTrace.GetSnapshot();
 			WriteStateNoThrow();
 		}
@@ -106,6 +108,7 @@ internal static class SessionHeartbeatDiagnostics
 			_state.ExitDetail = string.IsNullOrWhiteSpace(_state.ExitDetail) ? detail : $"{_state.ExitDetail}; {detail}";
 			_state.LastHeartbeatAt = DateTimeOffset.Now;
 			_state.XamlLifetime = XamlLifetimeDiagnostics.GetSnapshot();
+			_state.Concurrency = NexusConcurrencyDiagnostics.GetSnapshot();
 			_state.UiTrace = NexusUiActionTrace.GetSnapshot();
 			WriteStateNoThrow();
 		}
@@ -122,6 +125,7 @@ internal static class SessionHeartbeatDiagnostics
 
 			_state.LastHeartbeatAt = DateTimeOffset.Now;
 			_state.XamlLifetime = XamlLifetimeDiagnostics.GetSnapshot();
+			_state.Concurrency = NexusConcurrencyDiagnostics.GetSnapshot();
 			_state.UiTrace = NexusUiActionTrace.GetSnapshot();
 			WriteStateNoThrow();
 		}
@@ -153,6 +157,7 @@ internal static class SessionHeartbeatDiagnostics
 		public string ExitDetail { get; set; } = "";
 		public string LogPath { get; set; } = "";
 		public string XamlLifetime { get; set; } = "";
+		public string Concurrency { get; set; } = "";
 		public string UiTrace { get; set; } = "";
 	}
 

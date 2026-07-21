@@ -2,8 +2,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Maui.Controls;
 using ComfyUI_Nexus.Boot;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Diagnostics;
+using ComfyUI_Nexus.Localization;
 using ComfyUI_Nexus.Platform;
+using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Ui;
 using ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary;
 
@@ -21,17 +24,17 @@ public partial class MainPage
 		await InitializeNexusUiAsync();
 
 		_loadingOverlayController.Message(
-			"Activity Rail Online",
-			"All primary shell systems are ready.",
-			"ACTIVITY RAIL ONLINE // ALL SYSTEMS NOMINAL",
-			LoadingSuccessColor,
+			LocalizationManager.Text("loading.preparing_nexus_title"),
+			LocalizationManager.Text("loading.preparing_nexus_detail"),
+			LocalizationManager.Text("loading.preparing_nexus_status"),
+			LoadingInfoColor,
 			progress: 1);
 		await Task.Delay(120);
 
 		_loadingOverlayController.Message(
-			"Neural Bridge Stable",
-			"Link confirmed. Revealing Nexus.",
-			"NEURAL BRIDGE STABLE // LINK CONFIRMED",
+			LocalizationManager.Text("loading.bridge_online_title"),
+			LocalizationManager.Text("loading.bridge_online_detail"),
+			LocalizationManager.Text("loading.bridge_online_status"),
 			LoadingSuccessColor,
 			progress: 1);
 		if (LoadingOverlayControl != null)
@@ -42,8 +45,11 @@ public partial class MainPage
 
 		await Task.Delay(180);
 		_loginSequence.Phase(BootPhase.StableRequested);
-		UpdateSystemLoadingState(false);
+		await PrepareSystemShellForStableRevealAsync();
 		await _serverLifecycle.ActivateShellServicesAsync();
+		await HeaderControl.AwaitSystemStatusLayoutAsync();
+		await CompleteSystemLoadingRevealAsync();
+		QueueDeferredOverlayPrewarm();
 	}
 
 	private async Task InitializeNexusUiAsync()
@@ -69,7 +75,10 @@ public partial class MainPage
 			var nextNodeLibrary = shouldFetchManifest
 				? await _nodeLibraryService.FetchNodesAsync()
 				: _nodeLibrary!;
-			string nextSignature = await Task.Run(() => BuildNodeLibraryManifestSignature(nextNodeLibrary));
+			string nextSignature = await _bridgeOperations.RunBackgroundAsync(
+				NexusBackgroundLane.Cpu,
+				"node-library-signature",
+				_ => BuildNodeLibraryManifestSignature(nextNodeLibrary));
 			bool hasManifestChanged = !string.Equals(_nodeLibraryManifestSignature, nextSignature, StringComparison.Ordinal);
 			bool shouldSyncTree = _nodeLibrary == null || hasManifestChanged;
 
@@ -79,7 +88,10 @@ public partial class MainPage
 				_nodeLibraryManifestSignature = nextSignature;
 			}
 
-			string nodeLibrarySummary = await Task.Run(() => GetNodeLibrarySummary(_nodeLibrary!));
+			string nodeLibrarySummary = await _bridgeOperations.RunBackgroundAsync(
+				NexusBackgroundLane.Cpu,
+				"node-library-summary",
+				_ => GetNodeLibrarySummary(_nodeLibrary!));
 
 			Log(!shouldFetchManifest
 				? $"SYSTEM: Node Library cache reused. {nodeLibrarySummary}"
@@ -149,7 +161,7 @@ public partial class MainPage
 
 		_loadingOverlayController.Message(
 			"Preparing Workspace",
-			"Preloading rail data and overlay layouts before the workspace is revealed.",
+			"Preloading the activity rail before the workspace is revealed.",
 			"PREPARING WORKSPACE // PREWARMING RAIL...",
 			LoadingInfoColor,
 			progress: 0.99);
@@ -159,21 +171,6 @@ public partial class MainPage
 			await RunStartupPrewarmStepAsync(
 				"rail content",
 				() => RailControl?.PrewarmContentAsync(_expandedRailWidth) ?? Task.CompletedTask);
-			await YieldBetweenStartupPrewarmStepsAsync();
-
-			await RunStartupPrewarmStepAsync(
-				"settings overlay",
-				() => SettingsOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
-			await YieldBetweenStartupPrewarmStepsAsync();
-
-			await RunStartupPrewarmStepAsync(
-				"help overlay",
-				() => HelpOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
-			await YieldBetweenStartupPrewarmStepsAsync();
-
-			await RunStartupPrewarmStepAsync(
-				"about overlay",
-				() => AboutOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -185,6 +182,55 @@ public partial class MainPage
 		await NexusUiFrame.AwaitDispatcherTurnAsync(this, "STARTUP:PrewarmCompleted");
 	}
 
+	private void QueueDeferredOverlayPrewarm()
+	{
+		if (_isShuttingDown)
+		{
+			return;
+		}
+
+		_latestOperations.RequestLatest(
+			"startup-overlay-prewarm",
+			RunDeferredOverlayPrewarmAsync);
+	}
+
+	private async Task RunDeferredOverlayPrewarmAsync(NexusOperationLease lease)
+	{
+		if (!lease.IsCurrent || _isShuttingDown)
+		{
+			return;
+		}
+
+		try
+		{
+			await RunStartupPrewarmStepAsync(
+				"settings overlay",
+				() => SettingsOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
+			if (!lease.IsCurrent || _isShuttingDown)
+			{
+				return;
+			}
+
+			await YieldBetweenStartupPrewarmStepsAsync();
+			await RunStartupPrewarmStepAsync(
+				"help overlay",
+				() => HelpOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
+			if (!lease.IsCurrent || _isShuttingDown)
+			{
+				return;
+			}
+
+			await YieldBetweenStartupPrewarmStepsAsync();
+			await RunStartupPrewarmStepAsync(
+				"about overlay",
+				() => AboutOverlayControl?.PrewarmLayoutAsync() ?? Task.CompletedTask);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			NexusLog.Exception(ex, "[OVERLAY] Deferred startup prewarm failed");
+		}
+	}
+
 	private async Task RunStartupPrewarmStepAsync(string label, Func<Task> prewarmAsync)
 	{
 		if (_isShuttingDown)
@@ -192,9 +238,9 @@ public partial class MainPage
 			return;
 		}
 
-		NexusLog.Info($"[RAIL_VIEW] Startup prewarm: {label} start.");
+		NexusLog.Trace($"[RAIL_VIEW] Startup prewarm: {label} start.");
 		await MainThread.InvokeOnMainThreadAsync(prewarmAsync);
-		NexusLog.Info($"[RAIL_VIEW] Startup prewarm: {label} completed.");
+		NexusLog.Trace($"[RAIL_VIEW] Startup prewarm: {label} completed.");
 	}
 
 	private async Task YieldBetweenStartupPrewarmStepsAsync()
@@ -282,8 +328,181 @@ public partial class MainPage
 		await PerformSystemReboot();
 	}
 
+	private async Task ExecuteControlDeckShutdownServerAsync()
+	{
+		await ExecuteControlDeckServerShutdownAsync(showServerLaunchPanel: true);
+	}
+
+	private async Task ExecuteControlDeckBootServerAsync()
+	{
+		if (!_serverLifecycle.Allows(ServerLifecycleCapability.Boot))
+		{
+			NexusLog.Trace($"[LIFECYCLE] Server boot ignored while {_serverLifecycle.Snapshot.State} is active.");
+			return;
+		}
+
+		if (ComfyServerProcessRegistry.FindServerProcess() != null)
+		{
+			Log("[LIFECYCLE] Server boot ignored because ComfyUI is already running.");
+			return;
+		}
+
+		try
+		{
+			Log("[LIFECYCLE] Server-only boot requested from Nexus Control Deck.");
+			ServerLifecycleResult result = await _serverLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.BootServerOnly));
+			if (!result.IsSuccess)
+			{
+				throw new InvalidOperationException(result.Message);
+			}
+
+			Log("[LIFECYCLE] Server-only boot confirmed. Use RETRY to reconnect the Nexus UI.");
+		}
+		catch (Exception ex)
+		{
+			Log($"[LIFECYCLE] Server-only boot failed: {ex.GetType().Name} - {ex.Message}");
+		}
+	}
+
+	private async Task<bool> ExecuteControlDeckServerShutdownAsync(bool showServerLaunchPanel)
+	{
+		if (!_serverLifecycle.Allows(ServerLifecycleCapability.Shutdown))
+		{
+			NexusLog.Trace($"[LIFECYCLE] Server shutdown ignored while {_serverLifecycle.Snapshot.State} is active.");
+			return false;
+		}
+
+		await CloseAllPopupSurfacesAsync();
+		await SetShutdownBlockerVisibleAsync(
+			true,
+			showServerLaunchPanel ? "SHUTTING DOWN SERVER" : "KILLING SERVER",
+			"Stopping shell services and verifying the ComfyUI process has ended...");
+
+		try
+		{
+			ServerLifecycleResult result = await _serverLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.Shutdown));
+			if (!result.IsSuccess)
+			{
+				throw new InvalidOperationException(result.Message);
+			}
+
+			_isBooted = false;
+			_bootReadyHandled = false;
+			if (showServerLaunchPanel)
+			{
+				await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.Idle));
+			}
+
+			return true;
+		}
+		catch (Exception ex)
+		{
+			Log($"[SYSTEM] Server shutdown failed: {ex.GetType().Name} - {ex.Message}");
+			await DisplayAlertAsync(
+				"SERVER SHUTDOWN FAILED",
+				ex.Message,
+				LocalizationManager.Text("common.ok"));
+			return false;
+		}
+		finally
+		{
+			if (InputBlockerOverlay.IsVisible)
+			{
+				await SetShutdownBlockerVisibleAsync(false);
+			}
+		}
+	}
+
+	private async void OnLoadingRetryRequested(object? sender, EventArgs e)
+	{
+		if (!CanAcceptWebRefresh(out string blockedReason))
+		{
+			ShowLoadingRetryBlockedState(blockedReason);
+			return;
+		}
+
+		Uri readinessEndpoint = new(new Uri(ComfyApiOptions.LocalBaseUrl), "api/object_info");
+		_loadingOverlayController.Hold(
+			"Checking ComfyUI",
+			"Confirming the local ComfyUI API before reconnecting Nexus.",
+			"CHECKING COMFYUI API...",
+			LoadingInfoColor);
+
+		try
+		{
+			LocalHttpProbeResult probe = await LocalServerProbe.TryGetAsync(readinessEndpoint, CancellationToken.None);
+			if (probe.State != LocalHttpProbeState.Responded || probe.StatusCode != System.Net.HttpStatusCode.OK)
+			{
+				string detail = probe.State switch
+				{
+					LocalHttpProbeState.NotListening => "ComfyUI is not listening yet. Start the server, wait for it to finish booting, then retry.",
+					LocalHttpProbeState.Responded => $"ComfyUI API returned HTTP {(int)probe.StatusCode!.Value}. Wait for a ready server or restart the application.",
+					_ => "ComfyUI accepted the connection but its API is not ready. Wait briefly, then retry.",
+				};
+
+				_loadingOverlayController.Error(
+					LocalizationManager.Text("loading.comfy_unreachable_title"),
+					detail,
+					LocalizationManager.Text("loading.comfy_unreachable_status"),
+					LoadingWarningColor);
+				return;
+			}
+
+			await PerformSystemReboot();
+		}
+		catch (Exception ex)
+		{
+			Log($"[RETRY] ComfyUI API readiness check failed: {ex.GetType().Name} - {ex.Message}");
+			_loadingOverlayController.Error(
+				LocalizationManager.Text("loading.comfy_unreachable_title"),
+				"The local ComfyUI API could not be checked. Restart ComfyUI or restart Nexus, then retry.",
+				LocalizationManager.Text("loading.comfy_unreachable_status"),
+				LoadingWarningColor);
+		}
+	}
+
+	private async void OnServerBootSetupRequested(object? sender, EventArgs e)
+	{
+		StartServerBootSetupRouteTiming();
+		WriteServerBootSetupRouteTiming("Splash route requested from server boot.");
+		await ShowStartupSplashAsync();
+		try
+		{
+			Task setupPreparation = ShowProductSetupAsync();
+			await PlayStartupSplashBouncesUntilReadyAsync(setupPreparation);
+			await setupPreparation;
+			WriteServerBootSetupRouteTiming("Setup cache and reveal preparation completed.");
+		}
+		finally
+		{
+			WriteServerBootSetupRouteTiming("Starting splash exit.");
+			await HideStartupSplashAsync(includeBounce: false);
+			WriteServerBootSetupRouteTiming("Splash route completed.");
+		}
+	}
+
+	private void ShowLoadingRetryBlockedState(string reason)
+	{
+		string detail = reason.StartsWith("server-lifecycle-", StringComparison.Ordinal)
+			? "ComfyUI is still starting or stopping. Wait for the server lifecycle to finish, then retry."
+			: "Nexus is already reconnecting to ComfyUI. Wait for the current attempt to finish before retrying.";
+
+		Log($"[RETRY] Reconnect request deferred: {reason}");
+		_loadingOverlayController.Error(
+			LocalizationManager.Text("loading.comfy_unreachable_title"),
+			detail,
+			LocalizationManager.Text("loading.comfy_unreachable_status"),
+			LoadingWarningColor);
+	}
+
 	private async Task PerformSystemReboot()
 	{
+		if (!CanAcceptWebRefresh(out string blockedReason))
+		{
+			NexusLog.Trace($"[REFRESH] Ignored while loading is active: {blockedReason}");
+			return;
+		}
+
 		if (_isRebooting) return;
 		_isRebooting = true;
 
@@ -299,43 +518,48 @@ public partial class MainPage
 		}
 	}
 
+	private bool CanAcceptWebRefresh(out string reason)
+	{
+		if (!_loginSequence.Allows(LoginSequenceCapability.Refresh))
+		{
+			reason = "login-sequence-active";
+			return false;
+		}
+
+		if (!_serverLifecycle.Allows(ServerLifecycleCapability.Refresh))
+		{
+			reason = $"server-lifecycle-{_serverLifecycle.Snapshot.State}";
+			return false;
+		}
+
+		reason = string.Empty;
+		return true;
+	}
+
 	private void UpdateRebootUI(bool isStarting)
 	{
-		bool isAlreadyLoading = _isSystemLoading;
 		_isBooted = !isStarting;
 		if (isStarting)
 		{
-			_loginSequence.EnsureF5Refresh("WebView navigation starting");
 			_loginSequence.Phase(BootPhase.NavigationStarting);
-		}
-
-		if (!isStarting || !isAlreadyLoading)
-		{
-			UpdateSystemLoadingState(isStarting);
-		}
-
-		if (isStarting)
-		{
-			SetLoadingStatus("LINK ESTABLISHED // HANDSHAKE WITH PROTOS...", LoadingInfoColor);
 		}
 	}
 
-	private Task ExecuteWebViewColdBoot()
+	private async Task ExecuteWebViewColdBoot()
 	{
 		try
 		{
-			Log("SYSTEM: Unconditional reboot sequence authorized.");
-			Log("SYSTEM: Requesting Web Environment Reboot...");
+			Log("SYSTEM: WebView reconnect sequence authorized.");
+			Log("SYSTEM: Requesting explicit ComfyUI navigation...");
 			_loginSequence.Phase(BootPhase.ReloadRequested);
-			PlatformManager.Current.WebView.Reload(WorkspaceControl.BrowserView);
+			await UpdateSystemLoadingStateAsync(true);
+			await WorkspaceControl.BrowserSurface.NavigateAsync(ComfyApiOptions.LocalBaseUrl);
 		}
 		catch (Exception ex)
 		{
 			Log($"REBOOT ERROR: {ex.Message}");
 			_loginSequence.Phase(BootPhase.ReloadFailed, ex.Message);
-			WorkspaceControl.BrowserView.Reload();
+			ApplyWebViewNavigationFailureUi($"Navigation request failed: {ex.Message}");
 		}
-
-		return Task.CompletedTask;
 	}
 }

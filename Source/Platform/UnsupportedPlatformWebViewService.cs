@@ -2,8 +2,11 @@ namespace ComfyUI_Nexus.Platform;
 
 public sealed class UnsupportedPlatformWebViewService : IPlatformWebViewService
 {
+	public Task EnsureReadyAsync(INexusBrowserSurface surface)
+		=> Task.CompletedTask;
+
 	public Task ConfigureBridgeAsync(
-		WebView webView,
+		INexusBrowserSurface surface,
 		Func<string, Task> processMessageAsync,
 		Action<string?> navigationStarting,
 		Action? bridgeActivated = null,
@@ -13,22 +16,26 @@ public sealed class UnsupportedPlatformWebViewService : IPlatformWebViewService
 		return Task.CompletedTask;
 	}
 
-	public async Task DisableBrowserReloadHandlingAsync(WebView webView, Func<Task> clearBeforeUnloadAsync)
+	public async Task DisableBrowserReloadHandlingAsync(INexusBrowserSurface surface, Func<Task> clearBeforeUnloadAsync)
 	{
 		await clearBeforeUnloadAsync();
 	}
 
-	public void Reload(WebView webView)
+	public void Reload(INexusBrowserSurface surface)
 	{
-		webView.Reload();
+		surface.Reload();
 	}
 
-	public void Focus(WebView webView)
+	public void Focus(INexusBrowserSurface surface)
 	{
-		webView.Focus();
+		surface.FocusBrowserInput();
 	}
 
-	public void SetDevToolsEnabled(WebView webView, bool isEnabled)
+	public void SetDevToolsEnabled(INexusBrowserSurface surface, bool isEnabled)
+	{
+	}
+
+	public void OpenDevTools(INexusBrowserSurface surface)
 	{
 	}
 }

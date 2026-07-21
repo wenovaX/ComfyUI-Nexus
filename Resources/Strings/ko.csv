@@ -106,10 +106,10 @@ views.overlays.canvas_toolbar_view.map,맵
 views.overlays.canvas_toolbar_view.links,링크
 views.overlays.command_input_view.console,콘솔
 views.overlays.loading_overlay_view.nexus_shell,NEXUS 셸
-views.overlays.loading_overlay_view.initializing_nexus_shell,NEXUS 셸 초기화 중...
+views.overlays.loading_overlay_view.initializing_nexus_shell,PREPARING NEXUS...
 views.overlays.loading_overlay_view.open_setup,설정 열기
 views.overlays.loading_overlay_view.check_install,설치 확인
-views.overlays.loading_overlay_view.nexus_server_boot,NEXUS 서버 부팅
+views.overlays.loading_overlay_view.nexus_server_boot,COMFYUI SERVER // STANDBY
 views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service,설정이 완료되었습니다.\n백엔드 서비스를 시작하세요.
 views.overlays.loading_overlay_view.state,상태
 views.overlays.loading_overlay_view.engage_server,서버 실행
@@ -122,19 +122,19 @@ views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal,Co
 views.overlays.loading_overlay_view.get_official_launcher,공식 런처 다운로드
 views.overlays.loading_overlay_view.clone_from_github,GitHub에서 복제
 views.overlays.loading_overlay_view.nexus_maintenance,NEXUS 유지 관리
-views.overlays.loading_overlay_view.backend_process_already_starting,백엔드가 시작 중입니다. 아래 실시간 로그를 참조하세요.
-views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI 백엔드가 오프라인입니다. 계속하려면 서버를 가동하세요.
+views.overlays.loading_overlay_view.backend_process_already_starting,ComfyUI 서버가 이미 시작 중입니다.\n포트 연결과 API 준비 상태를 확인합니다.
+views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI 서버가 현재 오프라인입니다.\n서버를 시작하면 Nexus 준비를 계속합니다.
 views.overlays.loading_overlay_view.recover_runtime_and_boot_title,런타임 복구 후 부팅하시겠습니까?
 views.overlays.loading_overlay_view.recover_runtime_and_boot_message,"ComfyUI 요구사항을 동기화하고, 선택한 런타임의 CUDA PyTorch를 복구한 후 서버를 시작합니다. 몇 분 정도 소요될 수 있습니다.\n\n대상: {0}"
 views.overlays.loading_overlay_view.preparing_runtime_cleanup_recovery,런타임 정리 및 복구를 준비 중입니다.\n작업이 완료될 때까지 입력이 제한됩니다.
-views.overlays.loading_overlay_view.stopping_runtime_processes,런타임 프로세스를 중지하고 LocalRuntime을 정리하는 중입니다.
+views.overlays.loading_overlay_view.stopping_runtime_processes,런타임 프로세스를 중지하고 LocalRuntime을 정리하는 중입니다.\n
 views.overlays.loading_overlay_view.retry_cleanup,정리 재시도
 views.overlays.loading_overlay_view.runtime_cleanup_complete_setup,런타임 정리가 완료되었습니다. 설정을 재개합니다.
 views.overlays.loading_overlay_view.backend_alive_waiting_for_port,백엔드 프로세스가 활성 상태입니다.\nComfyUI 포트 연결을 기다리는 중입니다.
 views.overlays.loading_overlay_view.repairing_runtime_before_backend_launch,백엔드 시작 전 런타임 의존성을 복구 중입니다.\n실시간 로그가 아래에 표시됩니다.
-views.overlays.loading_overlay_view.starting_backend_process,백엔드 프로세스를 시작합니다. 실시간 서버 로그가 아래에 표시됩니다.
-views.overlays.loading_overlay_view.maintenance_completed_setup,유지 관리가 완료되었습니다. 설정을 재개합니다.
-views.overlays.loading_overlay_view.backend_ready_handoff,백엔드 준비가 완료되었습니다. Nexus 셸 제어권 전환을 준비 중입니다.
+views.overlays.loading_overlay_view.starting_backend_process,ComfyUI 서버를 시작하고 있습니다.\n실시간 서버 로그를 아래에 표시합니다.
+views.overlays.loading_overlay_view.maintenance_completed_setup,유지 관리가 완료되었습니다.\n설정을 재개합니다.
+views.overlays.loading_overlay_view.backend_ready_handoff,ComfyUI 서버 준비가 완료되었습니다.\nNexus 인터페이스를 연결합니다.
 views.overlays.loading_overlay_view.backend_online_title,백엔드 온라인
 views.overlays.loading_overlay_view.comfyui_ready_loading_nexus_interface,ComfyUI 준비 완료. Nexus 인터페이스를 로드합니다.
 views.overlays.loading_overlay_view.finalizing_nexus_link,NEXUS 링크 마무리 중...
@@ -160,16 +160,16 @@ views.overlays.loading_overlay_view.launch_failed,실행 실패
 views.overlays.loading_overlay_view.launch_failed_title,실행 실패
 views.overlays.product_setup_view.select_your_deployment_strategy,배포 전략 선택
 views.overlays.product_setup_view.deploy_new_environment,새 환경 배포
-views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit,격리된 ComfyUI 환경을 처음부터 새롭게 구축합니다.
+views.overlays.product_setup_view.build_a_complete_isolated_comfyui_setup_from_scratch_wit,격리된 ComfyUI 환경을 처음부터\n새롭게 구축합니다.
 views.overlays.product_setup_view.connect_existing_path,기존 경로 연결
-views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu,로컬 폴더를 연결하고 Nexus 코어와 동기화합니다.
+views.overlays.product_setup_view.link_your_local_comfyui_folder_and_synchronize_with_nexu,로컬 폴더를 연결하고\nNexus 코어와 동기화합니다.
 views.overlays.product_setup_view.initiation_sequence,시스템 점검 시퀀스
 views.overlays.product_setup_view.0_0_ready,0/0 준비됨
 views.overlays.product_setup_view.required_systems_are_checked_in_order_optional_modules_s,필수 시스템을 순서대로 확인합니다.\n선택 모듈은 시작을 방해하지 않고 아래에서 설정할 수 있습니다.
 views.overlays.product_setup_view.optional_setup,선택적 설정
 views.overlays.product_setup_view.workspace_link,워크스페이스 링크
 views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins,기존 ComfyUI 설치 경로를 지정하세요.
-views.overlays.product_setup_view.nexus_core_command_center,NEXUS 코어 커맨드 센터
+views.overlays.product_setup_view.command_center,커맨드 센터
 views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus,시스템 모니터링 // 커널 v4.2.0-NEXUS
 views.overlays.product_setup_view.boot_matrix,부트 매트릭스
 views.overlays.product_setup_view.cuda_device,CUDA 장치
@@ -904,8 +904,8 @@ setup.console.badge_fail,실패
 setup.console.badge_live,활성
 setup.console.preparing_detail,부팅 전 runtime 점검을 준비하는 중입니다.
 setup.console.standby_detail,ComfyUI backend를 시작할 준비가 되었습니다.
-setup.console.booting_detail,Backend process를 시작하고 있습니다. 로그와 포트 응답을 확인합니다.
-setup.console.failed_detail,부팅 시퀀스가 실패했습니다. Console log를 확인하고 다시 시도하세요.
+setup.console.booting_detail,Backend process를 시작하고 있습니다.\n로그와 포트 응답을 확인합니다.
+setup.console.failed_detail,부팅 시퀀스가 실패했습니다.\nConsole log를 확인하고 다시 시도하세요.
 setup.console.online_detail,ComfyUI backend에 연결되었고 Nexus hand-off 준비가 끝났습니다.
 setup.steps.welcome.title,시작
 setup.steps.welcome.description,Nexus setup deck을 초기화하고 로컬 command center를 준비합니다.
@@ -925,17 +925,20 @@ setup.steps.server.title,Server Standby
 setup.steps.server.description,설정된 서버 옵션으로 ComfyUI를 시작하고 로컬 포트를 기다립니다.
 setup.steps.launch.title,Nexus 실행
 setup.steps.launch.description,서버가 준비되면 기존 WebView login sequence로 넘깁니다.
-loading.bridge_online_title,Neural Bridge Online
-loading.bridge_online_detail,ComfyUI가 shell handshake에 응답했습니다.
-loading.bridge_online_status,WELCOME TO NEXUS
+loading.preparing_nexus_title,Nexus 준비 중
+loading.preparing_nexus_detail,ComfyUI에 연결하고 작업 공간을 준비하고 있습니다.
+loading.preparing_nexus_status,PREPARING NEXUS...
+loading.bridge_online_title,Nexus 연결 완료
+loading.bridge_online_detail,ComfyUI와의 연결을 확인했습니다.
+loading.bridge_online_status,NEXUS READY
 loading.finalizing_title,작업 공간 마무리 중
 loading.finalizing_detail,"도구를 연결하고, shell control을 동기화하고, 화면 전환을 준비합니다."
 loading.finalizing_status,PLEASE STAND BY // PREPARING WORKSPACE...
 loading.comfy_unreachable_title,ComfyUI Core에 연결할 수 없음
 loading.comfy_unreachable_status,COMFYUI CORE UNREACHABLE // RETRYING...
-loading.bridge_timeout_title,Bridge Handshake Timeout
-loading.bridge_timeout_detail,PROTOS가 제한 시간 안에 응답하지 않았습니다. Nexus bridge 확장이 없거나 불완전할 수 있습니다.
-loading.bridge_timeout_status,PROTOS TIMEOUT // SETUP AVAILABLE
+loading.bridge_timeout_title,Nexus 연결 시간 초과
+loading.bridge_timeout_detail,Nexus가 ComfyUI와의 연결을 완료하지 못했습니다. Nexus bridge 확장을 확인한 후 다시 시도하세요.
+loading.bridge_timeout_status,NEXUS CONNECTION TIMEOUT // SETUP AVAILABLE
 toast.interrupting_job,현재 작업을 중단하는 중...
 setup.gpu.scanning,스캔 중...
 setup.console.boot_canceled,서버가 준비되기 전에 부팅 시퀀스가 취소되었습니다.

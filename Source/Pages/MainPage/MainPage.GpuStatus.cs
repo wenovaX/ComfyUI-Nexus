@@ -1,27 +1,30 @@
 using System.Text.Json;
 using ComfyUI_Nexus.Setup.Runtime;
+using ComfyUI_Nexus.Ui;
 
 namespace ComfyUI_Nexus;
 
 public partial class MainPage
 {
 	private string? _lastGpuModelName;
+	private GpuStatsSnapshot? _lastVisibleGpuStatsSnapshot;
 
-	private async Task HandleGpuStatsAsync(JsonElement data)
+	private Task HandleGpuStatsAsync(JsonElement data, NexusOperationLease lease)
 	{
-		if (!_shellRuntimeServicesActive)
+		if (!_shellRuntimeServicesActive || !lease.IsCurrent)
 		{
-			return;
+			return Task.CompletedTask;
 		}
 
 		GpuStatsSnapshot snapshot = CreateGpuStatsSnapshot(data);
-		await MainThread.InvokeOnMainThreadAsync(() =>
+		UiThread.PostLatest("main-page-bridge", "gpu-stats", lease.Generation, () =>
 		{
 			if (_shellRuntimeServicesActive)
 			{
 				ApplyGpuStatsSnapshot(snapshot);
 			}
 		});
+		return Task.CompletedTask;
 	}
 
 	private void ApplyGpuStatsSnapshot(GpuStatsSnapshot snapshot)
@@ -30,13 +33,16 @@ public partial class MainPage
 		{
 			if (!snapshot.IsVisible)
 			{
+				_lastVisibleGpuStatsSnapshot = null;
 				HeaderControl.SetGpuVisibility(false);
 				return;
 			}
 
+			_lastVisibleGpuStatsSnapshot = snapshot;
+
 			Color accent = Color.FromArgb(snapshot.AccentHex);
 			Color accentSoft = Color.FromArgb(snapshot.AccentSoftHex);
-			string modelName = ResolveDisplayGpuModelName(snapshot.ModelName);
+			string modelName = ResolveDisplayGpuModelName(snapshot.ReportedModelName, snapshot.DeviceId);
 
 			HeaderControl.UpdateGpuSummary(
 				modelName,
@@ -50,18 +56,18 @@ public partial class MainPage
 				accent,
 				accentSoft);
 
-			_gpuStatusController.AnimateVramUsage(snapshot.ActivePercent, snapshot.CachePercent, accent, accentSoft);
+			_gpuStatusController.UpdateGpuUsage(snapshot.LoadPercent, snapshot.ActivePercent, snapshot.CachePercent);
 #if WINDOWS
 			HeaderControl.UpdateSystemUsageSummary(_lastSystemCpuPercent);
-			_gpuStatusController.AnimateCpuUsage(_lastSystemCpuPercent);
+			_gpuStatusController.UpdateCpuUsage(_lastSystemCpuPercent);
 #else
 			HeaderControl.UpdateSystemUsageSummary(0);
-			_gpuStatusController.AnimateCpuUsage(0);
+			_gpuStatusController.UpdateCpuUsage(0);
 #endif
-			_gpuStatusController.AnimateRunningState(snapshot.IsRunning);
+			_gpuStatusController.UpdateExecutionState(snapshot.IsRunning);
 			HeaderControl.SetExecutionState(snapshot.IsRunning);
 			_pulseIsRunning = snapshot.IsRunning;
-			ControlDeckControl.SetPulseRun(_pulseIsRunning, _pulseInstantStop);
+			CurrentControlDeck?.SetPulseRun(_pulseIsRunning, _pulseInstantStop);
 		}
 		catch
 		{
@@ -69,17 +75,29 @@ public partial class MainPage
 		}
 	}
 
-	private string ResolveDisplayGpuModelName(string modelName)
+	private void RestoreGpuStatusAfterShellReveal()
 	{
-		if (!IsGenericGpuName(modelName))
+		if (_lastVisibleGpuStatsSnapshot is { } snapshot)
 		{
-			_lastGpuModelName = modelName;
-			return modelName;
+			ApplyGpuStatsSnapshot(snapshot);
+			return;
+		}
+
+		_gpuStatusController.RestoreAfterSurfaceAttach();
+	}
+
+	private string ResolveDisplayGpuModelName(string reportedModelName, string? deviceId)
+	{
+		string resolvedModelName = ResolveGpuModelName(reportedModelName, deviceId);
+		if (!IsGenericGpuName(resolvedModelName))
+		{
+			_lastGpuModelName = resolvedModelName;
+			return resolvedModelName;
 		}
 
 		return !string.IsNullOrWhiteSpace(_lastGpuModelName)
 			? _lastGpuModelName
-			: modelName;
+			: "GPU";
 	}
 
 	private static GpuStatsSnapshot CreateGpuStatsSnapshot(JsonElement data)
@@ -109,8 +127,8 @@ public partial class MainPage
 		}
 
 		var gpu = activeGpu.Value;
-		string rawModelName = gpu.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? string.Empty : string.Empty;
-		string modelName = ResolveGpuModelName(rawModelName, TryReadGpuId(gpu));
+		string reportedModelName = gpu.TryGetProperty("name", out var nameProp) ? nameProp.GetString() ?? string.Empty : string.Empty;
+		string? deviceId = TryReadGpuId(gpu);
 		double used = gpu.TryGetProperty("used_vram", out var usedProp) ? usedProp.GetDouble() : 0;
 		double reserved = gpu.TryGetProperty("reserved_vram", out var reservedProp) ? reservedProp.GetDouble() : 0;
 		double total = gpu.TryGetProperty("total_vram", out var totalProp) ? totalProp.GetDouble() : 0;
@@ -124,7 +142,8 @@ public partial class MainPage
 
 		return new GpuStatsSnapshot(
 			IsVisible: true,
-			ModelName: modelName,
+			ReportedModelName: reportedModelName,
+			DeviceId: deviceId,
 			LoadPercent: loadPercent,
 			ActivePercent: activePercent,
 			CachePercent: cachePercent,
@@ -210,7 +229,8 @@ public partial class MainPage
 
 	private sealed record GpuStatsSnapshot(
 		bool IsVisible,
-		string ModelName,
+		string ReportedModelName,
+		string? DeviceId,
 		double LoadPercent,
 		double ActivePercent,
 		double CachePercent,
@@ -225,7 +245,8 @@ public partial class MainPage
 	{
 		internal static readonly GpuStatsSnapshot Hidden = new(
 			IsVisible: false,
-			ModelName: string.Empty,
+			ReportedModelName: string.Empty,
+			DeviceId: null,
 			LoadPercent: 0,
 			ActivePercent: 0,
 			CachePercent: 0,

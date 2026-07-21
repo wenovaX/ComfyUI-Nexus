@@ -23,6 +23,6 @@ internal static class RailPerformanceDiagnostics
 
 		string suffix = string.IsNullOrWhiteSpace(detail) ? string.Empty : $" - {detail}";
 		long elapsedMilliseconds = (long)Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds;
-		NexusLog.Info($"[RAIL_PERF] +{elapsedMilliseconds:D4}ms {stage}{suffix}");
+		NexusLog.Trace($"[RAIL_PERF] +{elapsedMilliseconds:D4}ms {stage}{suffix}");
 	}
 }

@@ -1,37 +1,40 @@
 using ComfyUI_Nexus.Views;
 using ComfyUI_Nexus.Views.Overlays;
+using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Setup;
 using ComfyUI_Nexus.Setup.Runtime;
 using Microsoft.Maui.Controls;
 
 namespace ComfyUI_Nexus.Ui;
 
+internal enum ServerBootEntryKind
+{
+	Idle,
+	ResumePending,
+	Restart,
+	MaintenanceRecovery,
+}
+
+internal readonly record struct ServerBootEntryRequest(ServerBootEntryKind Kind);
+
 internal sealed class LoadingOverlayController
 {
-	private const int AnimationRate = 16;
-	private const double PulseMidpoint = 0.5;
-	private const double LoadingRotationStart = -12;
-	private const double LoadingRotationEnd = 348;
-	private const double DefaultScanLineHeight = 800;
-	private const string LoadingRingAnimationName = "LoadingRingAnim";
-	private const string LoadingRingPulseAnimationName = "LoadingRingPulse";
-	private const string LoadingOrbitMorphAnimationName = "LoadingOrbitMorph";
-	private const string ScanLineAnimationName = "ScanLineAnim";
-	private const string HaloPulseAnimationName = "HaloPulse";
-	private const string HaloScaleAnimationName = "HaloScale";
-	private const string LoadingLogoFloatAnimationName = "LoadingLogoFloat";
-	private const string LoadingStatusPulseAnimationName = "LoadingStatusPulse";
-	private const string TopLogoLoadingRotateAnimationName = "TopLogoLoadingRotate";
-
-	private readonly VisualElement _animationHost;
 	private readonly LoadingOverlayView _overlay;
 	private readonly HeaderView _header;
+	private readonly NexusMotionController _motion;
+	private readonly NexusAnimatedWebpClip _processClip;
+	private readonly NexusAnimatedWebpClip _successClip;
+	private NexusAnimatedWebpCacheLease? _animationCacheLease;
+	private Task<NexusAnimatedWebpCacheLease>? _animationCacheAcquireTask;
+	private bool _loopAnimationsActive;
 
-	internal LoadingOverlayController(VisualElement animationHost, LoadingOverlayView overlay, HeaderView header)
+	internal LoadingOverlayController(LoadingOverlayView overlay, HeaderView header)
 	{
-		_animationHost = animationHost;
 		_overlay = overlay;
 		_header = header;
+		_motion = new NexusMotionController("loading-overlay", "LOADING_CONTROLLER", overlay.Dispatcher);
+		_processClip = new NexusAnimatedWebpClip(_motion, _overlay.LoadingProcessAnimationSurface, "Loading.Process", NexusAnimatedWebpCacheCatalog.LoadingProcess);
+		_successClip = new NexusAnimatedWebpClip(_motion, _overlay.SuccessAnimationSurface, "Loading.SuccessGate", NexusAnimatedWebpCacheCatalog.LoadingSuccess);
 	}
 
 	internal void SetBlockingState(bool isVisible, double opacity, bool inputTransparent)
@@ -106,12 +109,21 @@ internal sealed class LoadingOverlayController
 
 	internal void HideBlockingSurface()
 	{
-		RunOnMainThread(() =>
+		StopLoopAnimations();
+		RunOnMainThread(HideBlockingSurfaceOnMainThread);
+	}
+
+	/// <summary>
+	/// Completes the loading-to-shell hand-off before callers resume shell services.
+	/// </summary>
+	internal async Task CompleteStableRevealAsync()
+	{
+		await FadeOutForStableAsync();
+		await UiThread.InvokeAsync(() =>
 		{
-			_overlay.IsVisible = false;
-			_overlay.Opacity = 0;
-			_overlay.InputTransparent = true;
-		});
+			HideBlockingSurfaceOnMainThread();
+			return Task.CompletedTask;
+		}, "LOADING_CONTROLLER:COMPLETE_STABLE_REVEAL");
 	}
 
 	internal void SetConfigOverlayState(bool isVisible, double opacity, bool inputTransparent)
@@ -119,9 +131,9 @@ internal sealed class LoadingOverlayController
 		RunOnMainThread(() => _overlay.SetConfigSurfaceState(isVisible, opacity, inputTransparent));
 	}
 
-	internal void ResetVisualState(string successText, Color successColor, Color ringColor)
+	internal void ResetVisualState(string successText, Color successColor)
 	{
-		RunOnMainThread(() => _overlay.ResetVisualState(successText, successColor, ringColor));
+		RunOnMainThread(() => _overlay.ResetVisualState(successText, successColor));
 	}
 
 	internal void SetStatus(string text, Color textColor)
@@ -131,63 +143,42 @@ internal sealed class LoadingOverlayController
 
 	internal void SetMode(bool showConfig)
 	{
+		if (showConfig)
+		{
+			StopLoopAnimations();
+		}
+
 		RunOnMainThread(() => _overlay.SetMode(showConfig));
 	}
 
-	internal void ShowProductSetup()
+	internal async Task PrepareProductSetupForRevealAsync()
 	{
-		RunOnMainThread(() =>
+		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+		StopLoopAnimations();
+		NexusLog.Trace("[SETUP_ROUTE] Animated WebP cache prewarm starting.");
+		await _overlay.PrewarmProductSetupAnimationsAsync().ConfigureAwait(false);
+		NexusLog.Trace($"[SETUP_ROUTE] Animated WebP cache prewarm completed in {stopwatch.ElapsedMilliseconds}ms; requesting UI reveal.");
+		await UiThread.InvokeAsync(async () =>
 		{
 			_overlay.IsVisible = true;
 			_overlay.Opacity = 1;
 			_overlay.InputTransparent = false;
-			_overlay.ShowProductSetup();
-		});
+			await _overlay.RevealPreparedProductSetupAsync();
+		}, "LOADING_CONTROLLER:PREPARE_PRODUCT_SETUP");
+		NexusLog.Trace($"[SETUP_ROUTE] Product setup UI reveal completed in {stopwatch.ElapsedMilliseconds}ms.");
 	}
 
-	internal void ShowServerLaunchOnly()
+	internal Task EnterServerBootAsync(ServerBootEntryRequest request)
 	{
-		RunOnMainThread(() =>
-		{
-			_overlay.IsVisible = true;
-			_overlay.Opacity = 1;
-			_overlay.InputTransparent = false;
-			_overlay.ShowServerLaunchOnly();
-		});
-	}
-
-	internal void ShowServerStartupPending()
-	{
-		RunOnMainThread(() =>
-		{
-			_overlay.IsVisible = true;
-			_overlay.Opacity = 1;
-			_overlay.InputTransparent = false;
-			_overlay.ShowServerStartupPending();
-		});
-	}
-
-	internal void ShowMaintenanceRecovery()
-	{
-		RunOnMainThread(() =>
-		{
-			_overlay.IsVisible = true;
-			_overlay.Opacity = 1;
-			_overlay.InputTransparent = false;
-			_overlay.ShowMaintenanceRecovery();
-		});
-	}
-
-	internal Task PrepareServerRestartSurfaceAsync()
-	{
+		StopLoopAnimations();
 		return UiThread.InvokeAsync(() =>
 		{
 			_overlay.IsVisible = true;
 			_overlay.Opacity = 1;
 			_overlay.InputTransparent = false;
-			_overlay.PrepareServerRestartSurface();
+			_overlay.EnterServerBoot(request);
 			return Task.CompletedTask;
-		}, "LOADING_CONTROLLER:PREPARE_SERVER_RESTART");
+		}, $"LOADING_CONTROLLER:ENTER_SERVER_BOOT:{request.Kind}");
 	}
 
 	internal void SetNexusAppEntry(INexusAppEntry appEntry)
@@ -213,115 +204,125 @@ internal sealed class LoadingOverlayController
 	{
 		await UiThread.InvokeAsync(async () =>
 		{
-			AbortLoopAnimations();
-			_header.SetLoadingLogoRotation(0);
+			StopLoopAnimations(preserveSuccessVisual: true);
 
 			var fadeTasks = new List<Task>
 			{
 				_header.FadeLoadingHaloAsync(0, 260),
-				_overlay.FadeToAsync(0, 360, Easing.CubicInOut)
+				SafeAnimation.FadeToAsync(_overlay, 0, 360, Easing.CubicInOut, "LoadingOverlay.FadeOut")
 			};
 
 			await Task.WhenAll(fadeTasks);
 		}, "LOADING_CONTROLLER:FADE_OUT");
 	}
 
-	internal void StartLoopAnimations(double viewportHeight)
+	private void HideBlockingSurfaceOnMainThread()
 	{
-		RunOnMainThread(() => StartLoopAnimationsOnMainThread(viewportHeight));
+		StopLoopAnimations();
+		_overlay.IsVisible = false;
+		_overlay.Opacity = 0;
+		_overlay.InputTransparent = true;
 	}
+
+	internal void StartLoopAnimations()
+	{
+		RunOnMainThread(StartLoopAnimationsOnMainThread);
+	}
+
+	internal void Stop()
+		=> StopLoopAnimations();
 
 	internal async Task PlaySuccessVisualsAsync(string text, Color color)
 	{
 		await UiThread.InvokeAsync(async () =>
 		{
-			await Task.WhenAll(
-				_overlay.ScaleStatusAsync(1.05, 110, Easing.CubicOut),
-				_overlay.TranslateStatusAsync(0, -1, 110, Easing.CubicOut),
-				_overlay.FadeLoadingLogoAsync(0, 160, Easing.CubicInOut),
-				_overlay.ScaleLoadingLogoAsync(0.82, 160, Easing.CubicInOut),
-				RevealSuccessGlyphOnMainThreadAsync(text, color),
-				EmphasizeSuccessRingOnMainThreadAsync(color));
+			_processClip.Stop();
+			_overlay.SetLoadingProcessVisible(false);
+			_overlay.SetSuccessGlyphVisualState(0, 0, 0);
+			_overlay.SetStatusVisualState(1, 1.05, -1);
+			_overlay.SetSuccessAnimationVisible(true);
+
+			bool completed = await _successClip.PlayOnceAsync(
+				CanRunSuccessVisual,
+				finalFrameBehavior: NexusAnimatedWebpFinalFrameBehavior.HoldFinalFrame);
+			if (completed)
+			{
+				_overlay.SetSuccessGlyphVisualState(0, 0, 0);
+			}
+			else
+			{
+				_overlay.SetSuccessAnimationVisible(false);
+				_overlay.SetSuccessGlyph(text, color);
+				_overlay.SetSuccessGlyphVisualState(1, 1, 0);
+				NexusLog.Trace("[LOADING_CONTROLLER] Success gate clip did not complete; applied the static success state.");
+			}
 		}, "LOADING_CONTROLLER:SUCCESS_VISUALS");
 	}
 
-	private void StartLoopAnimationsOnMainThread(double viewportHeight)
+	private void StartLoopAnimationsOnMainThread()
 	{
-		AbortLoopAnimations();
-
-		var ringAnim = new Animation(v => _overlay.SetLoadingRingRotation(v), LoadingRotationStart, LoadingRotationEnd);
-		ringAnim.Commit(_animationHost, LoadingRingAnimationName, AnimationRate, 12000, Easing.Linear, repeat: () => true);
-
-		var ringPulse = new Animation();
-		ringPulse.Add(0, PulseMidpoint, new Animation(v => _overlay.SetLoadingOrbitOpacity(v), 0.015, 0.07, Easing.CubicInOut));
-		ringPulse.Add(PulseMidpoint, 1, new Animation(v => _overlay.SetLoadingOrbitOpacity(v), 0.07, 0.015, Easing.CubicInOut));
-		ringPulse.Commit(_animationHost, LoadingRingPulseAnimationName, AnimationRate, 2200, Easing.Linear, repeat: () => true);
-
-		var orbitMorph = new Animation();
-		orbitMorph.Add(0, PulseMidpoint, new Animation(v => _overlay.SetLoadingOrbitWidth(v), 122, 158, Easing.CubicInOut));
-		orbitMorph.Add(0, PulseMidpoint, new Animation(v => _overlay.SetLoadingOrbitHeight(v), 112, 102, Easing.CubicInOut));
-		orbitMorph.Add(PulseMidpoint, 1, new Animation(v => _overlay.SetLoadingOrbitWidth(v), 158, 122, Easing.CubicInOut));
-		orbitMorph.Add(PulseMidpoint, 1, new Animation(v => _overlay.SetLoadingOrbitHeight(v), 102, 112, Easing.CubicInOut));
-		orbitMorph.Commit(_animationHost, LoadingOrbitMorphAnimationName, AnimationRate, 5200, Easing.Linear, repeat: () => true);
-
-		var scanAnim = new Animation(v => _overlay.SetScanLineTranslation(v), 0, viewportHeight > 0 ? viewportHeight : DefaultScanLineHeight);
-		scanAnim.Commit(_animationHost, ScanLineAnimationName, AnimationRate, 3000, Easing.Linear, repeat: () => true);
-
-		var haloAnim = new Animation();
-		haloAnim.Add(0, PulseMidpoint, new Animation(v => _header.SetLoadingHaloOpacity(v), 0.2, 0.7, Easing.CubicInOut));
-		haloAnim.Add(PulseMidpoint, 1, new Animation(v => _header.SetLoadingHaloOpacity(v), 0.7, 0.2, Easing.CubicInOut));
-		haloAnim.Commit(_animationHost, HaloPulseAnimationName, AnimationRate, 1200, Easing.Linear, repeat: () => true);
-
-		var haloScale = new Animation();
-		haloScale.Add(0, PulseMidpoint, new Animation(v => _header.SetLoadingHaloScale(v), 1.0, 1.3, Easing.CubicInOut));
-		haloScale.Add(PulseMidpoint, 1, new Animation(v => _header.SetLoadingHaloScale(v), 1.3, 1.0, Easing.CubicInOut));
-		haloScale.Commit(_animationHost, HaloScaleAnimationName, AnimationRate, 1200, Easing.Linear, repeat: () => true);
-
-		var logoFloat = new Animation();
-		logoFloat.Add(0, PulseMidpoint, new Animation(v => _overlay.SetLoadingLogoScale(v), 0.98, 1.04, Easing.CubicInOut));
-		logoFloat.Add(PulseMidpoint, 1, new Animation(v => _overlay.SetLoadingLogoScale(v), 1.04, 0.98, Easing.CubicInOut));
-		logoFloat.Commit(_animationHost, LoadingLogoFloatAnimationName, AnimationRate, 1500, Easing.Linear, repeat: () => true);
-
-		var statusPulse = new Animation();
-		statusPulse.Add(0, PulseMidpoint, new Animation(v => _overlay.SetStatusOpacity(v), 0.8, 1, Easing.CubicInOut));
-		statusPulse.Add(PulseMidpoint, 1, new Animation(v => _overlay.SetStatusOpacity(v), 1, 0.8, Easing.CubicInOut));
-		statusPulse.Commit(_animationHost, LoadingStatusPulseAnimationName, AnimationRate, 1400, Easing.Linear, repeat: () => true);
-
-		var topRotate = new Animation(v => _header.SetLoadingLogoRotation(v), 0, 360);
-		topRotate.Commit(_animationHost, TopLogoLoadingRotateAnimationName, AnimationRate, 5000, Easing.Linear, repeat: () => true);
+		_ = EnsureAnimationCacheAsync();
+		StopLoopAnimations();
+		_loopAnimationsActive = true;
+		_overlay.SetSuccessGlyphVisualState(0, 0, 0);
+		_overlay.SetSuccessAnimationVisible(false);
+		_overlay.SetLoadingProcessVisible(true);
+		_processClip.PlayLoop(CanRunLoopAnimations);
+		_ = _successClip.PrepareAsync();
 	}
-
-	private async Task RevealSuccessGlyphOnMainThreadAsync(string text, Color color)
-	{
-		_overlay.SetSuccessGlyph(text, color);
-		_overlay.SetSuccessGlyphVisualState(1, 0, -10);
-		await Task.WhenAll(
-			_overlay.FadeSuccessGlyphAsync(1, 120, Easing.CubicOut),
-			_overlay.ScaleSuccessGlyphAsync(1, 180, Easing.CubicOut),
-			_overlay.RotateSuccessGlyphAsync(0, 200, Easing.CubicOut));
-	}
-
-	private async Task EmphasizeSuccessRingOnMainThreadAsync(Color color)
-	{
-		_overlay.SetLoadingRingStyle(color, 4);
-		await _overlay.ScaleLoadingRingAsync(1.05, 120, Easing.CubicOut);
-	}
-
 	private static void RunOnMainThread(Action action)
 	{
+		if (MainThread.IsMainThread)
+		{
+			action();
+			return;
+		}
+
 		UiThread.TryBeginInvoke(action, "LOADING_CONTROLLER:UI");
 	}
 
-	private void AbortLoopAnimations()
+	private bool CanRunLoopAnimations()
+		=> _loopAnimationsActive
+			&& _overlay.Handler is not null
+			&& _overlay.IsVisible;
+
+	private bool CanRunSuccessVisual()
+		=> _overlay.Handler is not null
+			&& _overlay.IsVisible;
+
+	private void StopLoopAnimations(bool preserveSuccessVisual = false)
 	{
-		_animationHost.AbortAnimation(LoadingRingAnimationName);
-		_animationHost.AbortAnimation(LoadingRingPulseAnimationName);
-		_animationHost.AbortAnimation(LoadingOrbitMorphAnimationName);
-		_animationHost.AbortAnimation(ScanLineAnimationName);
-		_animationHost.AbortAnimation(HaloPulseAnimationName);
-		_animationHost.AbortAnimation(HaloScaleAnimationName);
-		_animationHost.AbortAnimation(LoadingLogoFloatAnimationName);
-		_animationHost.AbortAnimation(LoadingStatusPulseAnimationName);
-		_animationHost.AbortAnimation(TopLogoLoadingRotateAnimationName);
+		_loopAnimationsActive = false;
+		_processClip.Stop();
+		_overlay.SetLoadingProcessVisible(false);
+		if (!preserveSuccessVisual)
+		{
+			_successClip.Stop();
+			_overlay.SetSuccessAnimationVisible(false);
+		}
+		_motion.StopAll();
+		if (!preserveSuccessVisual)
+		{
+			ReleaseAnimationCache();
+		}
 	}
+
+	private async Task EnsureAnimationCacheAsync()
+	{
+		if (_animationCacheLease is not null)
+		{
+			return;
+		}
+
+		_animationCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(NexusAnimatedWebpCacheGroup.Shell);
+		_animationCacheLease = await _animationCacheAcquireTask;
+	}
+
+	private void ReleaseAnimationCache()
+	{
+		_animationCacheLease?.Dispose();
+		_animationCacheLease = null;
+		_animationCacheAcquireTask = null;
+	}
+
 }

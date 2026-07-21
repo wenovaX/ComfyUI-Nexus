@@ -2,7 +2,6 @@ namespace ComfyUI_Nexus.Configuration;
 
 internal static class ShellLayoutOptions
 {
-	internal const double ControlDeckExpandedWidth = 280;
 	internal const double DefaultExpandedRailWidth = 323;
 	internal const double CollapsedRailWidth = 40;
 	internal const double MinExpandedRailWidth = 293;

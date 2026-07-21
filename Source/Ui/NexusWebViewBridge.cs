@@ -1,4 +1,5 @@
 using System.Text.Json;
+using ComfyUI_Nexus.Platform;
 using Microsoft.Maui.Controls;
 using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Diagnostics;
@@ -165,15 +166,15 @@ internal sealed class NexusWebViewBridge
 	private const int ScriptSummaryMaxLength = 220;
 	private const string NexusBridgeAutoQueueModuleUrl = "/extensions/ComfyUI-NexusBridge/nexus/auto_queue_mode.js";
 
-	private readonly Func<WebView?> _webViewAccessor;
+	private readonly Func<INexusBrowserSurface?> _browserSurfaceAccessor;
 
 	/// <summary>
-	/// Creates a bridge around a deferred WebView accessor.
+	/// Creates a bridge around a deferred browser surface accessor.
 	/// </summary>
-	/// <param name="webViewAccessor">Returns the current WebView instance, or null when it is not ready.</param>
-	internal NexusWebViewBridge(Func<WebView?> webViewAccessor)
+	/// <param name="browserSurfaceAccessor">Returns the current browser surface, or null when it is not ready.</param>
+	internal NexusWebViewBridge(Func<INexusBrowserSurface?> browserSurfaceAccessor)
 	{
-		_webViewAccessor = webViewAccessor;
+		_browserSurfaceAccessor = browserSurfaceAccessor;
 	}
 
 	/// <summary>
@@ -182,14 +183,14 @@ internal sealed class NexusWebViewBridge
 	/// <param name="script">JavaScript source to execute in the page context.</param>
 	internal async Task ExecuteRawScriptAsync(string script)
 	{
-		var webView = _webViewAccessor();
-		if (webView == null) return;
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null) return;
 
 		NexusLog.Trace($"[NexusWebViewBridge] {SummarizeScript(script)}");
 
 		try
 		{
-			await EvaluateScriptAsync(webView, script);
+			await EvaluateScriptAsync(browserSurface, script);
 		}
 		catch (ObjectDisposedException)
 		{
@@ -208,10 +209,10 @@ internal sealed class NexusWebViewBridge
 	/// <summary>
 	/// Starts or re-pings the injected Nexus boot agent and reports the current bridge readiness stage.
 	/// </summary>
-	internal async Task<BridgeBootProbeResult> BootProtosAsync()
+	internal async Task<BridgeBootProbeResult> BootNexusAsync()
 	{
-		var webView = _webViewAccessor();
-		if (webView == null)
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
 		{
 			return BridgeBootProbeResult.NativeUnavailable;
 		}
@@ -234,7 +235,7 @@ internal sealed class NexusWebViewBridge
 						return JSON.stringify(state);
 					}
 
-					const result = window.NexusBoot("PROTOS_INIT");
+					const result = window.NexusBoot("NEXUS_INIT");
 					state.status = result ? "BOOT_INVOKED" : "BOOT_RETURNED_FALSE";
 					return JSON.stringify(state);
 				} catch (error) {
@@ -249,7 +250,7 @@ internal sealed class NexusWebViewBridge
 
 		try
 		{
-			string? raw = await EvaluateScriptAsync(webView, script);
+			string? raw = await EvaluateScriptAsync(browserSurface, script);
 			return BridgeBootProbeResult.FromScriptResult(raw);
 		}
 		catch (ObjectDisposedException)
@@ -362,11 +363,39 @@ internal sealed class NexusWebViewBridge
 							jobs
 						});
 					},
+					refreshVisibleOutputImages(jobs) {
+						const signature = jobs
+							.map(job => `${job.jobId}|${job.filename}|${job.subfolder}|${job.type}`)
+							.join('\n');
+						const token = String(Date.now());
+						for (const image of document.querySelectorAll('img[data-testid="main-image"]')) {
+							try {
+								const url = new URL(image.src, window.location.href);
+								if (!url.pathname.endsWith('/api/view') || url.searchParams.get('type') !== 'output') {
+									continue;
+								}
+								if (image.dataset.nexusOutputSignature === signature && url.searchParams.has('nexus_cache_token')) {
+									continue;
+								}
+
+								url.searchParams.set('nexus_cache_token', token);
+								image.dataset.nexusOutputSignature = signature;
+								image.src = url.toString();
+							} catch {
+								// Ignore images with an invalid transient source during ComfyUI rendering.
+							}
+						}
+					},
+					refreshVisibleOutputImagesAfterRender(jobs) {
+						window.requestAnimationFrame(() =>
+							window.requestAnimationFrame(() => this.refreshVisibleOutputImages(jobs)));
+					},
 					async snapshot(reason = 'snapshot') {
 						try {
 							const jobs = await this.listJobs();
 							this.before = new Set(jobs.map(job => job.jobId));
 							this.post(reason, jobs);
+							this.refreshVisibleOutputImagesAfterRender(jobs);
 							return jobs;
 						} catch (error) {
 							console.warn('[NexusMediaAssetJobSync] snapshot failed', error);
@@ -381,6 +410,7 @@ internal sealed class NexusWebViewBridge
 							this.before = next;
 							if (changed) {
 								this.post('diff', jobs);
+								this.refreshVisibleOutputImagesAfterRender(jobs);
 							}
 						} catch (error) {
 							console.warn('[NexusMediaAssetJobSync] poll failed', error);
@@ -441,7 +471,7 @@ internal sealed class NexusWebViewBridge
 
 	internal async Task RefreshWorkflowAppDataAsync()
 	{
-		if (_webViewAccessor() is null)
+		if (_browserSurfaceAccessor() is null)
 		{
 			NexusLog.Warning("Workflow app data refresh skipped because the WebView is not ready.");
 			return;
@@ -519,13 +549,13 @@ internal sealed class NexusWebViewBridge
 
 	private async Task<bool?> ReadBooleanScriptResultAsync(string script)
 	{
-		var webView = _webViewAccessor();
-		if (webView == null)
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
 		{
 			return null;
 		}
 
-		string? raw = await EvaluateScriptAsync(webView, script);
+		string? raw = await EvaluateScriptAsync(browserSurface, script);
 		if (string.IsNullOrWhiteSpace(raw) || raw == "null")
 		{
 			return null;
@@ -668,13 +698,13 @@ internal sealed class NexusWebViewBridge
 			})()
 			""";
 
-		var webView = _webViewAccessor();
-		if (webView == null)
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
 		{
 			return null;
 		}
 
-		string? raw = await EvaluateScriptAsync(webView, script);
+		string? raw = await EvaluateScriptAsync(browserSurface, script);
 		if (string.IsNullOrWhiteSpace(raw) || raw == "null")
 		{
 			return null;
@@ -780,8 +810,8 @@ internal sealed class NexusWebViewBridge
 	/// <param name="payloadJson">Raw JavaScript object literal. Use <see cref="InvokeJsonActionAsync"/> when payload is already serialized JSON.</param>
 	internal async Task InvokeActionAsync(string action, string payloadJson = DefaultActionPayloadJson)
 	{
-		var webView = _webViewAccessor();
-		if (webView == null)
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
 		{
 			return;
 		}
@@ -805,7 +835,7 @@ internal sealed class NexusWebViewBridge
 
 		try
 		{
-			string? result = await EvaluateScriptAsync(webView, script);
+			string? result = await EvaluateScriptAsync(browserSurface, script);
 			if (!string.IsNullOrWhiteSpace(result) &&
 				(result.Contains("NO_NEXUS_ACTION:", StringComparison.Ordinal) ||
 				 result.Contains("ERROR:", StringComparison.Ordinal)))
@@ -823,8 +853,8 @@ internal sealed class NexusWebViewBridge
 
 	private async Task<bool> InvokeJsonActionAsync(string action, string payloadJson)
 	{
-		var webView = _webViewAccessor();
-		if (webView == null)
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
 		{
 			return false;
 		}
@@ -849,7 +879,7 @@ internal sealed class NexusWebViewBridge
 
 		try
 		{
-			string? result = await EvaluateScriptAsync(webView, script);
+			string? result = await EvaluateScriptAsync(browserSurface, script);
 			if (!string.IsNullOrWhiteSpace(result) &&
 				(result.Contains("NO_NEXUS_ACTION:", StringComparison.Ordinal) ||
 				 result.Contains("ERROR:", StringComparison.Ordinal)))
@@ -875,26 +905,14 @@ internal sealed class NexusWebViewBridge
 		}
 	}
 
-	private static Task<string?> EvaluateScriptAsync(WebView webView, string script)
+	private static Task<string?> EvaluateScriptAsync(INexusBrowserSurface browserSurface, string script)
 	{
 		if (MainThread.IsMainThread)
 		{
-			return EvaluateScriptOnCurrentThreadAsync(webView, script);
+			return browserSurface.ExecuteScriptAsync(script);
 		}
 
-		return MainThread.InvokeOnMainThreadAsync(() => EvaluateScriptOnCurrentThreadAsync(webView, script));
-	}
-
-	private static async Task<string?> EvaluateScriptOnCurrentThreadAsync(WebView webView, string script)
-	{
-#if WINDOWS
-		if (webView.Handler?.PlatformView is Microsoft.UI.Xaml.Controls.WebView2 nativeWebView)
-		{
-			await nativeWebView.EnsureCoreWebView2Async();
-			return await nativeWebView.CoreWebView2.ExecuteScriptAsync(script);
-		}
-#endif
-		return await webView.EvaluateJavaScriptAsync(script);
+		return MainThread.InvokeOnMainThreadAsync(() => browserSurface.ExecuteScriptAsync(script));
 	}
 
 	private static string SummarizeScript(string script)

@@ -87,7 +87,7 @@ public partial class MediaViewerOverlayView : ContentView
 		Func<MediaViewerItem, Task<bool>>? deleteHandler,
 		Action? hideCallback = null)
 	{
-			var nextItems = items.Where(item => (item.IsImage || item.IsVideo) && File.Exists(item.FullPath)).ToList();
+		var nextItems = items.Where(item => (item.IsImage || item.IsVideo) && File.Exists(item.FullPath)).ToList();
 		if (nextItems.Count == 0)
 		{
 			return;
@@ -121,6 +121,7 @@ public partial class MediaViewerOverlayView : ContentView
 			_deleteHandler = deleteHandler;
 			_hideCallback = hideCallback;
 			ViewerDeleteButton.IsVisible = deleteEnabled && deleteHandler != null;
+			SetDeleteUiEnabled(deleteEnabled && deleteHandler != null);
 			InputTransparent = false;
 			IsVisible = true;
 			await ShowCurrentAsync();
@@ -172,6 +173,7 @@ public partial class MediaViewerOverlayView : ContentView
 		_deleteHandler = deleteHandler;
 		_hideCallback = hideCallback;
 		ViewerDeleteButton.IsVisible = deleteEnabled && deleteHandler != null;
+		SetDeleteUiEnabled(deleteEnabled && deleteHandler != null);
 		ResetZoom();
 		await ShowCurrentAsync();
 	}

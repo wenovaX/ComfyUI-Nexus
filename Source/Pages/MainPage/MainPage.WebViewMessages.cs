@@ -23,8 +23,8 @@ public partial class MainPage
 	private static readonly int[] MediaAssetSnapshotBurstOffsetsMs = [0, 500, 1500, 3000];
 	private const string MediaAssetSnapshotBurstOperationKey = "media-asset-snapshot-burst";
 
-	private readonly SemaphoreSlim _bridgeMessageProcessingGate = new(1, 1);
 	private readonly object _bridgeDiagnosticsGate = new();
+	private readonly NexusBridgeSessionTracker _bridgeSession = new();
 	private readonly Dictionary<string, int> _bridgeMessageCounts = new();
 	private int _workflowSyncAppliedCount = 0;
 	private int _workflowSyncSkippedCount = 0;
@@ -33,11 +33,12 @@ public partial class MainPage
 	private int _webPulseErrorCount;
 	private bool _pulseIsRunning;
 	private bool _pulseInstantStop;
+	private NexusControlDeckServerStatus _controlDeckServerStatus;
+	private bool _webInputMode;
 	private string _lastAppliedCursor = CssCursorNames.Default;
 
-	private async Task ProcessMessage(string raw)
+	private void ProcessMessage(string raw)
 	{
-		await _bridgeMessageProcessingGate.WaitAsync();
 		try
 		{
 			using var doc = JsonDocument.Parse(raw);
@@ -45,22 +46,35 @@ public partial class MainPage
 			string type = root.GetProperty("type").GetString() ?? string.Empty;
 			var data = root.GetProperty("data").Clone();
 
+			if (type == BridgeMessageTypes.BootReady && _bridgeSession.MarkReady())
+			{
+				RefreshControlDeckWebPulse(force: true);
+			}
+
 			RefreshControlDeckWebPulse(type != BridgeMessageTypes.Heartbeat);
 			if (_bridgeDiagnosticsEnabled) RecordBridgeMessage(type);
-			await DispatchBridgeMessageAsync(type, data);
+			if (IsSerialBridgeMessage(type))
+			{
+				_bridgeOperations.RequestSerial("bridge-serial", lease => DispatchBridgeMessageAsync(type, data, lease));
+			}
+			else if (type != BridgeMessageTypes.Heartbeat)
+			{
+				_bridgeOperations.RequestLatest($"bridge:{type}", lease => DispatchBridgeMessageAsync(type, data, lease));
+			}
 			if (_bridgeDiagnosticsEnabled) FlushBridgeDiagnosticsIfDue();
 		}
 		catch (Exception ex)
 		{
 			Log($"ERROR: {ex.Message}");
 		}
-		finally
-		{
-			_bridgeMessageProcessingGate.Release();
-		}
 	}
 
-	private Task DispatchBridgeMessageAsync(string type, JsonElement data)
+	private static bool IsSerialBridgeMessage(string type)
+		=> type is BridgeMessageTypes.BootReady
+			or BridgeMessageTypes.RefreshRequest
+			or BridgeMessageTypes.WorkflowSync;
+
+	private Task DispatchBridgeMessageAsync(string type, JsonElement data, NexusOperationLease lease)
 	{
 		return type switch
 		{
@@ -70,9 +84,9 @@ public partial class MainPage
 			BridgeMessageTypes.WebError => HandleWebErrorAsync(data),
 			BridgeMessageTypes.BootReady => HandleBootReadyAsync(data),
 			BridgeMessageTypes.RefreshRequest => HandleRefreshRequestAsync(),
-			BridgeMessageTypes.WorkflowSync => HandleWorkflowSyncAsync(data),
-			BridgeMessageTypes.FocusChange => HandleFocusChangeAsync(data),
-			BridgeMessageTypes.GpuStats => HandleGpuStatsAsync(data),
+			BridgeMessageTypes.WorkflowSync => HandleWorkflowSyncAsync(data, lease),
+			BridgeMessageTypes.WebInputMode => HandleWebInputModeAsync(data),
+			BridgeMessageTypes.GpuStats => HandleGpuStatsAsync(data, lease),
 			BridgeMessageTypes.ModeUpdate => HandleModeUpdateAsync(data),
 			BridgeMessageTypes.QueueUpdate => HandleQueueUpdateAsync(data),
 			BridgeMessageTypes.ExecutionStateSync => HandleExecutionStateSyncAsync(data),
@@ -80,16 +94,21 @@ public partial class MainPage
 			BridgeMessageTypes.BatchCountSync => HandleBatchCountSyncAsync(data),
 			BridgeMessageTypes.CursorChange => HandleCursorChangeAsync(data),
 			BridgeMessageTypes.UiStateUpdate => HandleUiStateUpdateAsync(data),
-			BridgeMessageTypes.BlueprintsSync => HandleBlueprintsSyncAsync(data),
-			BridgeMessageTypes.MediaAssetsSync => HandleMediaAssetsSyncAsync(data),
+			BridgeMessageTypes.BlueprintsSync => HandleBlueprintsSyncAsync(data, lease),
+			BridgeMessageTypes.MediaAssetsSync => HandleMediaAssetsSyncAsync(data, lease),
 			_ => Task.CompletedTask
 		};
 	}
 
-	private Task HandleMediaAssetsSyncAsync(JsonElement data)
+	private Task HandleMediaAssetsSyncAsync(JsonElement data, NexusOperationLease lease)
 	{
 		var jobs = ParseMediaAssetJobs(data);
-		MainThread.BeginInvokeOnMainThread(() =>
+		if (!lease.IsCurrent)
+		{
+			return Task.CompletedTask;
+		}
+
+		UiThread.PostLatest("main-page-bridge", "media-assets", lease.Generation, () =>
 		{
 			RailControl?.SyncMediaAssetsFromJobs(jobs);
 		});
@@ -178,15 +197,23 @@ public partial class MainPage
 		MainThread.BeginInvokeOnMainThread(() => apply(text));
 	}
 
-	private async Task HandleBlueprintsSyncAsync(JsonElement data)
+	private async Task HandleBlueprintsSyncAsync(JsonElement data, NexusOperationLease lease)
 	{
 		try
 		{
-			var blueprints = await Task.Run(() => ParseBlueprintItems(data));
+			var blueprints = await _bridgeOperations.RunBackgroundAsync(
+				NexusBackgroundLane.Cpu,
+				"blueprint-parse",
+				_ => ParseBlueprintItems(data),
+				lease.LifecycleToken);
+			if (!lease.IsCurrent)
+			{
+				return;
+			}
 
 			NexusLog.Trace($"[BLUEPRINT] Parsed {blueprints.Count} blueprint items.");
 			_latestBlueprints = blueprints;
-			await MainThread.InvokeOnMainThreadAsync(() =>
+			UiThread.PostLatest("main-page-bridge", "blueprints", lease.Generation, () =>
 			{
 				if (_nodeLibrary == null)
 				{
@@ -426,7 +453,12 @@ public partial class MainPage
 
 	private Task HandleRefreshRequestAsync()
 	{
-		if (_isRebooting) return Task.CompletedTask;
+		if (!CanAcceptWebRefresh(out string blockedReason))
+		{
+			NexusLog.Trace($"[REFRESH] Bridge request ignored while loading is active: {blockedReason}");
+			return Task.CompletedTask;
+		}
+
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
 			_ = PerformSystemReboot();
@@ -434,60 +466,25 @@ public partial class MainPage
 		return Task.CompletedTask;
 	}
 
-	private async Task HandleWorkflowSyncAsync(JsonElement data)
+	private Task HandleWorkflowSyncAsync(JsonElement data, NexusOperationLease lease)
 	{
-		await MainThread.InvokeOnMainThreadAsync(() =>
+		if (!lease.IsCurrent)
+		{
+			return Task.CompletedTask;
+		}
+
+		UiThread.PostLatest("main-page-bridge", "workflow-sync", lease.Generation, () =>
 		{
 			bool applied = _tabController.TryApplyWorkflowSync(data);
 			RecordWorkflowSync(applied);
 		});
-	}
-
-	private Task HandleFocusChangeAsync(JsonElement data)
-	{
-		bool isFocused = data.GetBoolean();
-		MainThread.BeginInvokeOnMainThread(() =>
-		{
-			try
-			{
-				WorkspaceControl.SetFocusState(isFocused);
-				SetShellFocusSignatureState(isFocused);
-			}
-			catch
-			{
-			}
-		});
-
 		return Task.CompletedTask;
 	}
 
-	private void SetShellFocusSignatureState(bool isFocused)
+	private Task HandleWebInputModeAsync(JsonElement data)
 	{
-		const string focusBreathAnimationName = "ShellFocusSignatureBreath";
-		this.AbortAnimation(focusBreathAnimationName);
-
-		if (!isFocused)
-		{
-			FocusIndicatorBox.ScaleY = 1;
-			_ = FocusIndicatorBox.FadeToAsync(0, 180, Easing.CubicOut);
-			return;
-		}
-
-		FocusIndicatorBox.Opacity = 0.86;
-		FocusIndicatorBox.ScaleY = 1;
-		var breath = new Animation(progress =>
-		{
-			double pulse = Math.Sin(progress * Math.PI);
-			FocusIndicatorBox.Opacity = 0.72 + (pulse * 0.28);
-			FocusIndicatorBox.ScaleY = 1 + (pulse * 0.35);
-		});
-		breath.Commit(
-			this,
-			focusBreathAnimationName,
-			rate: 16,
-			length: 1800,
-			easing: Easing.Linear,
-			repeat: () => true);
+		_webInputMode = data.ValueKind == JsonValueKind.True;
+		return Task.CompletedTask;
 	}
 
 	private Task HandleCursorChangeAsync(JsonElement data)
@@ -507,7 +504,7 @@ public partial class MainPage
 
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
-			PlatformManager.Current.Cursor.SetCssCursor(WorkspaceControl.BrowserView, cssCursor);
+			PlatformManager.Current.Cursor.SetCssCursor(WorkspaceControl.BrowserSurface.InputElement, cssCursor);
 		});
 
 		return Task.CompletedTask;
@@ -596,7 +593,7 @@ public partial class MainPage
 
 	private void RefreshBridgeDiagnosticsButtonState()
 	{
-		ControlDeckControl.SetBridgeDiagnosticsState(_bridgeDiagnosticsEnabled);
+		CurrentControlDeck?.SetBridgeDiagnosticsState(_bridgeDiagnosticsEnabled);
 	}
 
 	private void SetBridgeDiagnosticsEnabled(bool isEnabled)
@@ -628,7 +625,7 @@ public partial class MainPage
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
 			HeaderControl.SetExecutionState(isRunning);
-			ControlDeckControl.SetPulseRun(isRunning, _pulseInstantStop);
+			CurrentControlDeck?.SetPulseRun(isRunning, _pulseInstantStop);
 		});
 
 		if (string.Equals(_currentRunMode, RunModeOptions.Instant, StringComparison.OrdinalIgnoreCase))
@@ -646,7 +643,7 @@ public partial class MainPage
 
 	private void QueueMediaAssetJobSnapshotBurst()
 	{
-		_latestOperations.Request(
+		_latestOperations.RequestLatest(
 			MediaAssetSnapshotBurstOperationKey,
 			RunMediaAssetJobSnapshotBurstAsync);
 	}
@@ -728,19 +725,20 @@ public partial class MainPage
 		_lastControlDeckWebPulseUtc = now;
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
-			ControlDeckControl.SetPulseWeb(
-				isLive: true,
+			CurrentControlDeck?.SetPulseWeb(
+				isBridgeLive: _bridgeSession.Snapshot.State == NexusBridgeSessionState.Live,
+				serverStatus: _controlDeckServerStatus,
 				errorCount: _webPulseErrorCount,
 				bridgeTraceEnabled: _bridgeDiagnosticsEnabled,
 				webLogsEnabled: _webLogsEnabled,
-				devToolsEnabled: _devToolsEnabled);
+				devToolsEnabled: _devToolsController.IsEnabled);
 		});
 	}
 
 	private void RefreshControlDeckRunPulse(bool isInstantStop)
 	{
 		_pulseInstantStop = isInstantStop;
-		ControlDeckControl.SetPulseRun(_pulseIsRunning, _pulseInstantStop);
+		CurrentControlDeck?.SetPulseRun(_pulseIsRunning, _pulseInstantStop);
 	}
 
 }

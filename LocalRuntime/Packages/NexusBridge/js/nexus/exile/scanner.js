@@ -107,6 +107,7 @@ export function startExileScanner(bridge, scan = scanExileTargets) {
 	const parkAfterCompleteMs = 2500;
 
 	const run = () => {
+		bridge.exileScanTimeout = null;
 		scanQueued = false;
 		if (document.documentElement.classList.contains("nexus-exile-disabled")) {
 			stopExileScanner(bridge);
@@ -139,8 +140,13 @@ export function startExileScanner(bridge, scan = scanExileTargets) {
 	const scheduleRun = (delay = 80) => {
 		if (scanQueued) return;
 		scanQueued = true;
-		window.setTimeout(run, delay);
+		bridge.exileScanTimeout = window.setTimeout(run, delay);
 	};
+
+	if (bridge.exileScanTimeout) {
+		clearTimeout(bridge.exileScanTimeout);
+		bridge.exileScanTimeout = null;
+	}
 
 	run();
 
@@ -165,6 +171,11 @@ export function startExileScanner(bridge, scan = scanExileTargets) {
 }
 
 export function stopExileScanner(bridge) {
+	if (bridge.exileScanTimeout) {
+		clearTimeout(bridge.exileScanTimeout);
+		bridge.exileScanTimeout = null;
+	}
+
 	if (bridge.exileScanTimer) {
 		clearInterval(bridge.exileScanTimer);
 		bridge.exileScanTimer = null;

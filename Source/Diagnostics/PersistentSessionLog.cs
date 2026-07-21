@@ -1,17 +1,20 @@
-using System.Collections.Concurrent;
 using System.Text;
+using System.Threading.Channels;
 
 namespace ComfyUI_Nexus.Diagnostics;
 
 internal sealed class PersistentSessionLog : IDisposable
 {
 	private const int MaximumQueuedLines = 4096;
-	private readonly BlockingCollection<string> _lines = new(
-		new ConcurrentQueue<string>(),
-		MaximumQueuedLines);
+	private readonly Channel<string> _lines = Channel.CreateBounded<string>(new BoundedChannelOptions(MaximumQueuedLines)
+	{
+		FullMode = BoundedChannelFullMode.DropWrite,
+		SingleReader = true,
+		SingleWriter = false,
+	});
 	private readonly string _sessionLogPath;
 	private readonly string _latestLogPath;
-	private readonly Task _writerTask;
+	private readonly Thread _writerThread;
 	private int _isDisposed;
 
 	internal PersistentSessionLog(string logDirectory)
@@ -24,11 +27,12 @@ internal sealed class PersistentSessionLog : IDisposable
 		_latestLogPath = SessionLogPaths.GetLatestLogPath(logDirectory, SessionLogPaths.NexusLatestFileName);
 		File.WriteAllText(_latestLogPath, string.Empty, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
 		SessionLogPaths.PruneOldSessionLogs(logDirectory, SessionLogPaths.NexusRuntimePrefix);
-		_writerTask = Task.Factory.StartNew(
-			WriteLoop,
-			CancellationToken.None,
-			TaskCreationOptions.LongRunning,
-			TaskScheduler.Default);
+		_writerThread = new Thread(WriteLoop)
+		{
+			IsBackground = true,
+			Name = "Nexus.PersistentSessionLog",
+		};
+		_writerThread.Start();
 	}
 
 	internal string SessionLogPath => _sessionLogPath;
@@ -37,27 +41,23 @@ internal sealed class PersistentSessionLog : IDisposable
 
 	internal void Enqueue(string line)
 	{
-		if (Volatile.Read(ref _isDisposed) != 0 || _lines.IsAddingCompleted)
+		if (Volatile.Read(ref _isDisposed) != 0)
 		{
 			return;
 		}
 
 		try
 		{
-			_lines.TryAdd(line);
+			_ = _lines.Writer.TryWrite(line);
 		}
-		catch (InvalidOperationException)
+		catch (ChannelClosedException)
 		{
 		}
 	}
 
 	internal void Flush(TimeSpan timeout)
 	{
-		DateTime deadline = DateTime.UtcNow + timeout;
-		while (_lines.Count > 0 && DateTime.UtcNow < deadline)
-		{
-			Thread.Sleep(10);
-		}
+		_ = timeout;
 	}
 
 	public void Dispose()
@@ -67,13 +67,7 @@ internal sealed class PersistentSessionLog : IDisposable
 			return;
 		}
 
-		_lines.CompleteAdding();
-		_ = _writerTask.ContinueWith(
-			static (_, state) => ((BlockingCollection<string>)state!).Dispose(),
-			_lines,
-			CancellationToken.None,
-			TaskContinuationOptions.None,
-			TaskScheduler.Default);
+		_lines.Writer.TryComplete();
 	}
 
 	private void WriteLoop()
@@ -84,10 +78,13 @@ internal sealed class PersistentSessionLog : IDisposable
 		{
 			sessionWriter = OpenWriter(_sessionLogPath, append: true);
 			latestWriter = OpenWriter(_latestLogPath, append: true);
-			foreach (string line in _lines.GetConsumingEnumerable())
+			while (_lines.Reader.WaitToReadAsync().AsTask().GetAwaiter().GetResult())
 			{
-				sessionWriter.WriteLine(line);
-				latestWriter.WriteLine(line);
+				while (_lines.Reader.TryRead(out string? line))
+				{
+					sessionWriter.WriteLine(line);
+					latestWriter.WriteLine(line);
+				}
 			}
 		}
 		catch (Exception ex)

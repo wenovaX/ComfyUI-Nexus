@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Specialized;
-using ComfyUI_Nexus.Diagnostics;
 using Microsoft.Maui.Layouts;
 
 namespace ComfyUI_Nexus.Views.Controls.Virtualization;
@@ -13,7 +12,6 @@ public sealed class VirtualizedVerticalListView : ContentView
 {
 	private const double DefaultItemHeight = 28;
 	private const double RenderBuffer = 520;
-	private const int AttachCoalesceDelayMs = 16;
 
 	private readonly ScrollView _scrollView;
 	private readonly Grid _surface;
@@ -28,7 +26,8 @@ public sealed class VirtualizedVerticalListView : ContentView
 	private int _batchUpdateDepth;
 	private int _visibleUpdateVersion;
 	private bool _refreshQueued;
-	private bool _forceImmediateNextRefresh;
+	private bool _isLoaded;
+	private int _lifecycleVersion;
 
 	public VirtualizedVerticalListView()
 	{
@@ -51,6 +50,8 @@ public sealed class VirtualizedVerticalListView : ContentView
 		};
 		_scrollView.Scrolled += (_, _) => UpdateVisibleViews();
 		_scrollView.SizeChanged += (_, _) => UpdateVisibleViews();
+		Loaded += OnLoaded;
+		Unloaded += OnUnloaded;
 		Content = _scrollView;
 	}
 
@@ -133,17 +134,18 @@ public sealed class VirtualizedVerticalListView : ContentView
 		}
 	}
 
-	public void ForceImmediateNextRefresh()
-	{
-		_forceImmediateNextRefresh = true;
-	}
-
 	public Task ScrollToTopAsync(bool animated = false)
 		=> _scrollView.ScrollToAsync(0, 0, animated);
 
 	public async Task MaterializeVisibleViewsAsync(CancellationToken cancellationToken)
 	{
+		if (!CanMaterialize())
+		{
+			return;
+		}
+
 		int updateVersion = BeginVisibleUpdate();
+		int lifecycleVersion = _lifecycleVersion;
 		if (_items.Count == 0 || Width <= 0)
 		{
 			_canvas.HeightRequest = 0;
@@ -173,7 +175,7 @@ public sealed class VirtualizedVerticalListView : ContentView
 		int attachedSinceYield = 0;
 		for (int i = firstIndex; i <= lastIndex; i++)
 		{
-			if (cancellationToken.IsCancellationRequested || updateVersion != _visibleUpdateVersion)
+			if (cancellationToken.IsCancellationRequested || lifecycleVersion != _lifecycleVersion || !CanMaterialize() || updateVersion != _visibleUpdateVersion)
 			{
 				return;
 			}
@@ -202,6 +204,23 @@ public sealed class VirtualizedVerticalListView : ContentView
 		}
 	}
 
+	private void OnLoaded(object? sender, EventArgs e)
+	{
+		_isLoaded = true;
+		_lifecycleVersion++;
+		UpdateVisibleViews();
+	}
+
+	private void OnUnloaded(object? sender, EventArgs e)
+	{
+		_isLoaded = false;
+		_lifecycleVersion++;
+		BeginVisibleUpdate();
+		RecycleMissingVisibleViews(0, -1);
+	}
+
+	private bool CanMaterialize()
+		=> _isLoaded && Handler is not null && _canvas.Handler is not null;
 	private void OnItemsSourceChanged(IEnumerable? oldValue, IEnumerable? newValue)
 	{
 		if (_observedCollection != null)
@@ -273,6 +292,11 @@ public sealed class VirtualizedVerticalListView : ContentView
 	// use delayed reveal so fast scrolling stays smooth.
 	private void UpdateVisibleViews()
 	{
+		if (!CanMaterialize())
+		{
+			return;
+		}
+
 		int updateVersion = BeginVisibleUpdate();
 		if (_items.Count == 0 || Width <= 0)
 		{
@@ -319,19 +343,7 @@ public sealed class VirtualizedVerticalListView : ContentView
 
 		if (missingIndexes.Count > 0)
 		{
-			if (_visibleViews.Count == 0 || _forceImmediateNextRefresh)
-			{
-				_forceImmediateNextRefresh = false;
-				AttachMissingViewsImmediately(missingIndexes, renderTop, viewportWidth, updateVersion);
-				return;
-			}
-
-			_ = ObserveAttachAsync(AttachMissingViewsAsync(
-				PrioritizeAttachIndexes(missingIndexes, _scrollView.ScrollY, viewportHeight),
-				renderTop,
-				viewportWidth,
-				updateVersion,
-				AttachCoalesceDelayMs));
+			AttachMissingViewsImmediately(missingIndexes, renderTop, viewportWidth, updateVersion);
 		}
 	}
 
@@ -364,93 +376,6 @@ public sealed class VirtualizedVerticalListView : ContentView
 			_canvas.Children.Add(view);
 		}
 	}
-
-	private async Task AttachMissingViewsAsync(
-		IReadOnlyList<int> indexes,
-		double renderTop,
-		double viewportWidth,
-		int updateVersion,
-		int coalesceDelayMs)
-	{
-		if (coalesceDelayMs > 0)
-		{
-			await Task.Yield();
-			if (updateVersion != _visibleUpdateVersion)
-			{
-				return;
-			}
-		}
-
-		foreach (int index in indexes)
-		{
-			if (updateVersion != _visibleUpdateVersion || index < 0 || index >= _items.Count)
-			{
-				return;
-			}
-
-			if (_visibleViews.ContainsKey(index))
-			{
-				continue;
-			}
-
-			View view = CreateViewForItem(_items[index]);
-			view.CancelAnimations();
-			view.Opacity = 0;
-			view.TranslationY = -2;
-			view.BindingContext = _items[index];
-			_visibleViews[index] = view;
-			UpdateViewLayout(index, view, renderTop, viewportWidth);
-			_canvas.Children.Add(view);
-
-			_ = ObserveAttachAsync(RevealAttachedViewAsync(view, updateVersion));
-			await Task.Yield();
-		}
-	}
-
-	private static async Task ObserveAttachAsync(Task task)
-	{
-		try
-		{
-			await task;
-		}
-		catch (OperationCanceledException)
-		{
-		}
-		catch (Exception ex)
-		{
-			NexusLog.Exception(ex, "[VIRTUAL_LIST] Deferred view attachment failed");
-		}
-	}
-
-	private async Task RevealAttachedViewAsync(View view, int updateVersion)
-	{
-		try
-		{
-			await Task.WhenAll(
-				view.FadeToAsync(1, 90, Easing.CubicOut),
-				view.TranslateToAsync(0, 0, 90, Easing.CubicOut));
-		}
-		finally
-		{
-			if (updateVersion == _visibleUpdateVersion)
-			{
-				view.Opacity = 1;
-				view.TranslationY = 0;
-			}
-		}
-	}
-
-	private IReadOnlyList<int> PrioritizeAttachIndexes(IReadOnlyList<int> indexes, double scrollY, double viewportHeight)
-	{
-		double viewportCenter = scrollY + viewportHeight / 2;
-		return indexes
-			.OrderBy(index => IsInsideViewport(index, scrollY, viewportHeight) ? 0 : 1)
-			.ThenBy(index => Math.Abs(_offsets[index] + _heights[index] / 2 - viewportCenter))
-			.ToArray();
-	}
-
-	private bool IsInsideViewport(int index, double scrollY, double viewportHeight)
-		=> _offsets[index] + _heights[index] >= scrollY && _offsets[index] <= scrollY + viewportHeight;
 
 	private void UpdateViewLayout(int index, View view, double renderTop, double viewportWidth)
 	{

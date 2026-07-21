@@ -526,37 +526,37 @@ internal sealed class AssetFileOperationService
 				for (int i = 0; i < orderedPaths.Count; i++)
 				{
 					string sourcePath = orderedPaths[i];
-				string? sourceParentDirectory = Path.GetDirectoryName(sourcePath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-				if (string.IsNullOrWhiteSpace(sourceParentDirectory))
-				{
-					continue;
-				}
-
-				touchedDirectories.Add(sourceParentDirectory);
-
-				bool sourceIsDirectory = Directory.Exists(sourcePath);
-				if (!sourceIsDirectory && !File.Exists(sourcePath))
-				{
-					continue;
-				}
-
-				string extension = sourceIsDirectory ? string.Empty : Path.GetExtension(sourcePath);
-				string candidateName = $"{baseName.Trim()} {(i + 1).ToString($"D{width}")}{extension}";
-				string candidatePath = GetUniqueDestinationPath(Path.Combine(sourceParentDirectory, candidateName));
-
-				var mutation = new AssetPathMutation(AssetPathMutationKind.Rename, sourcePath, candidatePath, sourceIsDirectory, IsBatch: isBatch);
-				bool renamed = await ExecuteMutationAsync(
-					mutation,
-					() =>
+					string? sourceParentDirectory = Path.GetDirectoryName(sourcePath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+					if (string.IsNullOrWhiteSpace(sourceParentDirectory))
 					{
-						if (sourceIsDirectory) Directory.Move(sourcePath, candidatePath);
-						else File.Move(sourcePath, candidatePath);
-					});
-				if (!renamed)
-				{
-					return NexusDialogActionResult.KeepOpen;
-				}
-				renamedTargets.Add(candidatePath);
+						continue;
+					}
+
+					touchedDirectories.Add(sourceParentDirectory);
+
+					bool sourceIsDirectory = Directory.Exists(sourcePath);
+					if (!sourceIsDirectory && !File.Exists(sourcePath))
+					{
+						continue;
+					}
+
+					string extension = sourceIsDirectory ? string.Empty : Path.GetExtension(sourcePath);
+					string candidateName = $"{baseName.Trim()} {(i + 1).ToString($"D{width}")}{extension}";
+					string candidatePath = GetUniqueDestinationPath(Path.Combine(sourceParentDirectory, candidateName));
+
+					var mutation = new AssetPathMutation(AssetPathMutationKind.Rename, sourcePath, candidatePath, sourceIsDirectory, IsBatch: isBatch);
+					bool renamed = await ExecuteMutationAsync(
+						mutation,
+						() =>
+						{
+							if (sourceIsDirectory) Directory.Move(sourcePath, candidatePath);
+							else File.Move(sourcePath, candidatePath);
+						});
+					if (!renamed)
+					{
+						return NexusDialogActionResult.KeepOpen;
+					}
+					renamedTargets.Add(candidatePath);
 				}
 			}
 			finally

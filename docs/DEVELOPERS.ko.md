@@ -34,8 +34,10 @@ Nexus는 ComfyUI를 위한 네이티브 Windows 동반 앱입니다.
 | Setup sequence | `InitiationSequenceRunner` | 필수 단계 순서와 완료 |
 | Setup scroll | `ProductSetupView` | focus owner와 모든 setup scroll |
 | Popup lifecycle | `NexusPopupManager` | shell, animation, refresh, close |
-| Latest-wins 작업 | `NexusLatestOperationCoordinator` | 실행 중 하나, 최신 pending 하나 |
+| UI 작업 | `NexusOperationController` | 최신 refresh, 순서 보장 메시지, 제한된 background 작업 |
 | 반복 motion | `NexusMotionController` | UI thread motion, lifecycle stop, resting state |
+| Animated WebP 상태 | `NexusVisualStateAnimator` / `NexusAnimatedWebpFrameCache` | 범위별 cache, state mapping, loop, one-shot, 마지막 frame 유지 |
+| Loading 해제 | `LoadingOverlayController` | server, bridge, shell, 실제 UI 준비 전까지 input 차단 |
 | 관리 custom-node 의존성 | `ManagedCustomNodeDependencyInstaller` | 명시적인 repository, requirements, bootstrap install mode |
 | Web bridge | `NexusWebViewBridge` | typed C# to JS call |
 
@@ -58,7 +60,7 @@ Nexus는 ComfyUI를 위한 네이티브 Windows 동반 앱입니다.
 
 ## Async와 Lifecycle
 
-최신 결과만 중요한 refresh에는 latest-wins를 사용합니다.
+최신 결과만 중요한 refresh에는 `NexusOperationController`의 latest 작업을 사용합니다.
 
 - workflow index refresh
 - media snapshot burst
@@ -67,6 +69,10 @@ Nexus는 ComfyUI를 위한 네이티브 Windows 동반 앱입니다.
 
 새 요청은 pending 요청만 바꿉니다. 실행 중인 작업을 취소하지 않습니다.<br>
 side effect 직전에 lease를 확인하고, stale 결과는 버립니다.
+
+boot-ready, lifecycle request처럼 도착 순서를 보존해야 하는 메시지에는
+ordered serial 작업을 사용합니다.<br>
+고빈도 telemetry에 serial key를 사용하지 않습니다.
 
 취소는 실제 ownership 경계에서만 사용합니다.
 
@@ -82,6 +88,10 @@ Server shutdown은 순차적으로 처리합니다.<br>
 shell service를 quiesce하고, server process와 listener 종료를 검증한 뒤 maintenance, boot, app exit로 넘어갑니다.<br>
 lifecycle code에서는 `Process.Kill(entireProcessTree: true)`를 사용하지 않습니다.<br>
 native process snapshot을 종료하고 모든 target의 종료를 검증합니다.
+
+Loading 초기화 owner는 `BeginSystemLoadingOnMainThreadAsync` 하나입니다.<br>
+startup, Core Link 선택, refresh는 WebView navigation 전에 이 경로로 진입합니다.<br>
+navigation event는 상태를 알릴 뿐 loading visual이나 progress를 reset하지 않습니다.
 
 ## MAUI와 WinUI 안정성
 
@@ -107,6 +117,11 @@ MAUI UI는 retained native scene graph처럼 다룹니다.
 
 Windows surface에는 MAUI `Shadow` property를 사용하지 않습니다.<br>
 native alpha-mask 경로가 비동기 handler-lifetime 실패를 일으킨 이력이 있어 Nexus UI에서는 의도적으로 제거했습니다.
+
+반복 시각 효과는 authored asset이 맞는 경우 animated WebP를 사용합니다.<br>
+surface가 interactive 상태가 되기 전에 owner-scoped cache를 확보하고,
+hide 또는 unload에서 해제합니다.<br>
+`Image.Source` 교체나 visual tree 재생성으로 clip을 재시작하지 않습니다.
 
 ## Managed Custom Node
 
@@ -201,3 +216,7 @@ dev-build-as-binary.bat Release folder clean archive --cert Release
 4. UI lifetime, WebView/bridge, server process, runtime package 중 하나로 분류합니다.
 
 managed log에 예외가 없다고 native UI가 정상이라는 뜻은 아닙니다.
+
+UI가 멈춘 것처럼 보이면 timer나 cancellation을 추가하기 전에
+`[UI_TRACE]`와 `[CONCURRENCY]`를 함께 비교합니다.<br>
+renderer가 보인다고 UI dispatcher가 정상이라는 뜻은 아닙니다.

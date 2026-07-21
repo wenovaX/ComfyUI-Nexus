@@ -28,4 +28,5 @@ public enum NexusKey
 	Right,
 	F2,
 	F5,
+	F12,
 }

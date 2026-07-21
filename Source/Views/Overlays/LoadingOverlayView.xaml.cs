@@ -6,7 +6,6 @@ using ComfyUI_Nexus.Setup;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Setup.Services;
-using Microsoft.Maui.Controls.Shapes;
 #if WINDOWS
 #endif
 
@@ -14,20 +13,10 @@ namespace ComfyUI_Nexus.Views.Overlays;
 
 public partial class LoadingOverlayView : ContentView
 {
-	private const int ServerBootAnimationRate = 16;
 	private const double LoadingProgressWidth = 360;
 	private const double DisabledConfigEditOpacity = 0.55;
 	private const double ServerBootStatusRowOpenSetupSpacing = 10;
-	private const double ServerBootRotationStart = -12;
-	private const double ServerBootRotationEnd = 348;
-	private const double ServerBootPulseMidpoint = 0.5;
-	private const double ServerBootOrbitBaseWidth = 158;
-	private const double ServerBootOrbitBaseHeight = 118;
-	private const double ServerBootFailedGlowOpacity = 0.8;
 	private const uint ServerBootPanelFadeLength = 360;
-	private const string ServerBootOuterRingRotateAnimationName = "ServerBootOuterRingRotate";
-	private const string ServerBootOrbitMorphAnimationName = "ServerBootOrbitMorph";
-	private const string ServerBootGlowPulseAnimationName = "ServerBootGlowPulse";
 	private const string TextKeyPrefix = "views.overlays.loading_overlay_view.";
 	private static readonly Color NexusAccentColor = NexusColors.Accent;
 	private static readonly Color ServerBootWarningColor = NexusColors.Warning;
@@ -57,6 +46,14 @@ public partial class LoadingOverlayView : ContentView
 		Online
 	}
 
+	private enum ServerBootAnimationState
+	{
+		Idle,
+		Booting,
+		Success,
+		Failed,
+	}
+
 	private readonly record struct ServerBootVisualSpec(
 		string StateText,
 		Color Color,
@@ -70,11 +67,14 @@ public partial class LoadingOverlayView : ContentView
 	private bool _isOverlayUnloading;
 	private bool _isMaintenanceRecoveryMode;
 	private ServerBootVisualState _serverBootVisualState = ServerBootVisualState.Idle;
-	private readonly Dictionary<string, SolidColorBrush> _solidBrushCache = new(StringComparer.Ordinal);
+	private Task? _productSetupRevealPreparationTask;
 	private readonly NexusMotionController _serverBootMotion;
+	private readonly NexusVisualStateAnimator<ServerBootAnimationState> _serverBootAnimator;
 	private Func<ServerLifecycleRequest, Task<ServerLifecycleResult>>? _runServerLifecycleAsync;
 
 	internal event EventHandler? SelectCoreRequested;
+	internal event EventHandler? RetryRequested;
+	internal event EventHandler? ServerBootSetupRequested;
 	internal event EventHandler<TappedEventArgs>? GetComfyRequested;
 	internal event EventHandler<TappedEventArgs>? GetGitHubRequested;
 
@@ -88,6 +88,23 @@ public partial class LoadingOverlayView : ContentView
 	{
 		InitializeComponent();
 		_serverBootMotion = new NexusMotionController("loading-server-boot", "Loading.ServerBoot", Dispatcher);
+		_serverBootAnimator = new NexusVisualStateAnimator<ServerBootAnimationState>(
+			"loading-server-boot",
+			_serverBootMotion,
+			CanRepeatServerBootAnimation,
+			[
+				new NexusVisualStateAnimation("idle", ServerBootAnimationSurface, NexusAnimatedWebpCacheCatalog.ServerBootIdle, NexusVisualPlaybackKind.Loop, Preload: true),
+				new NexusVisualStateAnimation("booting", ServerBootAnimationSurface, NexusAnimatedWebpCacheCatalog.ServerBooting, NexusVisualPlaybackKind.Loop, Preload: true),
+				new NexusVisualStateAnimation("success", ServerBootAnimationSurface, NexusAnimatedWebpCacheCatalog.ServerBootSuccess, NexusVisualPlaybackKind.OneShot, FinalFrameBehavior: NexusAnimatedWebpFinalFrameBehavior.HoldFinalFrame, Preload: true),
+				new NexusVisualStateAnimation("failed", ServerBootAnimationSurface, NexusAnimatedWebpCacheCatalog.ServerBootFailed, NexusVisualPlaybackKind.OneShot, FinalFrameBehavior: NexusAnimatedWebpFinalFrameBehavior.HoldFinalFrame, Preload: true),
+			],
+			new Dictionary<ServerBootAnimationState, IReadOnlyCollection<string>>
+			{
+				[ServerBootAnimationState.Idle] = ["idle"],
+				[ServerBootAnimationState.Booting] = ["booting"],
+				[ServerBootAnimationState.Success] = ["success"],
+				[ServerBootAnimationState.Failed] = ["failed"],
+			});
 		ProductSetupControl.SetupFinalized += OnProductSetupFinalized;
 		Loaded += OnLoaded;
 		Unloaded += OnUnloaded;
@@ -119,7 +136,6 @@ public partial class LoadingOverlayView : ContentView
 		{
 			SetSuccessGlyph(display.CenterGlyph, display.AccentColor);
 			SetSuccessGlyphVisualState(1, 1, 0);
-			LoadingLogoImage.Opacity = 0;
 		}
 		else if (display.State is LoadingOverlayState.Show or LoadingOverlayState.Hold or LoadingOverlayState.Message)
 		{
@@ -127,11 +143,12 @@ public partial class LoadingOverlayView : ContentView
 			SuccessIconLabel.Scale = 0;
 			SuccessIconHost.Opacity = 0;
 			SuccessIconHost.Scale = 0;
-			LoadingLogoImage.Opacity = 1;
 		}
 
 		SetProgress(display.Progress, display.AccentColor);
-		SetLoadingSetupActionVisible(display.State == LoadingOverlayState.Error);
+		bool isError = display.State == LoadingOverlayState.Error;
+		SetLoadingRetryActionVisible(isError);
+		SetLoadingSetupActionVisible(isError);
 	}
 
 	internal void ClearDisplayDetails()
@@ -139,6 +156,7 @@ public partial class LoadingOverlayView : ContentView
 		LoadingTitleLabel.IsVisible = false;
 		LoadingDescriptionLabel.IsVisible = false;
 		LoadingProgressHost.IsVisible = false;
+		SetLoadingRetryActionVisible(false);
 		SetLoadingSetupActionVisible(false);
 	}
 
@@ -192,13 +210,9 @@ public partial class LoadingOverlayView : ContentView
 
 	}
 
-	internal void ResetVisualState(string successText, Color successColor, Color ringColor)
+	internal void ResetVisualState(string successText, Color successColor)
 	{
-		LoadingLogoImage.Opacity = 1;
-		LoadingLogoImage.Scale = 1;
-		LoadingLogoImage.Rotation = 0;
-		LoadingOrbitHost.Rotation = -12;
-		LoadingOrbitHost.Scale = 1;
+		LoadingProcessImage.Opacity = 0;
 
 		SuccessIconLabel.Text = successText;
 		SuccessIconLabel.TextColor = successColor;
@@ -208,10 +222,7 @@ public partial class LoadingOverlayView : ContentView
 		SuccessIconHost.Opacity = 0;
 		SuccessIconHost.Scale = 0;
 		SuccessIconHost.Rotation = -10;
-
-		SetLoadingRingFill(ringColor);
-		LoadingRingEllipse.Opacity = 0.055;
-		LoadingRingEllipse.Scale = 1;
+		SuccessAnimationImage.Opacity = 0;
 
 		LoadingStatusLabel.Scale = 1;
 		LoadingStatusLabel.Opacity = 0.95;
@@ -239,115 +250,121 @@ public partial class LoadingOverlayView : ContentView
 		SuccessIconHost.Rotation = rotation;
 	}
 
-	internal void SetLoadingRingStyle(Color stroke, double thickness)
-	{
-		SetLoadingRingFill(stroke);
-	}
-
 	internal void SetMode(bool showConfig)
 	{
 		ShowOnlySurface(showConfig ? ConfigStackLayout : LoadingStackLayout);
 	}
 
-	internal void ShowProductSetup()
+	internal Task PrepareProductSetupForRevealAsync()
 	{
-		NexusLog.Info("[LOADING] Product setup handoff starting.");
+		if (_productSetupRevealPreparationTask is { IsCompleted: false } preparation)
+		{
+			return preparation;
+		}
+
+		_productSetupRevealPreparationTask = PrepareProductSetupForRevealCoreAsync();
+		return _productSetupRevealPreparationTask;
+	}
+
+	internal Task PrewarmProductSetupAnimationsAsync()
+		=> ProductSetupControl.PrepareAnimationCacheAsync();
+
+	internal async Task RevealPreparedProductSetupAsync()
+	{
+		NexusLog.Trace("[LOADING] Product setup reveal preparation starting.");
 		_isMaintenanceRecoveryMode = false;
 		ShowOverlayRoot();
 		_isProductSetupFinalizing = false;
-		NexusLog.Info("[LOADING] Product setup reset requested.");
+		NexusLog.Trace("[LOADING] Product setup reset requested.");
 		ProductSetupControl.ResetFlow();
 		ProductSetupControl.PrepareForLifecycleHandoff();
 		ShowOnlySurface(ProductSetupControl);
-		ProductSetupControl.ActivateLifecycle();
-		NexusLog.Info("[LOADING] Product setup handoff completed.");
+		await ProductSetupControl.ActivateLifecycleAsync();
+		NexusLog.Trace("[LOADING] Product setup reveal preparation completed.");
 	}
 
-	internal void ShowServerLaunchOnly()
-		=> _ = ShowServerLaunchPanelSafeAsync(resumePendingProcess: false);
-
-	internal void ShowServerStartupPending()
-		=> _ = ShowServerLaunchPanelSafeAsync(resumePendingProcess: true);
-
-	internal void PrepareServerRestartSurface()
+	private async Task PrepareProductSetupForRevealCoreAsync()
 	{
-		_isMaintenanceRecoveryMode = false;
+		try
+		{
+			await PrewarmProductSetupAnimationsAsync();
+			await RevealPreparedProductSetupAsync();
+		}
+		finally
+		{
+			_productSetupRevealPreparationTask = null;
+		}
+	}
+
+	internal void EnterServerBoot(ServerBootEntryRequest request)
+	{
+		NexusLog.Info($"[LOADING] Server boot entry requested. kind={request.Kind}");
 		ShowOverlayRoot();
 		ShowOnlySurface(null);
 		_isProductSetupFinalizing = false;
 
-		if (!CanUseOverlay()) return;
-		ShowServerBootPanel();
+		if (!CanUseOverlay())
+		{
+			return;
+		}
+
+		switch (request.Kind)
+		{
+			case ServerBootEntryKind.Idle:
+			case ServerBootEntryKind.Restart:
+				_isMaintenanceRecoveryMode = false;
+				ShowServerBootPanel(request.Kind);
+				break;
+			case ServerBootEntryKind.ResumePending:
+				_isMaintenanceRecoveryMode = false;
+				ShowServerBootPanel(request.Kind);
+				BeginPendingServerBoot();
+				break;
+			case ServerBootEntryKind.MaintenanceRecovery:
+				_isMaintenanceRecoveryMode = true;
+				ShowMaintenanceRecoveryPanel();
+				BeginMaintenanceRecovery();
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(request), request.Kind, "The server boot entry kind is not supported.");
+		}
 	}
 
-	internal void ShowMaintenanceRecovery()
-		=> _ = ShowMaintenanceRecoverySafeAsync();
+	private void BeginPendingServerBoot()
+		=> _ = BeginPendingServerBootAsync();
 
-	private async Task ShowMaintenanceRecoverySafeAsync()
+	private async Task BeginPendingServerBootAsync()
 	{
 		try
 		{
-			await ShowMaintenanceRecoveryAsync();
+			await StartServerBootFromLoadingAsync(resumePendingProcess: true);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
-			NexusLog.Exception(ex, "[LOADING] Maintenance recovery panel failed");
-		}
-	}
-
-	private async Task ShowMaintenanceRecoveryAsync()
-	{
-		ShowOverlayRoot();
-		ShowOnlySurface(null);
-		_isProductSetupFinalizing = false;
-		_isMaintenanceRecoveryMode = true;
-
-		if (!CanUseOverlay()) return;
-		ShowMaintenanceRecoveryPanel();
-		await StartMaintenanceRecoveryAsync();
-	}
-
-	private async Task ShowServerLaunchPanelSafeAsync(
-		bool resumePendingProcess,
-		bool autoStart = false,
-		bool repairRuntimeBeforeBoot = false)
-	{
-		try
-		{
-			await ShowServerLaunchPanelAsync(resumePendingProcess, autoStart, repairRuntimeBeforeBoot);
-		}
-		catch (Exception ex) when (ex is not OperationCanceledException)
-		{
-			NexusLog.Exception(ex, "[LOADING] Server launch panel failed");
-			if (CanUseOverlay())
+			NexusLog.Exception(ex, "[LOADING] Pending server boot failed");
+			if (CanUseOverlay() && ServerBootLayout.IsVisible)
 			{
-				ShowServerBootPanel(resumePendingProcess);
-				AddServerBootLog($"[ERROR] Server boot view recovered after UI error: {ex.Message}");
+				ApplyServerBootVisualState(ServerBootVisualState.Failed, ex.Message);
 			}
 		}
 	}
 
-	private async Task ShowServerLaunchPanelAsync(
-		bool resumePendingProcess,
-		bool autoStart = false,
-		bool repairRuntimeBeforeBoot = false)
-	{
-		NexusLog.Info($"[LOADING] Server launch panel requested. resume={resumePendingProcess}, autoStart={autoStart}, repair={repairRuntimeBeforeBoot}");
-		_isMaintenanceRecoveryMode = false;
-		ShowOverlayRoot();
-		ShowOnlySurface(null);
-		_isProductSetupFinalizing = false;
+	private void BeginMaintenanceRecovery()
+		=> _ = BeginMaintenanceRecoveryAsync();
 
-		if (!CanUseOverlay()) return;
-		ShowServerBootPanel(resumePendingProcess);
-		if (autoStart)
+	private async Task BeginMaintenanceRecoveryAsync()
+	{
+		try
 		{
-			AddServerBootLog(repairRuntimeBeforeBoot
-				? "[RESTART] Relaunching with runtime repair before ComfyUI server boot."
-				: "[RESTART] Relaunching ComfyUI server with current Nexus settings.");
-			await StartServerBootFromLoadingAsync(
-				resumePendingProcess: false,
-				repairRuntimeBeforeBoot: repairRuntimeBeforeBoot);
+			await StartMaintenanceRecoveryAsync();
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			NexusLog.Exception(ex, "[LOADING] Maintenance recovery failed");
+			if (CanUseOverlay() && ServerBootLayout.IsVisible)
+			{
+				ApplyServerBootVisualState(ServerBootVisualState.Failed, ex.Message);
+			}
 		}
 	}
 
@@ -398,12 +415,12 @@ public partial class LoadingOverlayView : ContentView
 		}
 	}
 
-	private void ShowServerBootPanel(bool resumePendingProcess = false)
+	private void ShowServerBootPanel(ServerBootEntryKind entryKind)
 	{
+		bool resumePendingProcess = entryKind == ServerBootEntryKind.ResumePending;
 		ResetServerBootPanelAnimations();
 		ShowOnlySurface(ServerBootLayout);
 		ServerBootLayout.Opacity = 1;
-		ServerBootOuterRingHost.Rotation = 0;
 		ServerBootTitleLabel.Text = Text("nexus_server_boot");
 
 		ServerBootLogTail.Clear();
@@ -413,12 +430,13 @@ public partial class LoadingOverlayView : ContentView
 			ApplyServerBootVisualState(ServerBootVisualState.WaitingForPort, Text("backend_process_already_starting"));
 			AddServerBootLog("[ROUTE] Existing setup detected. Backend service is still starting.");
 			AddServerBootLog("[SYSTEM] Reattaching to the active ComfyUI server launch.");
-			_ = StartServerBootFromLoadingAsync(resumePendingProcess: true);
 		}
 		else
 		{
 			ApplyServerBootVisualState(ServerBootVisualState.Idle, Text("backend_offline_engage"));
-			AddServerBootLog("[ROUTE] Existing setup detected. Backend service is offline.");
+			AddServerBootLog(entryKind == ServerBootEntryKind.Restart
+				? "[RESTART] Server shutdown is verified. Ready to launch a fresh ComfyUI process."
+				: "[ROUTE] Existing setup detected. Backend service is offline.");
 			AddServerBootLog("[SYSTEM] Ready to engage ComfyUI server process.");
 		}
 
@@ -429,7 +447,6 @@ public partial class LoadingOverlayView : ContentView
 		ResetServerBootPanelAnimations();
 		ShowOnlySurface(ServerBootLayout);
 		ServerBootLayout.Opacity = 1;
-		ServerBootOuterRingHost.Rotation = 0;
 		ServerBootTitleLabel.Text = Text("nexus_maintenance");
 
 		ServerBootLogTail.Clear();
@@ -443,7 +460,9 @@ public partial class LoadingOverlayView : ContentView
 	private void ResetServerBootPanelAnimations()
 	{
 		SafeAnimation.AbortAnimation(ServerBootLayout, "FadeTo", "Loading.ServerBoot");
-		SafeAnimation.AbortAnimation(this, ServerBootGlowPulseAnimationName, "Loading.ServerBoot");
+		_serverBootAnimator.Reset();
+		ServerBootAnimationSurface.Source = "server_boot_idle.webp";
+		ServerBootAnimationSurface.Opacity = 1;
 	}
 
 	private async void OnServerBootPrimaryActionClicked(object? sender, TappedEventArgs e)
@@ -508,7 +527,7 @@ public partial class LoadingOverlayView : ContentView
 		ServerBootOpenLogLabel.TextColor = ServerBootOpenLogTextColor;
 	}
 
-	private void OnServerBootSetupClicked(object? sender, TappedEventArgs e)
+	private async void OnServerBootSetupClicked(object? sender, TappedEventArgs e)
 	{
 		if (_isMaintenanceRecoveryMode)
 		{
@@ -520,10 +539,17 @@ public partial class LoadingOverlayView : ContentView
 			return;
 		}
 
-		ShowProductSetup();
+		if (ServerBootSetupRequested != null)
+		{
+			NexusLog.Info("[SETUP_ROUTE] Server boot setup click accepted.");
+			ServerBootSetupRequested.Invoke(this, EventArgs.Empty);
+			return;
+		}
+
+		await PrepareProductSetupForRevealAsync();
 	}
 
-	private void OnLoadingSetupActionClicked(object? sender, TappedEventArgs e)
+	private async void OnLoadingSetupActionClicked(object? sender, TappedEventArgs e)
 	{
 		if (_isMaintenanceRecoveryMode)
 		{
@@ -531,7 +557,18 @@ public partial class LoadingOverlayView : ContentView
 		}
 
 		NexusLog.Info("[LOADING] Setup handoff requested from loading error.");
-		ShowProductSetup();
+		await PrepareProductSetupForRevealAsync();
+	}
+
+	private void OnLoadingRetryActionClicked(object? sender, TappedEventArgs e)
+	{
+		if (LoadingRetryActionButton.InputTransparent)
+		{
+			return;
+		}
+
+		NexusLog.Info("[LOADING] Retry requested from loading error.");
+		RetryRequested?.Invoke(this, EventArgs.Empty);
 	}
 
 	private void OnLoadingSetupActionHovered(object? sender, PointerEventArgs e)
@@ -560,6 +597,13 @@ public partial class LoadingOverlayView : ContentView
 		LoadingSetupActionButton.Opacity = isVisible ? 1 : 0;
 	}
 
+	private void SetLoadingRetryActionVisible(bool isVisible)
+	{
+		LoadingRetryActionButton.IsVisible = isVisible;
+		LoadingRetryActionButton.InputTransparent = !isVisible;
+		LoadingRetryActionButton.Opacity = isVisible ? 1 : 0;
+	}
+
 	private async Task StartMaintenanceRecoveryAsync()
 	{
 		if (_runServerLifecycleAsync == null)
@@ -577,7 +621,7 @@ public partial class LoadingOverlayView : ContentView
 
 		AddServerBootLog("[MAINTENANCE] Runtime cleanup completed.");
 		_isMaintenanceRecoveryMode = false;
-		ShowProductSetup();
+		await PrepareProductSetupForRevealAsync();
 	}
 
 	private async Task StartServerBootFromLoadingAsync(bool resumePendingProcess, bool repairRuntimeBeforeBoot = false)
@@ -614,28 +658,58 @@ public partial class LoadingOverlayView : ContentView
 		UpdateServerBootEndpoint();
 		if (!result.IsSuccess)
 		{
+			if (!ServerBootLayout.IsVisible)
+			{
+				ShowOnlySurface(ServerBootLayout);
+			}
+
+			ApplyServerBootVisualState(ServerBootVisualState.Failed, result.Message);
 			return;
 		}
 
 		if (result.RequiresSetupHandoff)
 		{
 			AddServerBootLog($"[SYSTEM] {result.Message}");
-			ApplyServerBootVisualState(ServerBootVisualState.Online, Text("maintenance_completed_setup"));
-			ShowProductSetup();
+			ApplyServerBootVisualState(ServerBootVisualState.Booting, Text("maintenance_completed_setup"));
+			await PrepareProductSetupForRevealAsync();
 			return;
 		}
 
 		AddServerBootLog("[SYSTEM] Backend server is online.");
 		AddServerBootLog("[SYSTEM] Backend HTTP readiness confirmed. Loading Nexus bridge...");
-		ApplyServerBootVisualState(ServerBootVisualState.Online, Text("backend_ready_handoff"));
+		NexusVisualStateTransition<ServerBootAnimationState> successTransition = ApplyServerBootVisualState(
+			ServerBootVisualState.Online,
+			Text("backend_ready_handoff"));
+		NexusVisualTransitionResult visualResult = await successTransition.Completion;
+		if (_serverBootVisualState != ServerBootVisualState.Online || !ServerBootLayout.IsVisible)
+		{
+			return;
+		}
+
+		if (visualResult == NexusVisualTransitionResult.Superseded)
+		{
+			return;
+		}
+
+		if (visualResult == NexusVisualTransitionResult.Unavailable)
+		{
+			NexusLog.Warning("[LOADING] Server boot success visual was unavailable; continuing with the WebView hand-off.");
+		}
+
 		await LaunchFromServerBootAsync();
 	}
 
 	private async Task LaunchFromServerBootAsync()
 	{
 		AddServerBootLog("[SYSTEM] Switching from server boot monitor to Nexus WebView hand-off.");
-		ShowOnlySurface(LoadingStackLayout);
+		if (_nexusAppEntry == null)
+		{
+			ShowOnlySurface(ServerBootLayout);
+			ApplyServerBootVisualState(ServerBootVisualState.Failed, Text("nexus_app_entry_not_connected"));
+			return;
+		}
 
+		ShowOnlySurface(LoadingStackLayout);
 		ApplyDisplay(new LoadingOverlayDisplay(
 			LoadingOverlayState.Hold,
 			Text("backend_online_title"),
@@ -644,13 +718,6 @@ public partial class LoadingOverlayView : ContentView
 			NexusAccentColor,
 			Progress: 0.72));
 
-		if (_nexusAppEntry == null)
-		{
-			ApplyServerBootVisualState(ServerBootVisualState.Failed, Text("nexus_app_entry_not_connected"));
-			ShowOnlySurface(ServerBootLayout);
-			return;
-		}
-
 		try
 		{
 			await _nexusAppEntry.LaunchAsync(CancellationToken.None);
@@ -658,12 +725,12 @@ public partial class LoadingOverlayView : ContentView
 		catch (Exception ex)
 		{
 			AddServerBootLog($"[ERROR] Launch hand-off failed: {ex.Message}");
-			ApplyServerBootVisualState(ServerBootVisualState.Failed, ex.Message);
 			ShowOnlySurface(ServerBootLayout);
+			ApplyServerBootVisualState(ServerBootVisualState.Failed, ex.Message);
 		}
 	}
 
-	private void ApplyServerBootVisualState(ServerBootVisualState state, string description)
+	private NexusVisualStateTransition<ServerBootAnimationState> ApplyServerBootVisualState(ServerBootVisualState state, string description)
 	{
 		XamlLifetimeDiagnostics.RecordSurface("server-boot", state.ToString());
 		_serverBootVisualState = state;
@@ -673,7 +740,6 @@ public partial class LoadingOverlayView : ContentView
 		ServerBootStateLabel.Text = spec.StateText;
 		ServerBootStateLabel.TextColor = spec.Color;
 		ServerBootDescriptionLabel.Text = description;
-		SetServerBootAccentFill(spec.Color);
 		ServerBootPrimaryActionLabel.Text = spec.PrimaryText;
 
 		bool showRecoverAction = ShouldShowServerBootRecoverAction(state);
@@ -684,8 +750,10 @@ public partial class LoadingOverlayView : ContentView
 		SetServerBootConfigEditState(!_isMaintenanceRecoveryMode && state == ServerBootVisualState.Idle);
 
 		ApplyServerBootButtonBackgrounds();
-		StartServerBootLogoAnimation(state);
+		ServerBootAnimationSurface.Opacity = 1;
+		NexusVisualStateTransition<ServerBootAnimationState> transition = _serverBootAnimator.TransitionTo(MapServerBootAnimationState(state));
 		XamlLifetimeDiagnostics.WriteSnapshot($"server-boot:{state}");
+		return transition;
 	}
 
 	private ServerBootVisualSpec GetServerBootVisualSpec(ServerBootVisualState state)
@@ -852,109 +920,15 @@ public partial class LoadingOverlayView : ContentView
 			: ServerBootPrimaryHoverColor;
 	}
 
-	private void StartServerBootLogoAnimation(ServerBootVisualState state)
+	private static ServerBootAnimationState MapServerBootAnimationState(ServerBootVisualState state)
 	{
-		StopServerBootAnimations();
-
-		ServerBootLogoImage.Scale = 1;
-		ServerBootOuterRingHost.Rotation = ServerBootRotationStart;
-		SetServerBootOrbitShape(138, 102);
-
-		if (state == ServerBootVisualState.Booting)
+		return state switch
 		{
-			ServerBootOuterRingEllipse.Opacity = 0.1;
-			StartServerBootRotation(2200, CanRepeatServerBootAnimation);
-			StartServerBootOrbitMorph(116, 116, 158, 96, 1500, CanRepeatServerBootAnimation);
-			StartServerBootGlowPulse(0.56, 0.98, 900, CanRepeatServerBootAnimation);
-			return;
-		}
-
-		if (state == ServerBootVisualState.WaitingForPort)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.075;
-			StartServerBootRotation(5200, CanRepeatServerBootAnimation);
-			StartServerBootOrbitMorph(118, 112, 156, 98, 2600, CanRepeatServerBootAnimation);
-			StartServerBootGlowPulse(0.42, 0.78, 1600, CanRepeatServerBootAnimation);
-			return;
-		}
-
-		if (state == ServerBootVisualState.Online)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.07;
-			StartServerBootRotation(12000, CanRepeatServerBootAnimation);
-			StartServerBootOrbitMorph(122, 112, 152, 100, 5200, CanRepeatServerBootAnimation);
-			StartServerBootGlowPulse(0.48, 0.86, 2200, CanRepeatServerBootAnimation);
-			return;
-		}
-
-		if (state == ServerBootVisualState.Failed)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.08;
-			SetServerBootGlowOpacity(ServerBootFailedGlowOpacity);
-			return;
-		}
-
-		_serverBootMotion.StartTimeline(
-			ServerBootGlowPulseAnimationName,
-			this,
-			ServerBootAnimationRate,
-			4200,
-			Easing.Linear,
-			CanRepeatIdleServerBootAnimation,
-			ResetServerBootGlow,
-			new SafeAnimation.TimelineSegment(0, ServerBootPulseMidpoint, SetServerBootIdlePulse, 0, 1, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(ServerBootPulseMidpoint, 1, SetServerBootIdlePulse, 1, 0, Easing.CubicInOut));
-
-		StartServerBootRotation(18000, CanRepeatIdleServerBootAnimation);
-		StartServerBootOrbitMorph(118, 118, 158, 102, 8600, CanRepeatIdleServerBootAnimation);
-	}
-
-	private void StartServerBootRotation(uint length, Func<bool> repeat)
-	{
-		_serverBootMotion.StartTimeline(
-			ServerBootOuterRingRotateAnimationName,
-			this,
-			ServerBootAnimationRate,
-			length,
-			Easing.Linear,
-			repeat,
-			ResetServerBootRotation,
-			new SafeAnimation.TimelineSegment(0, 1, value => ServerBootOuterRingHost.Rotation = value, ServerBootRotationStart, ServerBootRotationEnd, Easing.Linear));
-	}
-
-	private void StartServerBootOrbitMorph(double circleWidth, double circleHeight, double ellipseWidth, double ellipseHeight, uint length, Func<bool> repeat)
-	{
-		double circleScaleX = circleWidth / ServerBootOrbitBaseWidth;
-		double circleScaleY = circleHeight / ServerBootOrbitBaseHeight;
-		double ellipseScaleX = ellipseWidth / ServerBootOrbitBaseWidth;
-		double ellipseScaleY = ellipseHeight / ServerBootOrbitBaseHeight;
-
-		_serverBootMotion.StartTimeline(
-			ServerBootOrbitMorphAnimationName,
-			this,
-			ServerBootAnimationRate,
-			length,
-			Easing.Linear,
-			repeat,
-			ResetServerBootOrbit,
-			new SafeAnimation.TimelineSegment(0, ServerBootPulseMidpoint, value => ServerBootOuterRingHost.ScaleX = value, circleScaleX, ellipseScaleX, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0, ServerBootPulseMidpoint, value => ServerBootOuterRingHost.ScaleY = value, circleScaleY, ellipseScaleY, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(ServerBootPulseMidpoint, 1, value => ServerBootOuterRingHost.ScaleX = value, ellipseScaleX, circleScaleX, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(ServerBootPulseMidpoint, 1, value => ServerBootOuterRingHost.ScaleY = value, ellipseScaleY, circleScaleY, Easing.CubicInOut));
-	}
-
-	private void StartServerBootGlowPulse(double lowOpacity, double highOpacity, uint length, Func<bool> repeat)
-	{
-		_serverBootMotion.StartTimeline(
-			ServerBootGlowPulseAnimationName,
-			this,
-			ServerBootAnimationRate,
-			length,
-			Easing.Linear,
-			repeat,
-			ResetServerBootGlow,
-			new SafeAnimation.TimelineSegment(0, ServerBootPulseMidpoint, SetServerBootGlowOpacity, lowOpacity, highOpacity, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(ServerBootPulseMidpoint, 1, SetServerBootGlowOpacity, highOpacity, lowOpacity, Easing.CubicInOut));
+			ServerBootVisualState.Idle => ServerBootAnimationState.Idle,
+			ServerBootVisualState.Failed => ServerBootAnimationState.Failed,
+			ServerBootVisualState.Online => ServerBootAnimationState.Success,
+			_ => ServerBootAnimationState.Booting,
+		};
 	}
 
 	private bool CanUseOverlay()
@@ -967,90 +941,11 @@ public partial class LoadingOverlayView : ContentView
 		return CanUseOverlay() && ServerBootLayout.IsVisible;
 	}
 
-	private bool CanRepeatIdleServerBootAnimation()
-	{
-		return CanRepeatServerBootAnimation() && _serverBootVisualState == ServerBootVisualState.Idle;
-	}
-
-	private void SetLoadingRingFill(Color color)
-	{
-		SolidColorBrush brush = GetCachedSolidBrush(color);
-		LoadingRingEllipse.Fill = brush;
-		LoadingOrbitMarker.Fill = brush;
-	}
-
-	private void SetServerBootAccentFill(Color color)
-	{
-		SolidColorBrush brush = GetCachedSolidBrush(color);
-		ServerBootOuterRingEllipse.Fill = brush;
-		ServerBootOuterRingMarker.Fill = brush;
-	}
-
-	private SolidColorBrush GetCachedSolidBrush(Color color)
-	{
-		string key = CreateColorCacheKey(color);
-		if (!_solidBrushCache.TryGetValue(key, out SolidColorBrush? brush))
-		{
-			brush = new SolidColorBrush(color);
-			_solidBrushCache[key] = brush;
-		}
-
-		return brush;
-	}
-
-	private static string CreateColorCacheKey(Color color)
-		=> $"{color.Red:0.######}|{color.Green:0.######}|{color.Blue:0.######}|{color.Alpha:0.######}";
-
-	private void SetServerBootGlowOpacity(double opacity)
-	{
-		if (!CanUseOverlay()) return;
-		if (_serverBootVisualState == ServerBootVisualState.Booting)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.04 + (0.06 * opacity);
-		}
-		else if (_serverBootVisualState == ServerBootVisualState.WaitingForPort)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.02 + (0.055 * opacity);
-		}
-		else if (_serverBootVisualState == ServerBootVisualState.Online)
-		{
-			ServerBootOuterRingEllipse.Opacity = 0.02 + (0.05 * opacity);
-		}
-
-	}
-
-	private void SetServerBootIdlePulse(double value)
-	{
-		if (!CanUseOverlay()) return;
-
-		ServerBootOuterRingEllipse.Opacity = 0.055 * value;
-		SetServerBootGlowOpacity(0.34 + (0.18 * value));
-	}
-
-	private void SetServerBootOrbitShape(double width, double height)
-	{
-		ServerBootOuterRingHost.WidthRequest = ServerBootOrbitBaseWidth;
-		ServerBootOuterRingHost.HeightRequest = ServerBootOrbitBaseHeight;
-		ServerBootOuterRingHost.ScaleX = width / ServerBootOrbitBaseWidth;
-		ServerBootOuterRingHost.ScaleY = height / ServerBootOrbitBaseHeight;
-	}
-
 	private void StopServerBootAnimations()
 	{
-		_serverBootMotion.StopAll();
-		ResetServerBootRotation();
-		ResetServerBootOrbit();
-		ResetServerBootGlow();
+		_serverBootAnimator.StopAll();
+		ServerBootAnimationSurface.Opacity = 1;
 	}
-
-	private void ResetServerBootRotation()
-		=> ServerBootOuterRingHost.Rotation = 0;
-
-	private void ResetServerBootOrbit()
-		=> SetServerBootOrbitShape(ServerBootOrbitBaseWidth, ServerBootOrbitBaseHeight);
-
-	private void ResetServerBootGlow()
-		=> SetServerBootGlowOpacity(0);
 
 	private void OnUnloaded(object? sender, EventArgs e)
 	{
@@ -1061,6 +956,10 @@ public partial class LoadingOverlayView : ContentView
 	private void OnLoaded(object? sender, EventArgs e)
 	{
 		_isOverlayUnloading = false;
+		if (ServerBootLayout.IsVisible)
+		{
+			ApplyServerBootVisualState(_serverBootVisualState, ServerBootDescriptionLabel.Text ?? string.Empty);
+		}
 	}
 
 	private void UpdateServerBootEndpoint()
@@ -1113,33 +1012,17 @@ public partial class LoadingOverlayView : ContentView
 		}, "LOADING:BOOT_LOG");
 	}
 
-	internal void SetLoadingRingRotation(double rotation) => LoadingOrbitHost.Rotation = rotation;
-	internal void SetLoadingRingScale(double scale) => LoadingOrbitHost.Scale = scale;
-	internal void SetLoadingOrbitWidth(double width) => LoadingOrbitHost.WidthRequest = width;
-	internal void SetLoadingOrbitHeight(double height) => LoadingOrbitHost.HeightRequest = height;
-	internal void SetLoadingOrbitOpacity(double opacity) => LoadingRingEllipse.Opacity = opacity;
-	internal void SetScanLineTranslation(double translationY) => ScanLine.TranslationY = translationY;
-	internal void SetLoadingLogoRotation(double rotation) => LoadingLogoImage.Rotation = rotation;
-	internal void SetLoadingLogoScale(double scale) => LoadingLogoImage.Scale = scale;
-	internal void SetStatusOpacity(double opacity) => LoadingStatusLabel.Opacity = opacity;
+	internal void SetStatusVisualState(double opacity, double scale, double translationY)
+	{
+		LoadingStatusLabel.Opacity = opacity;
+		LoadingStatusLabel.Scale = scale;
+		LoadingStatusLabel.TranslationY = translationY;
+	}
 
-	internal Task ScaleStatusAsync(double scale, uint length, Easing easing) => SafeAnimation.ScaleToAsync(LoadingStatusLabel, scale, length, easing, "Loading.Status");
-	internal Task TranslateStatusAsync(double x, double y, uint length, Easing easing) => SafeAnimation.TranslateToAsync(LoadingStatusLabel, x, y, length, easing, "Loading.Status");
-	internal Task FadeLoadingLogoAsync(double opacity, uint length, Easing easing) => LoadingLogoImage.FadeToAsync(opacity, length, easing);
-	internal Task ScaleLoadingLogoAsync(double scale, uint length, Easing easing) => SafeAnimation.ScaleToAsync(LoadingLogoImage, scale, length, easing, "Loading.Logo");
-	internal Task FadeSuccessGlyphAsync(double opacity, uint length, Easing easing)
-		=> Task.WhenAll(SuccessIconLabel.FadeToAsync(opacity, length, easing), SuccessIconHost.FadeToAsync(opacity, length, easing));
-
-	internal Task ScaleSuccessGlyphAsync(double scale, uint length, Easing easing)
-		=> Task.WhenAll(
-			SafeAnimation.ScaleToAsync(SuccessIconLabel, scale, length, easing, "Loading.Success"),
-			SafeAnimation.ScaleToAsync(SuccessIconHost, scale, length, easing, "Loading.Success"));
-
-	internal Task RotateSuccessGlyphAsync(double rotation, uint length, Easing easing)
-		=> Task.WhenAll(
-			SafeAnimation.RotateToAsync(SuccessIconLabel, rotation, length, easing, "Loading.Success"),
-			SafeAnimation.RotateToAsync(SuccessIconHost, rotation, length, easing, "Loading.Success"));
-	internal Task ScaleLoadingRingAsync(double scale, uint length, Easing easing) => SafeAnimation.ScaleToAsync(LoadingRingEllipse, scale, length, easing, "Loading.Ring");
+	internal Image SuccessAnimationSurface => SuccessAnimationImage;
+	internal void SetSuccessAnimationVisible(bool isVisible) => SuccessAnimationImage.Opacity = isVisible ? 1 : 0;
+	internal Image LoadingProcessAnimationSurface => LoadingProcessImage;
+	internal void SetLoadingProcessVisible(bool isVisible) => LoadingProcessImage.Opacity = isVisible ? 1 : 0;
 
 	private void OnSelectCoreClicked(object? sender, EventArgs e) => SelectCoreRequested?.Invoke(sender, e);
 

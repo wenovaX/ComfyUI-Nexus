@@ -7,7 +7,6 @@ internal enum ShellLayoutInvalidationReason
 {
 	Unknown,
 	WindowSizeChanged,
-	ControlDeckChanged,
 	RailStateChanged,
 	RailResized,
 }

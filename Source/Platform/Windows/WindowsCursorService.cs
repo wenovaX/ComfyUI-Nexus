@@ -212,17 +212,20 @@ public sealed class WindowsCursorService : IPlatformCursorService
 			return;
 		}
 
-		platformHandle.PointerEntered += (sender, args) => {
+		platformHandle.PointerEntered += (sender, args) =>
+		{
 			SetProtectedCursor(platformHandle, Microsoft.UI.Input.InputSystemCursorShape.SizeWestEast);
 			SetWin32Cursor(IDC_SIZEWE);
 			pointerEntered();
 		};
-		platformHandle.PointerExited += (sender, args) => {
+		platformHandle.PointerExited += (sender, args) =>
+		{
 			SetProtectedCursor(platformHandle, Microsoft.UI.Input.InputSystemCursorShape.Arrow);
 			SetWin32Cursor(IDC_ARROW);
 			pointerExited();
 		};
-		platformHandle.PointerPressed += (sender, args) => {
+		platformHandle.PointerPressed += (sender, args) =>
+		{
 			SetProtectedCursor(platformHandle, Microsoft.UI.Input.InputSystemCursorShape.SizeWestEast);
 			SetWin32Cursor(IDC_SIZEWE);
 			pointerPressed();
@@ -256,25 +259,30 @@ public sealed class WindowsCursorService : IPlatformCursorService
 			SetCursor(element, cursorShapeProvider());
 		}
 
-		platformElement.PointerEntered += (sender, args) => {
+		platformElement.PointerEntered += (sender, args) =>
+		{
 			pointerEntered();
 			ApplyCurrentCursor();
 		};
-		platformElement.PointerMoved += (sender, args) => {
+		platformElement.PointerMoved += (sender, args) =>
+		{
 			pointerMoved();
 			ApplyCurrentCursor();
 		};
-		platformElement.PointerExited += (sender, args) => {
+		platformElement.PointerExited += (sender, args) =>
+		{
 			pointerExited();
 			SetProtectedCursor(platformElement, Microsoft.UI.Input.InputSystemCursorShape.Arrow);
 			ClearActiveCustomCursor();
 			SetWin32Cursor(IDC_ARROW);
 		};
-		platformElement.PointerPressed += (sender, args) => {
+		platformElement.PointerPressed += (sender, args) =>
+		{
 			pointerPressed();
 			ApplyCurrentCursor();
 		};
-		platformElement.PointerReleased += (sender, args) => {
+		platformElement.PointerReleased += (sender, args) =>
+		{
 			pointerReleased();
 			ApplyCurrentCursor();
 		};

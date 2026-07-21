@@ -17,6 +17,7 @@ internal enum SetupDiagnosticStepState
 internal enum SetupScrollReason
 {
 	StepFocused,
+	WorkStarted,
 	OptionalSectionFocused,
 	ItemUpdated
 }

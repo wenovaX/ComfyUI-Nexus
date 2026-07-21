@@ -1,15 +1,16 @@
 using System.IO;
 using System.Threading.Tasks;
 using ComfyUI_Nexus.Configuration;
+using ComfyUI_Nexus.Platform;
 using Microsoft.Maui.Controls;
 
 namespace ComfyUI_Nexus.Ui;
 
 internal static class WebViewUtility
 {
-	internal static async Task SimulateFileDropAsync(WebView webView, string filePath, string? workflowRelativePath = null)
+	internal static async Task SimulateFileDropAsync(INexusBrowserSurface browserSurface, string filePath, string? workflowRelativePath = null)
 	{
-		if (webView == null || string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
+		if (browserSurface == null || string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
 
 		try
 		{
@@ -28,7 +29,7 @@ internal static class WebViewUtility
 			};
 
 			string json = System.Text.Json.JsonSerializer.Serialize(payload);
-			await webView.EvaluateJavaScriptAsync($"window.NexusAction('{BridgeActions.SimulateDrop}', {json})");
+			await browserSurface.ExecuteScriptAsync($"window.NexusAction('{BridgeActions.SimulateDrop}', {json})");
 		}
 		catch (Exception) { /* Logging omitted */ }
 	}

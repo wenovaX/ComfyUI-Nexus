@@ -4,6 +4,8 @@ using Microsoft.UI.Xaml.Input;
 using ComfyUI_Nexus.Dialogs;
 using ComfyUI_Nexus.Input;
 using ComfyUI_Nexus.Platform;
+using ComfyUI_Nexus.Platform.Windows;
+using ComfyUI_Nexus.Views.Controls.Buttons;
 
 namespace ComfyUI_Nexus;
 
@@ -14,30 +16,49 @@ public partial class MainPage
 
 	partial void InitializePlatformHooks()
 	{
-		WorkspaceControl.BrowserView.HandlerChanged += OnBrowserViewHandlerChanged;
+		WorkspaceControl.BrowserSurface.Ready += OnBrowserSurfaceReady;
+		WorkspaceControl.BrowserSurfaceChanged += OnBrowserSurfaceChanged;
+		if (WorkspaceControl.BrowserSurface.IsReady)
+		{
+			_ = ConfigureBrowserSurfaceAsync();
+		}
 		HandlerChanged += OnMainPageHandlerChanged;
 		RailResizeHandleControl.HandleElement.HandlerChanged += OnRailResizeHandleHandlerChanged;
 	}
 
-	private async void OnBrowserViewHandlerChanged(object? sender, EventArgs e)
+	private void OnBrowserSurfaceChanged(object? sender, EventArgs e)
 	{
-		await PlatformManager.Current.WebView.ConfigureBridgeAsync(
-			WorkspaceControl.BrowserView,
-			raw => {
-				_ = Task.Run(() => ProcessMessage(raw));
-				return Task.CompletedTask;
-			},
-			uri => _ = MainThread.InvokeOnMainThreadAsync(() => {
-				if (IsExpectedComfyNavigationUrl(uri))
+		WorkspaceControl.BrowserSurface.Ready += OnBrowserSurfaceReady;
+		_ = ConfigureBrowserSurfaceAsync();
+	}
+
+	private void OnBrowserSurfaceReady(object? sender, EventArgs e)
+		=> _ = ConfigureBrowserSurfaceAsync();
+
+	private async Task ConfigureBrowserSurfaceAsync()
+	{
+		try
+		{
+			await WorkspaceControl.BrowserSurface.ConfigureBridgeAsync(
+				raw =>
 				{
-					UpdateRebootUI(true);
-				}
-			}),
-			() => {
-				Log("WebView2 bridge activated");
-				_webViewPlatformReady.TrySetResult(true);
-			},
-			(key, ctrl, shift, alt) => TryHandleWebViewAcceleratorKey(key, ctrl, shift, alt));
+					ProcessMessage(raw);
+					return Task.CompletedTask;
+				},
+				uri => _ = MainThread.InvokeOnMainThreadAsync(() => OnWebViewNavigationStarting(uri)),
+				() =>
+				{
+					Log("WebView2 bridge activated");
+					_webViewPlatformReady.TrySetResult(true);
+				},
+				(key, ctrl, shift, alt) => TryHandleWebViewAcceleratorKey(key, ctrl, shift, alt));
+
+			_devToolsController.Apply(WorkspaceControl.BrowserSurface);
+		}
+		catch (Exception ex)
+		{
+			Log($"[WEBVIEW] Bridge configuration failed: {ex.GetType().Name} - {ex.Message}");
+		}
 	}
 
 	private void OnMainPageHandlerChanged(object? sender, EventArgs e)
@@ -61,7 +82,7 @@ public partial class MainPage
 					bool alt = PlatformManager.Current.Keyboard.IsAltPressed();
 					NexusKey key = PlatformManager.Current.Keyboard.ToNexusKey(args.Key);
 					var modifiers = new NexusKeyModifiers(ctrl, shift, alt);
-					bool nativeInputFocused = IsNativeInputFocused();
+					bool nativeInputFocused = IsNativeInputFocused() || _webInputMode;
 					bool mediaViewerOpen = MediaViewerOverlayControl?.IsOpen == true;
 					bool railShortcutAvailable = !alt && RailControl.CanHandleKeyboardShortcut(key, ctrl, shift);
 					bool modalKeyboardOwnerIsOpen = NexusDialogService.IsOpen || mediaViewerOpen;
@@ -93,6 +114,14 @@ public partial class MainPage
 					if (args.Handled && key != NexusKey.Escape && !modalKeyboardOwnerIsOpen)
 					{
 						LogKeyboardIssueRoute("NATIVE_SKIP", key, modifiers, "reason=already-handled");
+						return;
+					}
+
+					if (key == NexusKey.F12 &&
+						_controlDeckWindow.IsOpen &&
+						_devToolsController.TryOpen(WorkspaceControl.BrowserSurface))
+					{
+						args.Handled = true;
 						return;
 					}
 
@@ -154,6 +183,10 @@ public partial class MainPage
 					UIElement.PointerReleasedEvent,
 					new PointerEventHandler(OnNativeWindowPointerReleased),
 					handledEventsToo: true);
+				windowContent.AddHandler(
+					UIElement.PointerExitedEvent,
+					new PointerEventHandler(OnNativeWindowPointerExited),
+					handledEventsToo: true);
 			}
 		}
 	}
@@ -161,6 +194,25 @@ public partial class MainPage
 	private void OnNativeWindowPointerReleased(object? sender, PointerRoutedEventArgs args)
 	{
 		_ = MainThread.InvokeOnMainThreadAsync(HandleGlobalPointerReleasedAsync);
+	}
+
+	private static void OnNativeWindowPointerExited(object? sender, PointerRoutedEventArgs args)
+	{
+		if (sender is not Microsoft.UI.Xaml.FrameworkElement windowContent)
+		{
+			return;
+		}
+
+		var position = args.GetCurrentPoint(windowContent).Position;
+		if (position.X >= 0
+			&& position.Y >= 0
+			&& position.X <= windowContent.ActualWidth
+			&& position.Y <= windowContent.ActualHeight)
+		{
+			return;
+		}
+
+		RailHoverRegistry.ResetAll();
 	}
 
 	private void OnRailResizeHandleHandlerChanged(object? sender, EventArgs e)

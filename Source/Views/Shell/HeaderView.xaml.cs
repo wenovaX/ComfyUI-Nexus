@@ -18,12 +18,7 @@ public partial class HeaderView : ContentView
 	private const uint LogoHoverRotationLength = 300;
 	private const uint LogoExitGlowLength = 200;
 	private const uint LogoExitRotationLength = 250;
-	private static Color GpuExecutingColor => ResourceColor("HeaderGpuExecutingColor", "#ff4444");
-	private static Color GpuIdleColor => ResourceColor("HeaderGpuAccentColor", "#22d3ee");
 	private static Color GpuTotalVramTextColor => ResourceColor("HeaderGpuLabelColor", "#8fb9d8");
-	private static Color UsageHighBarColor => ResourceColor("HeaderUsageHighBarColor", "#ff7a8f");
-	private static Color UsageMediumBarColor => ResourceColor("HeaderUsageMediumBarColor", "#ffca6f");
-	private static Color UsageNormalBarColor => ResourceColor("HeaderUsageNormalBarColor", "#8cf1ff");
 	private static Color UsageHighTextColor => ResourceColor("HeaderUsageHighTextColor", "#ffd4db");
 	private static Color UsageMediumTextColor => ResourceColor("HeaderUsageMediumTextColor", "#ffe6b0");
 	private static Color UsageNormalTextColor => NexusColors.TextPrimary;
@@ -34,6 +29,7 @@ public partial class HeaderView : ContentView
 #endif
 	internal event EventHandler? LogoClicked;
 	internal event EventHandler? LogoFiveClicked;
+	internal event EventHandler? GpuVisualSurfaceLoaded;
 
 	public static readonly BindableProperty MainActionCommandProperty = CreateToolbarCommandProperty(nameof(MainActionCommand), (tray, command) => tray.MainActionCommand = command);
 	public static readonly BindableProperty StopActionCommandProperty = CreateToolbarCommandProperty(nameof(StopActionCommand), (tray, command) => tray.StopActionCommand = command);
@@ -130,6 +126,11 @@ public partial class HeaderView : ContentView
 	public HeaderView()
 	{
 		InitializeComponent();
+		GpuIdleEnergyCoreSurface.Loaded += OnGpuVisualSurfaceLoaded;
+		GpuRunningEnergyCoreSurface.Loaded += OnGpuVisualSurfaceLoaded;
+		GpuLoadFrameGaugeSurface.Loaded += OnGpuVisualSurfaceLoaded;
+		VramFrameGaugeSurface.Loaded += OnGpuVisualSurfaceLoaded;
+		CpuFrameGaugeSurface.Loaded += OnGpuVisualSurfaceLoaded;
 		WireLogoSecretPointerHandler();
 	}
 
@@ -141,6 +142,9 @@ public partial class HeaderView : ContentView
 			UnwireLogoSecretPointerHandler();
 		}
 	}
+
+	private void OnGpuVisualSurfaceLoaded(object? sender, EventArgs e)
+		=> GpuVisualSurfaceLoaded?.Invoke(this, EventArgs.Empty);
 
 	private static BindableProperty CreateToolbarCommandProperty(string propertyName, Action<HeaderToolbarTrayView, ICommand?> apply)
 		=> BindableProperty.Create(
@@ -172,10 +176,6 @@ public partial class HeaderView : ContentView
 	internal void SetExecutionState(bool isRunning)
 	{
 		ToolbarTrayControl.SetExecutionState(isRunning);
-		MainThread.BeginInvokeOnMainThread(() =>
-		{
-			GpuRunningIndicator.BackgroundColor = isRunning ? GpuExecutingColor : GpuIdleColor;
-		});
 	}
 
 	internal bool IsExecutingState()
@@ -261,24 +261,9 @@ public partial class HeaderView : ContentView
 		LoadingHalo.Scale = scale;
 	}
 
-	internal void SetLoadingHaloOpacity(double opacity)
-	{
-		LoadingHalo.Opacity = opacity;
-	}
-
-	internal void SetLoadingHaloScale(double scale)
-	{
-		LoadingHalo.Scale = scale;
-	}
-
 	internal Task FadeLoadingHaloAsync(double opacity, uint length)
 	{
-		return LoadingHalo.FadeToAsync(opacity, length);
-	}
-
-	internal void SetLoadingLogoRotation(double rotation)
-	{
-		LogoImage.Rotation = rotation;
+		return SafeAnimation.FadeToAsync(LoadingHalo, opacity, length, source: "Header.LoadingHalo");
 	}
 
 	internal void SetRightPaneOpacity(double opacity)
@@ -404,97 +389,27 @@ public partial class HeaderView : ContentView
 		CpuUsageValueLabel.Text = $"{Math.Round(cpuPercent):0}%";
 
 		CpuUsageValueLabel.TextColor = GetUsageTextColor(cpuPercent);
-		CpuUsageBarFill.BackgroundColor = GetUsageBarColor(cpuPercent);
 	}
 
-	internal void SetGpuBarBackground(Brush brush)
+	internal Task AwaitSystemStatusLayoutAsync()
+		=> NexusUiFrame.AwaitShellReadyAsync(SystemStatusStack, "HEADER:SYSTEM_STATUS");
+
+	internal Image GpuIdleEnergyCoreImage => GpuIdleEnergyCoreSurface;
+	internal Image GpuRunningEnergyCoreImage => GpuRunningEnergyCoreSurface;
+	internal Image GpuLoadFrameGaugeImage => GpuLoadFrameGaugeSurface;
+	internal Image VramFrameGaugeImage => VramFrameGaugeSurface;
+	internal Image CpuFrameGaugeImage => CpuFrameGaugeSurface;
+
+	internal void ShowGpuEnergyCore(bool isRunning)
 	{
-		GpuUtilBarFill.Background = brush;
+		GpuRunningEnergyCoreSurface.Opacity = isRunning ? 1 : 0;
+		GpuIdleEnergyCoreSurface.Opacity = isRunning ? 0 : 1;
 	}
 
-	internal void SetGpuCacheBarScale(double scale)
+	internal void HideGpuEnergyCores()
 	{
-		GpuCacheBarFill.ScaleY = scale;
-	}
-
-	internal void SetGpuBarScale(double scale)
-	{
-		GpuUtilBarFill.ScaleY = scale;
-	}
-
-	internal void SetGpuBarOpacity(double opacity)
-	{
-		GpuUtilBarFill.Opacity = 0.18 + (opacity * 0.18);
-		GpuCacheBarFill.Opacity = 0.10 + (opacity * 0.14);
-	}
-
-	internal void ApplyGpuIndicatorPalette(
-		Color core,
-		Color blob,
-		Color shell)
-	{
-		GpuRunningIndicator.BackgroundColor = core;
-		GpuRunningBlob.BackgroundColor = blob;
-		GpuRunningIndicatorShell.BackgroundColor = shell;
-	}
-
-	internal void SetGpuIndicatorVisualState(
-		double coreOpacity,
-		double coreScale,
-		double blobOpacity,
-		double blobScale,
-		double shellScale)
-	{
-		GpuRunningIndicator.Opacity = coreOpacity;
-		GpuRunningIndicator.Scale = coreScale;
-		GpuRunningBlob.Opacity = blobOpacity;
-		GpuRunningBlob.Scale = blobScale;
-		GpuRunningIndicatorShell.Scale = shellScale;
-	}
-
-	internal void SetGpuIndicatorCoreScale(double scale)
-	{
-		GpuRunningIndicator.Scale = scale;
-	}
-
-	internal void SetGpuIndicatorBlobScale(double scale)
-	{
-		GpuRunningBlob.Scale = scale;
-	}
-
-	internal void SetGpuIndicatorBlobOpacity(double opacity)
-	{
-		GpuRunningBlob.Opacity = opacity;
-	}
-
-	internal void SetGpuIndicatorShellScale(double scale)
-	{
-		GpuRunningIndicatorShell.Scale = scale;
-	}
-
-	internal void SetCpuUsageBarScale(double scale)
-	{
-		CpuUsageBarFill.ScaleY = scale;
-	}
-
-	internal void SetCpuLoadFillOpacity(double opacity)
-	{
-		CpuUsageBarFill.Opacity = opacity;
-	}
-
-	private static Color GetUsageBarColor(double usagePercent)
-	{
-		if (usagePercent >= 85)
-		{
-			return UsageHighBarColor;
-		}
-
-		if (usagePercent >= 55)
-		{
-			return UsageMediumBarColor;
-		}
-
-		return UsageNormalBarColor;
+		GpuRunningEnergyCoreSurface.Opacity = 0;
+		GpuIdleEnergyCoreSurface.Opacity = 0;
 	}
 
 	private static Color GetUsageTextColor(double usagePercent)

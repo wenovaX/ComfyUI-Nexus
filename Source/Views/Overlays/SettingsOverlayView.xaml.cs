@@ -31,9 +31,6 @@ public partial class SettingsOverlayView : ContentView, INexusPopupSurface
 	private const uint HideAnimationLength = 120;
 	private const uint OperationBlockerShowAnimationLength = 110;
 	private const uint OperationBlockerHideAnimationLength = 90;
-	private const string OperationBlockerLogoBounceAnimationName = "SettingsOperationBlockerLogoBounce";
-	private const uint OperationBlockerLogoBounceLength = 1800;
-	private const double OperationBlockerLogoBounceHeight = 12;
 	private static readonly Color SettingsDisabledTextColor = Color.FromArgb("#55748c");
 	private static readonly Color SettingsInfoTextColor = Color.FromArgb("#cbefff");
 	private static readonly Color SettingsInfoActionTextColor = Color.FromArgb("#8fdcff");
@@ -1960,7 +1957,6 @@ public partial class SettingsOverlayView : ContentView, INexusPopupSurface
 				UpdateSettingsOperationBlockerProgress(progress);
 				SettingsOperationBlocker.IsVisible = true;
 				SettingsOperationBlocker.Opacity = 0;
-				StartSettingsOperationBlockerLogoBounce();
 				await SafeAnimation.FadeToAsync(SettingsOperationBlocker, 1, OperationBlockerShowAnimationLength, Easing.CubicOut, "Settings.OperationBlocker");
 				return;
 			}
@@ -1971,7 +1967,6 @@ public partial class SettingsOverlayView : ContentView, INexusPopupSurface
 			}
 
 			await SafeAnimation.FadeToAsync(SettingsOperationBlocker, 0, OperationBlockerHideAnimationLength, Easing.CubicIn, "Settings.OperationBlocker");
-			StopSettingsOperationBlockerLogoBounce();
 			if (CanUpdateUi())
 			{
 				SettingsOperationBlocker.IsVisible = false;
@@ -2012,38 +2007,6 @@ public partial class SettingsOverlayView : ContentView, INexusPopupSurface
 		SettingsOperationBlockerProgressGrid.IsVisible = true;
 		SettingsOperationBlockerProgressBar.Progress = safeProgress;
 		SettingsOperationBlockerProgressLabel.Text = $"{safeProgress:P0}";
-	}
-
-	private void StartSettingsOperationBlockerLogoBounce()
-	{
-		using var operation = XamlUnhandledExceptionDiagnostics.EnterUiOperation("Settings.OperationBlocker.BounceStart");
-		SafeAnimation.AbortAnimation(this, OperationBlockerLogoBounceAnimationName, "Settings.OperationBlocker");
-		SettingsOperationBlockerLogo.TranslationY = 0;
-		SettingsOperationBlockerLogoGroundGlow.Opacity = 0.28;
-		SettingsOperationBlockerLogoGroundGlow.ScaleX = 1;
-		SafeAnimation.Timeline(
-			this,
-			OperationBlockerLogoBounceAnimationName,
-			16,
-			OperationBlockerLogoBounceLength,
-			Easing.Linear,
-			() => SettingsOperationBlocker.IsVisible,
-			"Settings.OperationBlocker",
-			new SafeAnimation.TimelineSegment(0, 0.45, value => SettingsOperationBlockerLogo.TranslationY = value, 0, -OperationBlockerLogoBounceHeight, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment(0.45, 1, value => SettingsOperationBlockerLogo.TranslationY = value, -OperationBlockerLogoBounceHeight, 0, Easing.BounceOut),
-			new SafeAnimation.TimelineSegment(0, 0.45, value => SettingsOperationBlockerLogoGroundGlow.ScaleX = value, 1, 0.72, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment(0.45, 1, value => SettingsOperationBlockerLogoGroundGlow.ScaleX = value, 0.72, 1, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment(0, 0.45, value => SettingsOperationBlockerLogoGroundGlow.Opacity = value, 0.28, 0.16, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment(0.45, 1, value => SettingsOperationBlockerLogoGroundGlow.Opacity = value, 0.16, 0.28, Easing.CubicOut));
-	}
-
-	private void StopSettingsOperationBlockerLogoBounce()
-	{
-		using var operation = XamlUnhandledExceptionDiagnostics.EnterUiOperation("Settings.OperationBlocker.BounceStop");
-		SafeAnimation.AbortAnimation(this, OperationBlockerLogoBounceAnimationName, "Settings.OperationBlocker");
-		SettingsOperationBlockerLogo.TranslationY = 0;
-		SettingsOperationBlockerLogoGroundGlow.Opacity = 0.28;
-		SettingsOperationBlockerLogoGroundGlow.ScaleX = 1;
 	}
 
 	private void OnSettingsOperationBlockerCancelClicked(object? sender, EventArgs e)

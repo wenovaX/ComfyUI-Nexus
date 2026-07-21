@@ -50,7 +50,7 @@ public partial class AssetsBrowserView
 		bool recursive = CurrentUsesRecursiveSearch;
 		bool filterModelFilesOnly = CurrentFiltersModelFilesOnly;
 		bool includeDirectories = CurrentSearchIncludesDirectories;
-		_latestOperations.Request("search", async lease =>
+		_latestOperations.RequestLatest("search", async lease =>
 		{
 			try
 			{

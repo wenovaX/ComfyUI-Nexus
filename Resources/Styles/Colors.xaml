@@ -103,8 +103,6 @@
 	<Color x:Key="HeaderSavedSurfaceColor">#0f1d2c</Color>
 	<Color x:Key="HeaderModifiedTextColor">#ffb347</Color>
 	<Color x:Key="HeaderModifiedSurfaceColor">#26140a</Color>
-	<Color x:Key="HeaderGpuTrackColor">#07101a</Color>
-	<Color x:Key="HeaderGpuAccentColor">#22d3ee</Color>
 	<Color x:Key="HeaderGpuLabelColor">#8fb9d8</Color>
 	<Color x:Key="HeaderValueTextColor">#f2fbff</Color>
 	<Color x:Key="HeaderWhiteTextColor">#ffffff</Color>
@@ -115,23 +113,13 @@
 	<Color x:Key="HeaderSystemPanelGradientMiddleColor">#0e1b2a</Color>
 	<Color x:Key="HeaderSystemPanelGradientEndColor">#050c16</Color>
 	<Color x:Key="HeaderSystemShadowColor">#0ad7ff</Color>
-	<Color x:Key="HeaderGpuRunningShellColor">#102232</Color>
-	<Color x:Key="HeaderGpuRunningBlobColor">#5ee7ff</Color>
-	<Color x:Key="HeaderGpuVramTrackColor">#121b28</Color>
-	<Color x:Key="HeaderGpuCacheBarColor">#657181</Color>
 	<Color x:Key="HeaderGpuCachedTextColor">#7dc8ff</Color>
 	<Color x:Key="HeaderDividerAccentColor">#10d9ff</Color>
 	<Color x:Key="HeaderDividerDangerColor">#ef3f6b</Color>
 	<Color x:Key="HeaderMiniPanelGradientStartColor">#20344a</Color>
 	<Color x:Key="HeaderMiniPanelGradientMiddleColor">#102134</Color>
 	<Color x:Key="HeaderMiniPanelGradientEndColor">#070f1a</Color>
-	<Color x:Key="HeaderCpuUsageBarColor">#224466</Color>
-	<Color x:Key="HeaderGpuMiniUsageBarColor">#1a5a6a</Color>
 	<Color x:Key="HeaderToolbarSeparatorColor">#1a2d40</Color>
-	<Color x:Key="HeaderGpuExecutingColor">#ff4444</Color>
-	<Color x:Key="HeaderUsageHighBarColor">#ff7a8f</Color>
-	<Color x:Key="HeaderUsageMediumBarColor">#ffca6f</Color>
-	<Color x:Key="HeaderUsageNormalBarColor">#8cf1ff</Color>
 	<Color x:Key="HeaderUsageHighTextColor">#ffd4db</Color>
 	<Color x:Key="HeaderUsageMediumTextColor">#ffe6b0</Color>
 	<Color x:Key="HeaderUnsavedSurfaceColor">#15202b</Color>
@@ -200,22 +188,11 @@
 	<Color x:Key="DeckPlaceholderColor">#445566</Color>
 	<Color x:Key="DeckActionColor">#88e4ff</Color>
 	<Color x:Key="DeckDangerColor">#ff6666</Color>
-	<Color x:Key="DeckPulsePanelGradientStartColor">#111b2a</Color>
-	<Color x:Key="DeckPulsePanelGradientMiddleColor">#07101b</Color>
-	<Color x:Key="DeckPulsePanelGradientEndColor">#101527</Color>
-	<Color x:Key="DeckPulseShadowColor">#00d7ff</Color>
 	<Color x:Key="DeckPulseLiveTextColor">#baf8ff</Color>
-	<Color x:Key="DeckPulseIdleColor">#2373ff</Color>
-	<Color x:Key="DeckPulseWarningColor">#ffcc66</Color>
-	<Color x:Key="DeckPulseWarningTrackColor">#806622</Color>
-	<Color x:Key="DeckPulseDangerColor">#ff4d6d</Color>
 	<Color x:Key="DeckPulseWarningTextColor">#ffe7a6</Color>
 	<Color x:Key="DeckPulseDangerTextColor">#ffc4cf</Color>
 	<Color x:Key="DeckToggleInactiveTextColor">#6688aa</Color>
 	<Color x:Key="DeckToggleInactiveBorderColor">#445566</Color>
-	<Color x:Key="DeckDevToolsActiveColor">#88aa66</Color>
-	<Color x:Key="DeckDevToolsInactiveTextColor">#668877</Color>
-	<Color x:Key="DeckDevToolsInactiveBorderColor">#446655</Color>
 	<Color x:Key="DeckUiIsolationBorderColor">#335f7a</Color>
 	<Color x:Key="DeckPatchHudTextColor">#7be495</Color>
 	<Color x:Key="DeckPatchHudBorderColor">#446655</Color>
@@ -405,8 +382,6 @@
 	<SolidColorBrush x:Key="NodeLoadingShadowBrush" Color="{StaticResource NodeLoadingShadowColor}"/>
 	<SolidColorBrush x:Key="HeaderSystemShadowBrush" Color="{StaticResource HeaderSystemShadowColor}"/>
 	<SolidColorBrush x:Key="HeaderDividerAccentBrush" Color="{StaticResource HeaderDividerAccentColor}"/>
-	<SolidColorBrush x:Key="HeaderCpuPanelShadowBrush" Color="{StaticResource HeaderWhiteTextColor}"/>
-	<SolidColorBrush x:Key="DeckPulseShadowBrush" Color="{StaticResource DeckPulseShadowColor}"/>
 	<SolidColorBrush x:Key="MediaRailLoadingShadowBrush" Color="{StaticResource MediaRailLoadingShadowColor}"/>
 	<SolidColorBrush x:Key="RunModeDeckShadowBrush" Color="{StaticResource RunModeDeckShadowColor}"/>
 	<SolidColorBrush x:Key="AssetsRailLoadingShadowBrush" Color="{StaticResource AssetsRailLoadingShadowColor}"/>

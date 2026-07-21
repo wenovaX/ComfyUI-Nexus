@@ -732,15 +732,15 @@ internal sealed class WorkflowTabController
 			Content = new Label
 			{
 				Text = "+",
-			TextColor = AddTabTextColor,
-			FontSize = 14,
-			FontAttributes = FontAttributes.Bold,
-			HeightRequest = tabHeight,
-			VerticalOptions = LayoutOptions.Fill,
-			HorizontalOptions = LayoutOptions.Center,
-			VerticalTextAlignment = TextAlignment.Center,
-			HorizontalTextAlignment = TextAlignment.Center,
-			Margin = Thickness.Zero
+				TextColor = AddTabTextColor,
+				FontSize = 14,
+				FontAttributes = FontAttributes.Bold,
+				HeightRequest = tabHeight,
+				VerticalOptions = LayoutOptions.Fill,
+				HorizontalOptions = LayoutOptions.Center,
+				VerticalTextAlignment = TextAlignment.Center,
+				HorizontalTextAlignment = TextAlignment.Center,
+				Margin = Thickness.Zero
 			}
 		};
 

@@ -108,7 +108,10 @@ public partial class MainPage
 	{
 		try
 		{
-			await Task.Run(() => DeleteFileIfPresent(item.FullPath));
+			await _bridgeOperations.RunBackgroundAsync(
+				NexusBackgroundLane.FileIo,
+				"asset-viewer-delete",
+				_ => DeleteFileIfPresent(item.FullPath));
 			RailControl.RefreshMediaAssets();
 			return true;
 		}
@@ -176,7 +179,10 @@ public partial class MainPage
 				NexusLog.Warning($"Media asset web history delete failed: {ex.GetType().Name} - {ex.Message}");
 			}
 
-			await Task.Run(() =>
+			await _bridgeOperations.RunBackgroundAsync(
+				NexusBackgroundLane.FileIo,
+				"media-viewer-delete",
+				_ =>
 			{
 				foreach (string path in filePaths)
 				{

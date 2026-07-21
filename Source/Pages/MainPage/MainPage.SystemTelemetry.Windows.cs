@@ -66,7 +66,7 @@ public partial class MainPage
 	{
 		_lastSystemCpuPercent = snapshot.CpuPercent;
 		HeaderControl.UpdateSystemUsageSummary(snapshot.CpuPercent);
-		_gpuStatusController.AnimateCpuUsage(snapshot.CpuPercent);
+		_gpuStatusController.UpdateCpuUsage(snapshot.CpuPercent);
 	}
 
 	private static Color GetTelemetryAccent(double usagePercent)

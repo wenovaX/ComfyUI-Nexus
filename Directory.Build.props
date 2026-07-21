@@ -1,6 +1,8 @@
 <Project>
 	<PropertyGroup>
-		<NexusVersion>1.0.0</NexusVersion>
+		<NexusVersion>1.0.0.2</NexusVersion>
+		<NexusApplicationDisplayVersion>$([System.Version]::Parse('$(NexusVersion)').ToString(3))</NexusApplicationDisplayVersion>
+		<NexusApplicationVersion>$([System.Version]::Parse('$(NexusVersion)').Revision)</NexusApplicationVersion>
 		<MauiVersion>10.0.80</MauiVersion>
 		<NexusDisplayName>Nexus for ComfyUI</NexusDisplayName>
 		<NexusShortName>Nexus</NexusShortName>

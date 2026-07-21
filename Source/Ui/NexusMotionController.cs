@@ -88,7 +88,7 @@ internal sealed class NexusMotionController
 
 	internal void StartFrameLoop(
 		string name,
-		TimeSpan interval,
+		Func<TimeSpan> nextInterval,
 		Func<bool> canRun,
 		Action tick,
 		Action reset)
@@ -114,13 +114,24 @@ internal sealed class NexusMotionController
 		}
 
 		IDispatcherTimer timer = _dispatcher.CreateTimer();
-		timer.Interval = interval;
-		EventHandler tickHandler = (_, _) => RunFrameTick(name, generation, canRun, tick);
+		timer.Interval = GetFrameInterval(nextInterval);
+		EventHandler tickHandler = (_, _) => RunFrameTick(name, generation, canRun, () =>
+		{
+			tick();
+			timer.Interval = GetFrameInterval(nextInterval);
+		});
 		entry.Timer = timer;
 		entry.TimerTickHandler = tickHandler;
 		Register(name, entry, "running");
 		timer.Tick += tickHandler;
 		timer.Start();
+	}
+
+	private static TimeSpan GetFrameInterval(Func<TimeSpan> nextInterval)
+	{
+		ArgumentNullException.ThrowIfNull(nextInterval);
+		TimeSpan interval = nextInterval();
+		return interval > TimeSpan.Zero ? interval : TimeSpan.FromMilliseconds(1);
 	}
 
 	internal void Stop(string name)

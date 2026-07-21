@@ -1,14 +1,15 @@
 using System;
-using System.Threading;
 using ComfyUI_Nexus.Ui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 
 namespace ComfyUI_Nexus.Views.Controls.Buttons;
 
-public partial class RailToolButton : ContentView
+public partial class RailToolButton : ContentView, IRailHoverParticipant
 {
 	private static readonly Color TransparentBackgroundColor = Color.FromRgba(0, 0, 0, 0.01);
+	private const double AnimationSnapThreshold = 0.001;
+	private const string GlowAnimationName = "RailToolButton.Glow";
 
 	public static readonly BindableProperty IconSourceProperty =
 		BindableProperty.Create(nameof(IconSource), typeof(ImageSource), typeof(RailToolButton), default(ImageSource), propertyChanged: OnIconSourceChanged);
@@ -27,7 +28,6 @@ public partial class RailToolButton : ContentView
 
 	public event EventHandler? Clicked;
 
-	private int _tapAnimationVersion;
 	private bool _isPointerOver;
 
 	public ImageSource? IconSource
@@ -76,34 +76,48 @@ public partial class RailToolButton : ContentView
 		ApplyAccentVisual();
 		ApplyTooltip();
 		ApplyInitialStates();
+		Loaded += OnLoaded;
+		Unloaded += OnUnloaded;
 	}
 
-	private async void OnTapped()
+	private void OnTapped()
 	{
-		int animationVersion = Interlocked.Increment(ref _tapAnimationVersion);
 		Clicked?.Invoke(this, EventArgs.Empty);
-
-		GlowSurface.AbortAnimation("FadeTo");
-
-		await GlowSurface.FadeToAsync(0.7, 70, Easing.CubicOut);
-		await GlowSurface.FadeToAsync(_isPointerOver ? 0.62 : 0, 120, Easing.CubicOut);
-
-		if (animationVersion == _tapAnimationVersion)
-		{
-			ApplyGlowState(true);
-		}
+		RailButtonVisuals.FlashOpacity(
+			this,
+			GlowAnimationName,
+			GlowSurface,
+			_isPointerOver ? 0.62 : 0,
+			0.7,
+			190,
+			Easing.CubicOut,
+			"RailToolButton",
+			AnimationSnapThreshold);
 	}
 
 	private void OnPointerEntered()
 	{
-		_isPointerOver = true;
-		ApplyGlowState(true);
+		if (_isPointerOver)
+		{
+			return;
+		}
+
+		ApplyHoverState(isPointerOver: true);
+	}
+
+	void IRailHoverParticipant.ResetRailHover()
+	{
+		ApplyHoverState(isPointerOver: false, force: true);
 	}
 
 	private void OnPointerExited()
 	{
-		_isPointerOver = false;
-		ApplyGlowState(true);
+		if (!_isPointerOver)
+		{
+			return;
+		}
+
+		ApplyHoverState(isPointerOver: false);
 	}
 
 	private static void OnIsSelectedChanged(BindableObject bindable, object oldValue, object newValue)
@@ -138,29 +152,33 @@ public partial class RailToolButton : ContentView
 		}
 	}
 
-	private void ApplySelectionState(bool animate = true)
+	private void ApplySelectionState()
 	{
-		// Reset hover on selection change to prevent stuck states during tool switches
-		_isPointerOver = false;
-		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
 		ApplyIconSource();
-		ApplyGlowState(animate);
-
+		ApplyHoverState(isPointerOver: false, force: true);
 		ApplyActiveEdgeLineState();
 	}
 
-	private void ApplyGlowState(bool animate = true)
+	private void ApplyHoverState(bool isPointerOver, bool force = false)
 	{
-		double targetSurfaceOpacity = _isPointerOver ? 0.62 : 0;
+		if (!force && _isPointerOver == isPointerOver)
+		{
+			return;
+		}
 
-		if (animate)
-		{
-			_ = GlowSurface.FadeToAsync(targetSurfaceOpacity, 130, Easing.CubicOut);
-		}
-		else
-		{
-			GlowSurface.Opacity = targetSurfaceOpacity;
-		}
+		_isPointerOver = isPointerOver;
+		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
+		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailToolButton");
+		GlowSurface.Opacity = isPointerOver ? 0.62 : 0;
+	}
+
+	private void OnLoaded(object? sender, EventArgs e)
+		=> RailHoverRegistry.Register(this);
+
+	private void OnUnloaded(object? sender, EventArgs e)
+	{
+		RailHoverRegistry.Unregister(this);
+		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailToolButton");
 	}
 
 	private void ApplyActiveEdgeLineState()
@@ -192,6 +210,6 @@ public partial class RailToolButton : ContentView
 	{
 		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
 		ApplyIconSource();
-		ApplySelectionState(animate: false);
+		ApplySelectionState();
 	}
 }

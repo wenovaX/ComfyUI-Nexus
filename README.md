@@ -15,6 +15,8 @@ Language: [English](README.md) | [한국어](README.ko.md)
 
 Project and branding policy: [PROJECTINFO.md](docs/PROJECTINFO.md)
 
+Release history: [CHANGELOG.md](docs/CHANGELOG.md)
+
 ## Install
 
 For normal use, download the release ZIP and extract the whole folder.
@@ -100,8 +102,10 @@ when you want to relocate the installation.
 - English, Korean, Simplified Chinese, and Traditional Chinese shell resources with English fallback.
 - File watchers, explicit bridge actions, bridge self-repair, and diagnostic logs
   for predictable state synchronization.
-- Latest-wins coordination for watcher, media, and GPU refresh work so stale
-  background results do not overwrite the active desktop state.
+- Owner-scoped latest and ordered work lanes keep stale watcher, media, GPU,
+  and bridge results from overwriting the active desktop state.
+- Loading is a release gate: Nexus reveals the workspace only after the server,
+  bridge, shell services, and visible UI surfaces are ready.
 
 ## Requirements
 
@@ -193,6 +197,18 @@ It contains the root launcher, the self-contained app folder,
 `runtime-package-spec.json`, and the setup packages Nexus needs on first run.<br>
 Extract the ZIP as described in [Install](#install).
 
+### Version updates
+
+Use the interactive version tool before a release:
+
+```bash
+./dev-set-version
+```
+
+It shows the current version, validates a three- or four-part numeric version,
+shows the planned change, and updates both `Directory.Build.props` and the Windows manifest only after confirmation.<br>
+Use `dev-set-version.bat` from Command Prompt when Git Bash is unavailable.
+
 ### Visual Studio or direct .NET build
 
 Use Visual Studio, or run a normal `dotnet build`, when you are developing and debugging:
@@ -217,12 +233,13 @@ Timestamped session logs are stored as `nexus-runtime-<timestamp>-p<pid>.log`,<b
 and ComfyUI server logs are stored as `comfy-server-<timestamp>-*.log`.<br>
 The server log is useful for Python, custom node, and ComfyUI readiness issues;<br>
 the Nexus runtime log is the source of truth for native UI, setup, restart, and recovery behavior.<br>
-Nexus keeps recent session logs so crashes and restart behavior can be compared without relying on AppData.
-`[UI_TRACE]` records the most recent high-level surface and lifecycle transitions; the previous-session marker also preserves this trace after a native exit.
+Nexus keeps recent session logs so crashes and restart behavior can be compared without relying on AppData.<br>
+`[UI_TRACE]` records the most recent high-level surface and lifecycle transitions; the previous-session marker also preserves this trace after a native exit.<br>
+`[CONCURRENCY]` snapshots record active owner work, worker queues, and UI post state
+when a lifecycle or operation fault needs investigation.
 
-If the app exits without a managed exception in the Nexus log, also check
-Windows crash dumps under `C:\Users\<user>\AppData\Local\CrashDumps` and
-Windows Event Viewer entries for `Application Error` or `Windows Error Reporting`.
+If the app exits without a managed exception in the Nexus log, also check Windows crash dumps under<br>
+`C:\Users\<user>\AppData\Local\CrashDumps` and Windows Event Viewer entries for `Application Error` or `Windows Error Reporting`.
 
 ## License
 

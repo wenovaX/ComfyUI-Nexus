@@ -9,20 +9,12 @@ namespace ComfyUI_Nexus.Views;
 
 public partial class HeaderToolbarTrayView
 {
-	private const double MainActionPulseInitialScale = 0.82;
-	private const double MainActionPulseHighOpacity = 0.42;
-	private const double MainActionPulseHighScale = 1.14;
-	private const double MainActionPulseLowOpacity = 0.06;
-	private const double MainActionPulseLowScale = 0.92;
-	private const uint MainActionPulseRiseLength = 420;
-	private const uint MainActionPulseFallLength = 520;
-	private const uint MainActionPulseStopLength = 160;
-	private const string MainActionPulseAnimationName = "HeaderToolbar.MainActionPulse";
-
 	private bool _isInstantQueueButtonStop;
 	private bool _isMainActionPulseRunning;
-	private int _mainActionPulseVersion;
 	private readonly NexusMotionController _mainActionMotion;
+	private readonly NexusAnimatedWebpClip _mainActionStopSignalClip;
+	private NexusAnimatedWebpCacheLease? _mainActionStopSignalCacheLease;
+	private Task<NexusAnimatedWebpCacheLease>? _mainActionStopSignalCacheAcquireTask;
 	private string _currentRunMode = RunModeOptions.Default;
 	private static readonly RunModeOptionDeckItem[] RunModeOptionItems = RunModeOptions.All
 		.Select(mode => new RunModeOptionDeckItem(
@@ -95,59 +87,36 @@ public partial class HeaderToolbarTrayView
 			return;
 		}
 
-		if (XamlLifetimeDiagnostics.AreTransformAnimationsDisabled)
-		{
-			ResetMainActionPulse();
-			return;
-		}
-
-		int version = ++_mainActionPulseVersion;
-
-		MainActionPulseGlow.Opacity = 0;
-		MainActionPulseGlow.Scale = MainActionPulseInitialScale;
-		_mainActionMotion.StartTimeline(
-			MainActionPulseAnimationName,
-			this,
-			16,
-			MainActionPulseRiseLength + MainActionPulseFallLength,
-			Easing.Linear,
-			() => !_isUnloaded && _isMainActionPulseRunning && version == _mainActionPulseVersion,
-			ResetMainActionPulse,
-			new SafeAnimation.TimelineSegment(0, (double)MainActionPulseRiseLength / (MainActionPulseRiseLength + MainActionPulseFallLength), value => MainActionPulseGlow.Opacity = value, 0, MainActionPulseHighOpacity, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment((double)MainActionPulseRiseLength / (MainActionPulseRiseLength + MainActionPulseFallLength), 1, value => MainActionPulseGlow.Opacity = value, MainActionPulseHighOpacity, MainActionPulseLowOpacity, Easing.CubicIn),
-			new SafeAnimation.TimelineSegment(0, (double)MainActionPulseRiseLength / (MainActionPulseRiseLength + MainActionPulseFallLength), value => MainActionPulseGlow.Scale = value, MainActionPulseInitialScale, MainActionPulseHighScale, Easing.CubicOut),
-			new SafeAnimation.TimelineSegment((double)MainActionPulseRiseLength / (MainActionPulseRiseLength + MainActionPulseFallLength), 1, value => MainActionPulseGlow.Scale = value, MainActionPulseHighScale, MainActionPulseLowScale, Easing.CubicIn));
 		_isMainActionPulseRunning = true;
+		MainActionStopSignalSurface.Opacity = 1;
+		_mainActionStopSignalClip.PlayLoop(CanRunMainActionStopSignal);
 	}
 
 	private void StopMainActionPulse()
 	{
-		if (!_isMainActionPulseRunning && MainActionPulseGlow.Opacity <= 0)
+		if (!_isMainActionPulseRunning && MainActionStopSignalSurface.Opacity <= 0)
 		{
 			return;
 		}
 
 		_isMainActionPulseRunning = false;
-		_mainActionPulseVersion++;
-		_mainActionMotion.Stop(MainActionPulseAnimationName);
-		SafeAnimation.Timeline(
-			this,
-			MainActionPulseAnimationName,
-			16,
-			MainActionPulseStopLength,
-			Easing.CubicIn,
-			null,
-			"HeaderToolbar.MainActionPulse",
-			new SafeAnimation.TimelineSegment(0, 1, value => MainActionPulseGlow.Opacity = value, MainActionPulseGlow.Opacity, 0, Easing.CubicIn),
-			new SafeAnimation.TimelineSegment(0, 1, value => MainActionPulseGlow.Scale = value, MainActionPulseGlow.Scale, MainActionPulseInitialScale, Easing.CubicIn));
+		_mainActionStopSignalClip.Stop();
+		MainActionStopSignalSurface.Opacity = 0;
 	}
 
 	private void ResetMainActionPulse()
 	{
 		_isMainActionPulseRunning = false;
-		MainActionPulseGlow.Opacity = 0;
-		MainActionPulseGlow.Scale = MainActionPulseInitialScale;
+		_mainActionStopSignalClip.Stop();
+		MainActionStopSignalSurface.Opacity = 0;
 	}
+
+	private bool CanRunMainActionStopSignal()
+		=> !_isUnloaded
+			&& _isMainActionPulseRunning
+			&& IsVisible
+			&& Handler is not null
+			&& MainActionStopSignalSurface.Handler is not null;
 
 	private static string NormalizeRunMode(string mode)
 	{

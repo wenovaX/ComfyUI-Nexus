@@ -16,12 +16,12 @@
 		<ApplicationTitle>$(NexusDisplayName)</ApplicationTitle>
 		<ApplicationId>com.companyname.comfyuinexus</ApplicationId>
 
-		<ApplicationDisplayVersion>$(NexusVersion)</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>$(NexusApplicationDisplayVersion)</ApplicationDisplayVersion>
+		<ApplicationVersion>$(NexusApplicationVersion)</ApplicationVersion>
 		<Version>$(NexusVersion)</Version>
 		<PackageVersion>$(NexusVersion)</PackageVersion>
-		<AssemblyVersion>$(NexusVersion).0</AssemblyVersion>
-		<FileVersion>$(NexusVersion).0</FileVersion>
+		<AssemblyVersion>$(NexusVersion)</AssemblyVersion>
+		<FileVersion>$(NexusVersion)</FileVersion>
 		<InformationalVersion>$(NexusVersion)</InformationalVersion>
 
 		<WindowsPackageType>None</WindowsPackageType>
@@ -66,6 +66,30 @@
 
 		<!-- Images -->
 		<MauiImage Include="Resources\Images\**\*" />
+		<MauiImage Remove="Resources\Images\nexus_welcome_title_*.webp;Resources\Images\nexus_crossroads_ambient_*.webp" />
+		<MauiAsset Include="Resources\Images\animations\welcome_to_nexus_title.webp" LogicalName="animations/welcome_to_nexus_title.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_crossroads_ambient.webp" LogicalName="animations/setup_crossroads_ambient.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_gpu_idle_energy_core.webp" LogicalName="animations/header_gpu_idle_energy_core.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_gpu_running_energy_core.webp" LogicalName="animations/header_gpu_running_energy_core.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_gpu_frame_gauge.webp" LogicalName="animations/header_gpu_frame_gauge.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_vram_frame_gauge.webp" LogicalName="animations/header_vram_frame_gauge.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_cpu_frame_gauge.webp" LogicalName="animations/header_cpu_frame_gauge.webp" />
+		<MauiAsset Include="Resources\Images\animations\header_main_action_stop_signal.webp" LogicalName="animations/header_main_action_stop_signal.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_vanguard_bold_animated.webp" LogicalName="animations/setup_vanguard_bold_animated.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_architect_bold_animated.webp" LogicalName="animations/setup_architect_bold_animated.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_vanguard_selection_burst.webp" LogicalName="animations/setup_vanguard_selection_burst.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_architect_selection_burst.webp" LogicalName="animations/setup_architect_selection_burst.webp" />
+		<MauiAsset Include="Resources\Images\animations\loading_success_gate.webp" LogicalName="animations/loading_success_gate.webp" />
+		<MauiAsset Include="Resources\Images\animations\loading_process.webp" LogicalName="animations/loading_process.webp" />
+		<MauiAsset Include="Resources\Images\animations\server_boot_idle.webp" LogicalName="animations/server_boot_idle.webp" />
+		<MauiAsset Include="Resources\Images\animations\server_booting.webp" LogicalName="animations/server_booting.webp" />
+		<MauiAsset Include="Resources\Images\animations\server_boot_success.webp" LogicalName="animations/server_boot_success.webp" />
+		<MauiAsset Include="Resources\Images\animations\server_boot_failed.webp" LogicalName="animations/server_boot_failed.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_console_ready_pulse.webp" LogicalName="animations/setup_console_ready_pulse.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_console_booting_pulse.webp" LogicalName="animations/setup_console_booting_pulse.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_console_status_booting_pulse.webp" LogicalName="animations/setup_console_status_booting_pulse.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_diagnostic_loading_ring.webp" LogicalName="animations/setup_diagnostic_loading_ring.webp" />
+		<MauiAsset Include="Resources\Images\animations\setup_primary_action_ready_pulse.webp" LogicalName="animations/setup_primary_action_ready_pulse.webp" />
 		<MauiImage Update="Resources\Images\play_nexus.svg" BaseSize="96,96" />
 		<MauiImage Update="Resources\Images\play_nexus_hover.svg" BaseSize="96,96" />
 		<MauiImage Update="Resources\Images\stop_nexus.svg" BaseSize="96,96" />
@@ -87,7 +111,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.10" />
 		<PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.80" />
 		<PackageReference Include="YamlDotNet" Version="18.1.0" />
 	</ItemGroup>

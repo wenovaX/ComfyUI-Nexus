@@ -373,7 +373,6 @@ public partial class NodeLibraryView : ContentView, IRailToolView
 		int startIndex = FlattenedNodes.IndexOf(vm) + 1;
 		if (startIndex == 0) return;
 
-		LibraryVirtualList.ForceImmediateNextRefresh();
 		LibraryVirtualList.BeginBatchUpdate();
 		try
 		{
@@ -431,7 +430,6 @@ public partial class NodeLibraryView : ContentView, IRailToolView
 		int startIndex = FlattenedNodes.IndexOf(vm) + 1;
 		if (startIndex == 0) return;
 
-		LibraryVirtualList.ForceImmediateNextRefresh();
 		LibraryVirtualList.BeginBatchUpdate();
 		try
 		{

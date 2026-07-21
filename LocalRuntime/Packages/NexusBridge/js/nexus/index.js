@@ -661,7 +661,7 @@ app.registerExtension({
 
 			// Acknowledge readiness back to the shell.
 			nexus.send("BOOT_READY", {
-				agentId: "PROTOS",
+				agentId: "NEXUS",
 				status: "SYNC_COMPLETE",
 				timestamp: Date.now()
 			});

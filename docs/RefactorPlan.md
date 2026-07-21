@@ -1,5 +1,8 @@
 # ComfyUI-Nexus Refactor Plan
 
+> Historical planning note. The current engineering contract lives in
+> [DEVELOPERS.md](DEVELOPERS.md).
+
 ## Why We Are Changing Direction
 
 The current codebase has useful intent behind the refactor, but several areas are now split across too many `partial` files while still sharing the same private state.
@@ -359,7 +362,6 @@ These can stay or move into shared utility classes because they are stateless:
 
 Existing examples that are already close to this:
 
-- `Ui/AnimationController.cs`
 - `Ui/WebViewUtility.cs`
 - `Ui/AssetActionDispatcher.cs`
 

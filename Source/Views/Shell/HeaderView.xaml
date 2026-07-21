@@ -88,105 +88,9 @@
 
 					<!-- Right: System Status -->
 					<HorizontalStackLayout x:Name="SystemStatusStack" Grid.Column="1" Spacing="6" VerticalOptions="Center" HorizontalOptions="End" IsVisible="False">
-						<HorizontalStackLayout x:Name="GpuStatusStack" Spacing="6" VerticalOptions="Center">
-							<Border WidthRequest="58" HeightRequest="28" Padding="0" StrokeThickness="0" VerticalOptions="Center">
-								<Border.StrokeShape>
-									<RoundRectangle CornerRadius="9" />
-								</Border.StrokeShape>
-								<Border.Background>
-									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientStartColor}" Offset="0" />
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientMiddleColor}" Offset="0.58" />
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientEndColor}" Offset="1" />
-									</LinearGradientBrush>
-								</Border.Background>
-								<Grid IsClippedToBounds="True">
-									<Border x:Name="GpuCacheBarFill" VerticalOptions="End" HeightRequest="28" AnchorY="1" ScaleY="0" BackgroundColor="{StaticResource HeaderGpuCacheBarColor}" Opacity="0.18" StrokeThickness="0" InputTransparent="True">
-										<Border.StrokeShape>
-											<RoundRectangle CornerRadius="9" />
-										</Border.StrokeShape>
-									</Border>
-									<Border x:Name="GpuUtilBarFill" VerticalOptions="End" HeightRequest="28" AnchorY="1" ScaleY="0" BackgroundColor="{StaticResource HeaderGpuAccentColor}" Opacity="0.28" StrokeThickness="0" InputTransparent="True">
-										<Border.StrokeShape>
-											<RoundRectangle CornerRadius="9" />
-										</Border.StrokeShape>
-									</Border>
-									<Border StrokeThickness="0" Opacity="0.18" InputTransparent="True">
-										<Border.StrokeShape>
-											<RoundRectangle CornerRadius="9" />
-										</Border.StrokeShape>
-										<Border.Background>
-											<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-												<GradientStop Color="Transparent" Offset="0" />
-												<GradientStop Color="{StaticResource HeaderWhiteTextColor}" Offset="0.5" />
-												<GradientStop Color="Transparent" Offset="1" />
-											</LinearGradientBrush>
-										</Border.Background>
-									</Border>
-									<VerticalStackLayout Spacing="-5" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
-										<Label Text="GPU" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="7" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-										<Label x:Name="GpuUtilizationLabel" Text="0%" TextColor="{StaticResource HeaderValueTextColor}" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-									</VerticalStackLayout>
-								</Grid>
-							</Border>
-
-							<Border x:Name="GpuRunningIndicatorShell" WidthRequest="10" HeightRequest="12" BackgroundColor="{StaticResource HeaderGpuRunningShellColor}" StrokeThickness="0" VerticalOptions="Center">
-								<Border.StrokeShape>
-									<RoundRectangle CornerRadius="6" />
-								</Border.StrokeShape>
-								<Grid>
-									<Border x:Name="GpuRunningBlob" WidthRequest="10" HeightRequest="10" Opacity="0.32" BackgroundColor="{StaticResource HeaderGpuRunningBlobColor}" StrokeThickness="0">
-										<Border.StrokeShape>
-											<RoundRectangle CornerRadius="5" />
-										</Border.StrokeShape>
-									</Border>
-									<Border x:Name="GpuRunningIndicator" WidthRequest="6" HeightRequest="6" BackgroundColor="{StaticResource HeaderGpuAccentColor}" StrokeThickness="0">
-										<Border.StrokeShape>
-											<RoundRectangle CornerRadius="3" />
-										</Border.StrokeShape>
-									</Border>
-								</Grid>
-							</Border>
-
-							<Border WidthRequest="202" HeightRequest="28" Padding="9,0,10,0" StrokeThickness="0" VerticalOptions="Center">
-								<Border.StrokeShape>
-									<RoundRectangle CornerRadius="9" />
-								</Border.StrokeShape>
-								<Border.Background>
-									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientStartColor}" Offset="0" />
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientMiddleColor}" Offset="0.48" />
-										<GradientStop Color="{StaticResource HeaderSystemPanelGradientEndColor}" Offset="1" />
-									</LinearGradientBrush>
-								</Border.Background>
-								<Grid RowDefinitions="Auto,Auto" RowSpacing="-1" VerticalOptions="Center">
-									<Label x:Name="GpuModelLabel" Text="GPU" TextColor="{StaticResource HeaderTextSoftColor}" FontSize="9.5" FontAttributes="Bold" LineBreakMode="TailTruncation" />
-									<HorizontalStackLayout Grid.Row="1" Spacing="4">
-										<Label x:Name="GpuActiveVramLabel" Text="0.0GB" TextColor="{StaticResource HeaderValueTextColor}" FontSize="9" />
-										<Label x:Name="GpuCachedVramLabel" Text="/ 0.0GB" TextColor="{StaticResource HeaderGpuCachedTextColor}" FontSize="9" />
-										<Label x:Name="GpuTotalVramLabel" Text="0.0GB reserved" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="9" />
-									</HorizontalStackLayout>
-								</Grid>
-							</Border>
-						</HorizontalStackLayout>
-
-						<Border WidthRequest="2" HeightRequest="28" VerticalOptions="Center" StrokeThickness="0" Opacity="0.9">
+						<Border WidthRequest="58" HeightRequest="32" Padding="0" StrokeThickness="0" VerticalOptions="Center">
 							<Border.StrokeShape>
-								<RoundRectangle CornerRadius="2" />
-							</Border.StrokeShape>
-							<Border.Background>
-								<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-									<GradientStop Color="Transparent" Offset="0" />
-									<GradientStop Color="{StaticResource HeaderDividerAccentColor}" Offset="0.45" />
-									<GradientStop Color="{StaticResource HeaderDividerDangerColor}" Offset="0.62" />
-									<GradientStop Color="Transparent" Offset="1" />
-								</LinearGradientBrush>
-							</Border.Background>
-						</Border>
-
-						<Border WidthRequest="78" HeightRequest="28" Padding="0" StrokeThickness="0" VerticalOptions="Center">
-							<Border.StrokeShape>
-								<RoundRectangle CornerRadius="9" />
+								<RoundRectangle CornerRadius="9,0,0,9" />
 							</Border.StrokeShape>
 							<Border.Background>
 								<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -196,9 +100,11 @@
 								</LinearGradientBrush>
 							</Border.Background>
 							<Grid>
-								<Border x:Name="CpuUsageBarFill" VerticalOptions="End" HeightRequest="28" AnchorY="1" ScaleY="0" Opacity="0.18" BackgroundColor="{StaticResource HeaderCpuUsageBarColor}" StrokeThickness="0">
-									<Border.StrokeShape><RoundRectangle CornerRadius="9"/></Border.StrokeShape>
-								</Border>
+								<Image x:Name="CpuFrameGaugeSurface"
+									   Source="header_cpu_frame_gauge.webp"
+									   Aspect="Fill"
+									   Opacity="0"
+									   InputTransparent="True" />
 								<Border StrokeThickness="0" Opacity="0.32" InputTransparent="True">
 									<Border.StrokeShape><RoundRectangle CornerRadius="9"/></Border.StrokeShape>
 									<Border.Background>
@@ -211,10 +117,94 @@
 								</Border>
 								<VerticalStackLayout Spacing="-3" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
 									<Label Text="CPU" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="8" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-									<Label x:Name="CpuUsageValueLabel" Text="0%" TextColor="{StaticResource HeaderWhiteTextColor}" FontSize="12" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+									<Label x:Name="CpuUsageValueLabel" Text="0%" TextColor="{StaticResource HeaderWhiteTextColor}" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center" />
 								</VerticalStackLayout>
 							</Grid>
 						</Border>
+
+						<HorizontalStackLayout x:Name="GpuStatusStack" Spacing="2" VerticalOptions="Center">
+							<Border WidthRequest="58" HeightRequest="32" Padding="0" StrokeThickness="0" VerticalOptions="Center">
+								<Border.StrokeShape>
+										<RoundRectangle CornerRadius="9,0,0,9" />
+								</Border.StrokeShape>
+								<Border.Background>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientStartColor}" Offset="0" />
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientMiddleColor}" Offset="0.58" />
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientEndColor}" Offset="1" />
+									</LinearGradientBrush>
+								</Border.Background>
+								<Grid IsClippedToBounds="True">
+									<Image x:Name="GpuLoadFrameGaugeSurface"
+										   Source="header_gpu_frame_gauge.webp"
+										   Aspect="Fill"
+										   ZIndex="0"
+										   Opacity="0"
+										   InputTransparent="True" />
+									<Border ZIndex="1" StrokeThickness="0" Opacity="0.18" InputTransparent="True">
+										<Border.StrokeShape>
+											<RoundRectangle CornerRadius="9" />
+										</Border.StrokeShape>
+										<Border.Background>
+											<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+												<GradientStop Color="Transparent" Offset="0" />
+												<GradientStop Color="{StaticResource HeaderWhiteTextColor}" Offset="0.5" />
+												<GradientStop Color="Transparent" Offset="1" />
+											</LinearGradientBrush>
+										</Border.Background>
+									</Border>
+									<Image x:Name="GpuIdleEnergyCoreSurface"
+										   Source="header_gpu_idle_energy_core.webp"
+										   Aspect="AspectFit"
+										   VerticalOptions="End"
+										   WidthRequest="70"
+										   ZIndex="2"
+										   Opacity="0"
+										   InputTransparent="True" />
+									<Image x:Name="GpuRunningEnergyCoreSurface"
+										   Source="header_gpu_running_energy_core.webp"
+										   Aspect="AspectFit"
+										   VerticalOptions="End"
+										   WidthRequest="70"
+										   ZIndex="2"
+										   Opacity="0"
+										   InputTransparent="True" />
+									<VerticalStackLayout ZIndex="3" Spacing="-3" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
+										<Label Text="GPU" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="8" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+										<Label x:Name="GpuUtilizationLabel" Text="0%" TextColor="{StaticResource HeaderValueTextColor}" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+									</VerticalStackLayout>
+								</Grid>
+							</Border>
+
+							<Border WidthRequest="202" HeightRequest="34" Padding="9,1,10,2" StrokeThickness="0" VerticalOptions="Center">
+								<Border.StrokeShape>
+									<RoundRectangle CornerRadius="9" />
+								</Border.StrokeShape>
+								<Border.Background>
+									<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientStartColor}" Offset="0" />
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientMiddleColor}" Offset="0.48" />
+										<GradientStop Color="{StaticResource HeaderSystemPanelGradientEndColor}" Offset="1" />
+									</LinearGradientBrush>
+								</Border.Background>
+								<Grid RowDefinitions="Auto,Auto,4" RowSpacing="0" VerticalOptions="Center">
+									<Label x:Name="GpuModelLabel" Text="GPU" TextColor="{StaticResource HeaderTextSoftColor}" FontSize="9.5" FontAttributes="Bold" LineBreakMode="TailTruncation" />
+									<HorizontalStackLayout Grid.Row="1" Spacing="4">
+										<Label Text="VRAM" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="7.5" FontAttributes="Bold" />
+										<Label x:Name="GpuActiveVramLabel" Text="0.0GB" TextColor="{StaticResource HeaderValueTextColor}" FontSize="9" />
+										<Label x:Name="GpuCachedVramLabel" Text="/ 0.0GB" TextColor="{StaticResource HeaderGpuCachedTextColor}" FontSize="9" />
+										<Label x:Name="GpuTotalVramLabel" Text="0.0GB reserved" TextColor="{StaticResource HeaderGpuLabelColor}" FontSize="9" />
+									</HorizontalStackLayout>
+									<Image x:Name="VramFrameGaugeSurface"
+										   Grid.Row="2"
+										   Source="header_vram_frame_gauge.webp"
+										   Aspect="Fill"
+										   Opacity="0"
+										   InputTransparent="True" />
+								</Grid>
+							</Border>
+						</HorizontalStackLayout>
+
 					</HorizontalStackLayout>
 				</Grid>
 			</Grid>

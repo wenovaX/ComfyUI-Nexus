@@ -7,7 +7,9 @@ namespace ComfyUI_Nexus.Setup.Runtime;
 internal enum ServerLifecycleMode
 {
 	Startup,
+	BootServerOnly,
 	Restart,
+	Shutdown,
 	MaintenanceRecovery,
 	KillServerAndExit,
 	KeepServerRunningAndExit,
@@ -27,6 +29,15 @@ internal enum ServerLifecycleState
 	ClosingApplication,
 	Completed,
 	Failed,
+}
+
+[Flags]
+internal enum ServerLifecycleCapability
+{
+	None = 0,
+	Refresh = 1,
+	Shutdown = 2,
+	Boot = 4,
 }
 
 internal sealed record ServerLifecycleRequest(
@@ -101,6 +112,18 @@ internal sealed class NexusServerLifecycleCoordinator
 				return _snapshot;
 			}
 		}
+	}
+
+	internal bool Allows(ServerLifecycleCapability capability)
+	{
+		ServerLifecycleState state = Snapshot.State;
+		return capability switch
+		{
+			ServerLifecycleCapability.Refresh => state is ServerLifecycleState.Idle or ServerLifecycleState.Completed or ServerLifecycleState.Failed,
+			ServerLifecycleCapability.Shutdown => state is ServerLifecycleState.Idle or ServerLifecycleState.Completed or ServerLifecycleState.Failed,
+			ServerLifecycleCapability.Boot => state is ServerLifecycleState.Idle or ServerLifecycleState.Completed or ServerLifecycleState.Failed,
+			_ => false,
+		};
 	}
 
 	internal void AttachShell(object owner, ServerLifecycleShellHooks hooks)
@@ -206,6 +229,12 @@ internal sealed class NexusServerLifecycleCoordinator
 			await QuiesceShellAsync(request.Mode, "Server interruption requested.", prepareForInterruption: true);
 			await StopAndVerifyServerAsync(request.Mode, cancellationToken);
 			await TransitionAfterServerStopAsync(request.Mode, request.OnServerStoppedAsync);
+		}
+		else if (request.Mode is ServerLifecycleMode.Shutdown)
+		{
+			await QuiesceShellAsync(request.Mode, "Server shutdown requested from Nexus Control Deck.", prepareForInterruption: true);
+			await StopAndVerifyServerAsync(request.Mode, cancellationToken);
+			return Complete(request.Mode, "ComfyUI server shutdown confirmed.");
 		}
 		else if (request.Mode is ServerLifecycleMode.KillServerAndExit)
 		{

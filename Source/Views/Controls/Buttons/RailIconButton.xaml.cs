@@ -1,13 +1,17 @@
 using System;
-using System.Threading.Tasks;
+using ComfyUI_Nexus.Ui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 
 namespace ComfyUI_Nexus.Views.Controls.Buttons;
 
-public partial class RailIconButton : ContentView
+public partial class RailIconButton : ContentView, IRailHoverParticipant
 {
 	private static readonly Color TransparentBackgroundColor = Color.FromRgba(0, 0, 0, 0.01);
+	private const double AnimationSnapThreshold = 0.001;
+	private const string OpacityAnimationName = "RailIconButton.Opacity";
+	private const string GlowAnimationName = "RailIconButton.Glow";
+	private bool _isPointerOver;
 
 	public static readonly BindableProperty IconSourceProperty =
 		BindableProperty.Create(nameof(IconSource), typeof(ImageSource), typeof(RailIconButton), default(ImageSource), propertyChanged: OnIconSourceChanged);
@@ -80,31 +84,49 @@ public partial class RailIconButton : ContentView
 
 		ApplyTooltip();
 		Opacity = IdleOpacity;
-		ApplySelectionState(animate: false);
+		ApplySelectionState();
+		Loaded += OnLoaded;
+		Unloaded += OnUnloaded;
 	}
 
-	private async void OnTapped()
+	private void OnTapped()
 	{
 		Clicked?.Invoke(this, EventArgs.Empty);
-
-		await GlowSurface.FadeToAsync(0.7, 70, Easing.CubicOut);
-		await GlowSurface.FadeToAsync(IsSelected ? 0.16 : 0, 120, Easing.CubicOut);
+		RailButtonVisuals.FlashOpacity(
+			this,
+			GlowAnimationName,
+			GlowSurface,
+			IsSelected ? 0.16 : 0,
+			0.7,
+			190,
+			Easing.CubicOut,
+			"RailIconButton",
+			AnimationSnapThreshold);
 	}
 
-	private async void OnPointerEntered()
+	private void OnPointerEntered()
 	{
-		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
-		await Task.WhenAll(
-			this.FadeToAsync(1.0, 130, Easing.CubicOut),
-			GlowSurface.FadeToAsync(0.62, 130, Easing.CubicOut));
+		if (_isPointerOver)
+		{
+			return;
+		}
+
+		ApplyHoverState(isPointerOver: true);
 	}
 
-	private async void OnPointerExited()
+	private void OnPointerExited()
 	{
-		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
-		await Task.WhenAll(
-			this.FadeToAsync(IdleOpacity, 130, Easing.CubicIn),
-			GlowSurface.FadeToAsync(0, 130, Easing.CubicIn));
+		if (!_isPointerOver)
+		{
+			return;
+		}
+
+		ApplyHoverState(isPointerOver: false);
+	}
+
+	void IRailHoverParticipant.ResetRailHover()
+	{
+		ApplyHoverState(isPointerOver: false, force: true);
 	}
 
 	private static void OnIdleOpacityChanged(BindableObject bindable, object oldValue, object newValue)
@@ -135,7 +157,7 @@ public partial class RailIconButton : ContentView
 	{
 		if (bindable is RailIconButton button)
 		{
-			button.ApplySelectionState(animate: true);
+			button.ApplySelectionState();
 		}
 	}
 
@@ -144,20 +166,35 @@ public partial class RailIconButton : ContentView
 		RailButtonVisuals.ApplyTooltip(this, TooltipText);
 	}
 
-	private void ApplySelectionState(bool animate)
+	private void ApplySelectionState()
 	{
-		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
 		ApplyIconSource();
+		ApplyHoverState(isPointerOver: false, force: true);
+	}
 
-		double targetGlowOpacity = 0;
-
-		if (!animate)
+	private void ApplyHoverState(bool isPointerOver, bool force = false)
+	{
+		if (!force && _isPointerOver == isPointerOver)
 		{
-			GlowSurface.Opacity = targetGlowOpacity;
 			return;
 		}
 
-		_ = GlowSurface.FadeToAsync(targetGlowOpacity, 130, Easing.CubicOut);
+		_isPointerOver = isPointerOver;
+		ButtonBorder.BackgroundColor = TransparentBackgroundColor;
+		SafeAnimation.AbortAnimation(this, OpacityAnimationName, "RailIconButton");
+		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailIconButton");
+		Opacity = isPointerOver ? 1 : IdleOpacity;
+		GlowSurface.Opacity = isPointerOver ? 0.62 : 0;
+	}
+
+	private void OnLoaded(object? sender, EventArgs e)
+		=> RailHoverRegistry.Register(this);
+
+	private void OnUnloaded(object? sender, EventArgs e)
+	{
+		RailHoverRegistry.Unregister(this);
+		SafeAnimation.AbortAnimation(this, OpacityAnimationName, "RailIconButton");
+		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailIconButton");
 	}
 
 	private void ApplyIconSource()

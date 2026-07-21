@@ -73,12 +73,8 @@ public partial class MainPage
 	private void RefreshAvailableWidthAndTabs(
 		ShellLayoutInvalidationReason reason = ShellLayoutInvalidationReason.Unknown)
 	{
-		double controlDeckWidth = ControlDeckColumn.Width.IsAbsolute
-			? ControlDeckColumn.Width.Value
-			: 0;
-		double headerWidth = Math.Max(0, Width - controlDeckWidth);
+		double headerWidth = Math.Max(0, Width);
 
-		// The header starts after the control deck. The controller handles its own logo and utility buttons.
 		_tabController.RefreshLayout(headerWidth);
 		_shellLayoutSignals.InvalidateLayout(reason);
 	}
@@ -109,7 +105,7 @@ public partial class MainPage
 			}
 
 			StartWorkflowIndexWatcher();
-			_latestOperations.Request(
+			_latestOperations.RequestLatest(
 				WorkflowIndexOperationKey,
 				lease => RunWorkflowIndexRefreshAsync(lease, waitForQuietPeriod: false));
 		}
@@ -227,21 +223,21 @@ public partial class MainPage
 
 	private void ScheduleWorkflowIndexRefresh()
 	{
-		_latestOperations.Request(
+		_latestOperations.RequestLatest(
 			WorkflowIndexOperationKey,
 			lease => RunWorkflowIndexRefreshAsync(lease, waitForQuietPeriod: true));
 	}
 
 	private void QueueCommittedWorkflowIndexRefresh()
 	{
-		_latestOperations.Request(
+		_latestOperations.RequestLatest(
 			WorkflowIndexOperationKey,
 			lease => RunWorkflowIndexRefreshAsync(lease, waitForQuietPeriod: false));
 	}
 
 	private async Task RequestWorkflowIndexRefreshAsync(bool waitForQuietPeriod)
 	{
-		await _latestOperations.RequestAsync(
+		await _latestOperations.RequestLatestAsync(
 			WorkflowIndexOperationKey,
 			lease => RunWorkflowIndexRefreshAsync(lease, waitForQuietPeriod));
 	}
@@ -1035,7 +1031,7 @@ public partial class MainPage
 		BookmarkHudControl.SetOverlayState(isVisible: true, opacity: 0);
 		RenderBookmarkHUDList();
 
-		await BookmarkHudControl.FadeToAsync(1, BookmarkHudFadeInLength);
+		await SafeAnimation.FadeToAsync(BookmarkHudControl, 1, BookmarkHudFadeInLength, source: "WorkflowBookmarks.Hud");
 		BookmarkHudControl.ScrollToTop();
 		BookmarkHudControl.FocusSearch();
 	}
@@ -1317,7 +1313,7 @@ public partial class MainPage
 
 			_tabController.TrackOpenedWorkflow(GetWorkflowDisplayName(normalized), normalized);
 			await WebViewUtility.SimulateFileDropAsync(
-				WorkspaceControl.BrowserView,
+				WorkspaceControl.BrowserSurface,
 				workflowPath,
 				WorkflowTabController.StripWorkflowPrefix(normalized));
 			await HideBookmarkHudAsync();
@@ -1326,7 +1322,7 @@ public partial class MainPage
 
 	private async Task HideBookmarkHudAsync()
 	{
-		await BookmarkHudControl.FadeToAsync(0, BookmarkHudFadeOutLength);
+		await SafeAnimation.FadeToAsync(BookmarkHudControl, 0, BookmarkHudFadeOutLength, source: "WorkflowBookmarks.Hud");
 		BookmarkHudControl.SetOverlayState(isVisible: false, opacity: 0);
 		BookmarkHudControl.ClearSearch();
 	}

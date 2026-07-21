@@ -422,7 +422,6 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 	private const int MediaThumbnailReprioritizeInterval = 8;
 	private const int MediaGridBufferRows = 2;
 	private const int MediaCellPrewarmCount = 50;
-	private const int MediaAttachCoalesceDelayMs = 16;
 	private const int MediaJobBatchForwardLimit = 10;
 	private const int DefaultMediaGridColumns = 1;
 	private const double MediaCardGap = 8;
@@ -484,6 +483,7 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 	private readonly object _entryCacheGate = new();
 	private readonly RailLoadingOverlayController _loadingOverlay;
 	private readonly RailDirectoryWatchController _directoryWatcher;
+	private readonly NexusOperationController _operations = new("media-assets");
 	private MediaAssetScopeSurface? _outputSurface;
 	private MediaAssetScopeSurface? _inputSurface;
 	private string _comfyRootPath = string.Empty;
@@ -847,6 +847,7 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 	private void OnUnloaded(object? sender, EventArgs e)
 	{
 		_lifetimeCts.Cancel();
+		_operations.StopAll();
 		_isRailActive = false;
 		_directoryWatcher.Dispose();
 	}
@@ -926,8 +927,10 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 				MediaAssetSortDirection sortDirection = _sortDirection;
 				bool useSyncedJobs = surface.Scope == MediaAssetScope.Output && _hasSyncedOutputJobs;
 				var syncedJobs = useSyncedJobs ? _syncedOutputJobs.ToArray() : [];
-				sourceEntries = await Task.Run(
-					() =>
+				sourceEntries = await _operations.RunBackgroundAsync(
+					NexusBackgroundLane.FileIo,
+					"media-source-scan",
+					_ =>
 					{
 						if (surface.Scope != MediaAssetScope.Output)
 						{
@@ -1046,7 +1049,7 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 		}
 
 		NexusLog.Trace($"[MEDIA_ASSETS] Stale output jobs detected: {stableJobIds.Count}");
-		_ = Task.Run(async () =>
+		_operations.RequestLatest("stale-output-job-cleanup", async lease =>
 		{
 			try
 			{
@@ -1526,32 +1529,18 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 			missingIndices.Add(index);
 		}
 
-		// First paint is attached synchronously so the rail never flashes a single
-		// center-prioritized cell before the rest of the visible grid arrives.
+		// Cells are attached in their resting state. Deferred reveal animations used to
+		// outlive rail transitions and could write to recycled native views.
 		if (missingIndices.Count > 0)
 		{
-			if (surface.VisibleCells.Count == 0)
-			{
-				AttachMissingMediaCellsImmediately(
-					surface,
-					missingIndices,
-					columnCount,
-					cellWidth,
-					cardHeight,
-					renderTop,
-					attachVersion);
-				return;
-			}
-
-			_ = AttachMissingMediaCellsAsync(
+			AttachMissingMediaCellsImmediately(
 				surface,
-				PrioritizeMediaAttachIndexes(missingIndices, scrollY, viewportHeight, columnCount, cardHeight),
+				missingIndices,
 				columnCount,
 				cellWidth,
 				cardHeight,
 				renderTop,
-				attachVersion,
-				MediaAttachCoalesceDelayMs);
+				attachVersion);
 		}
 	}
 
@@ -1585,90 +1574,6 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 			surface.Canvas.Children.Add(cell.Root);
 			EnsureMediaAssetFlyout(cell);
 		}
-	}
-
-	private async Task AttachMissingMediaCellsAsync(
-		MediaAssetScopeSurface surface,
-		IReadOnlyList<int> indices,
-		int columnCount,
-		double cellWidth,
-		double cardHeight,
-		double renderTop,
-		int attachVersion,
-		int coalesceDelayMs)
-	{
-		if (coalesceDelayMs > 0)
-		{
-			await Task.Delay(coalesceDelayMs);
-			if (attachVersion != surface.AttachVersion)
-			{
-				return;
-			}
-		}
-
-		foreach (int index in indices)
-		{
-			if (attachVersion != surface.AttachVersion || index < 0 || index >= surface.Items.Count)
-			{
-				return;
-			}
-
-			if (surface.VisibleCells.ContainsKey(index))
-			{
-				continue;
-			}
-
-			var cell = surface.CellPool!.Rent();
-			cell.Root.CancelAnimations();
-			cell.Root.Opacity = 0;
-			cell.Root.Scale = 0.985;
-			surface.VisibleCells[index] = cell;
-			BindMediaAssetCell(surface, cell, index, columnCount, cellWidth, cardHeight, renderTop);
-			surface.Canvas.Children.Add(cell.Root);
-			EnsureMediaAssetFlyout(cell);
-			_ = RevealMediaAssetCellAsync(surface, cell, attachVersion);
-			await Task.Yield();
-		}
-	}
-
-	private async Task RevealMediaAssetCellAsync(MediaAssetScopeSurface surface, MediaAssetCell cell, int attachVersion)
-	{
-		try
-		{
-			await Task.WhenAll(
-				cell.Root.FadeToAsync(1, 90, Easing.CubicOut),
-				cell.Root.ScaleToAsync(1, 90, Easing.CubicOut));
-		}
-		finally
-		{
-			if (attachVersion == surface.AttachVersion)
-			{
-				cell.Root.Opacity = 1;
-				cell.Root.Scale = 1;
-			}
-		}
-	}
-
-	private static IReadOnlyList<int> PrioritizeMediaAttachIndexes(
-		IReadOnlyList<int> indices,
-		double scrollY,
-		double viewportHeight,
-		int columnCount,
-		double cardHeight)
-	{
-		double stride = cardHeight + MediaCardGap;
-		double viewportCenter = scrollY + viewportHeight / 2;
-		return indices
-			.OrderBy(index => IsMediaIndexInsideViewport(index, scrollY, viewportHeight, columnCount, stride) ? 0 : 1)
-			.ThenBy(index => Math.Abs((index / columnCount) * stride + cardHeight / 2 - viewportCenter))
-			.ToArray();
-	}
-
-	private static bool IsMediaIndexInsideViewport(int index, double scrollY, double viewportHeight, int columnCount, double stride)
-	{
-		double top = (index / columnCount) * stride;
-		double bottom = top + stride;
-		return bottom >= scrollY && top <= scrollY + viewportHeight;
 	}
 
 	private static void BindMediaAssetCell(
@@ -2670,7 +2575,10 @@ public partial class MediaAssetsView : ContentView, IRailToolView
 
 		try
 		{
-			var movedItems = await Task.Run(() => MoveMediaItems(movableItems, destinationDirectory));
+			var movedItems = await _operations.RunBackgroundAsync(
+				NexusBackgroundLane.FileIo,
+				"media-move",
+				_ => MoveMediaItems(movableItems, destinationDirectory));
 			if (movedItems.Count == 0)
 			{
 				return;

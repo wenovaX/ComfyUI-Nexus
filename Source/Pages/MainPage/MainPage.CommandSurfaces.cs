@@ -25,10 +25,10 @@ public partial class MainPage
 	private const double ToastDefaultTopMargin = 54;
 	private const double ToastRaisedTopMargin = 16;
 	private const uint ShutdownBlockerBackdropShowLength = 150;
-	private const uint ShutdownBlockerPanelFadeLength = 170;
 	private const uint ShutdownBlockerPanelTransformLength = 180;
 	private const uint ShutdownBlockerHideLength = 90;
 	private const uint ShutdownBlockerLogoBounceLength = 2240;
+	private const int ShutdownBlockerCompositionSettleFrameCount = 2;
 	private const uint ToastShowLength = 120;
 	private const uint ToastHideLength = 160;
 	private const string PopupGroupSmallMenu = "SmallMenu";
@@ -128,6 +128,7 @@ public partial class MainPage
 		NexusUiActionTrace.Record("MainPage", "ShutdownBlocker", isVisible ? title : "hidden");
 		if (isVisible)
 		{
+			ResetShutdownBlockerTransientAnimations();
 			ShutdownBlockerTitleLabel.Text = title;
 			ShutdownBlockerDetailLabel.Text = detail;
 			ShutdownBlockerProgressBar.Progress = 0;
@@ -140,13 +141,20 @@ public partial class MainPage
 			StartShutdownBlockerLogoBounce();
 			await Task.WhenAll(
 				SafeAnimation.FadeToAsync(ShutdownBlockerBackdrop, 1, ShutdownBlockerBackdropShowLength, Easing.CubicOut, "ShutdownBlocker.Show"),
-				SafeAnimation.FadeToAsync(ShutdownBlockerPanel, 1, ShutdownBlockerPanelFadeLength, Easing.CubicOut, "ShutdownBlocker.Show"),
-				SafeAnimation.ScaleToAsync(ShutdownBlockerPanel, 1, ShutdownBlockerPanelTransformLength, Easing.CubicOut, "ShutdownBlocker.Show"),
-				SafeAnimation.TranslateToAsync(ShutdownBlockerPanel, 0, 0, ShutdownBlockerPanelTransformLength, Easing.CubicOut, "ShutdownBlocker.Show"));
+				SafeAnimation.FadeTranslateScaleToAsync(
+					ShutdownBlockerPanel,
+					"ShutdownBlocker.Panel.Show",
+					1,
+					0,
+					1,
+					ShutdownBlockerPanelTransformLength,
+					Easing.CubicOut,
+					"ShutdownBlocker.Show"));
+			await UiThread.YieldDispatcherFramesAsync(ShutdownBlockerCompositionSettleFrameCount, "ShutdownBlocker.Show.Settle");
 			return;
 		}
 
-		StopShutdownBlockerLogoBounce();
+		ResetShutdownBlockerTransientAnimations();
 		if (!InputBlockerOverlay.IsVisible)
 		{
 			return;
@@ -157,6 +165,20 @@ public partial class MainPage
 			SafeAnimation.FadeToAsync(ShutdownBlockerPanel, 0, ShutdownBlockerHideLength, Easing.CubicIn, "ShutdownBlocker.Hide"));
 		InputBlockerOverlay.BackgroundColor = Colors.Transparent;
 		InputBlockerOverlay.IsVisible = false;
+	}
+
+	private void ResetShutdownBlockerTransientAnimations()
+	{
+		StopShutdownBlockerLogoBounce();
+		SafeAnimation.CancelAnimations(
+			"ShutdownBlocker",
+			ShutdownBlockerBackdrop,
+			ShutdownBlockerPanel,
+			ShutdownBlockerLogo,
+			ShutdownBlockerLogoGroundGlow);
+		ShutdownBlockerPanel.Scale = 1;
+		ShutdownBlockerPanel.TranslationX = 0;
+		ShutdownBlockerPanel.TranslationY = 0;
 	}
 
 	private void UpdateShutdownBlockerProgress(double progress, string detail)
@@ -207,10 +229,8 @@ public partial class MainPage
 		ShutdownBlockerLogoGroundGlow.ScaleX = 1;
 	}
 
-	private void ShowProductSetup()
-	{
-		_loadingOverlayController.ShowProductSetup();
-	}
+	private Task ShowProductSetupAsync()
+		=> _loadingOverlayController.PrepareProductSetupForRevealAsync();
 
 	private async void OnSettingsOverlayRestartServerRequested(object? sender, EventArgs e)
 	{
@@ -279,11 +299,11 @@ public partial class MainPage
 		await SetCommandMenuVisible(false);
 		var settings = SetupSettingsService.Instance.Settings;
 		string serverUrl = GetBrowsableServerUrl(settings.ListenAddress, settings.ServerPort);
-			AboutOverlayControl.SetDetails(
-			SafeAppInfo.VersionString,
-			ComfyPathResolver.ResolveConfiguredComfyPath(),
-			serverUrl,
-			settings.ServerPythonMode);
+		AboutOverlayControl.SetDetails(
+		SafeAppInfo.VersionString,
+		ComfyPathResolver.ResolveConfiguredComfyPath(),
+		serverUrl,
+		settings.ServerPythonMode);
 		await SetAboutOverlayVisible(true);
 	}
 
@@ -335,7 +355,7 @@ public partial class MainPage
 	{
 		await SetCommandMenuVisible(false);
 		await SetSettingsOverlayVisible(false);
-		_loadingOverlayController.ShowMaintenanceRecovery();
+		await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.MaintenanceRecovery));
 	}
 
 	private async void OnSettingsOverlayRuntimeRestoreRequested(object? sender, RuntimeRestoreRequestedEventArgs e)
@@ -434,7 +454,7 @@ public partial class MainPage
 	{
 		UpdateShutdownBlockerProgress(0.85, "Shutdown checklist complete. Preparing server boot...");
 		await SetShutdownBlockerVisibleAsync(false);
-		await _loadingOverlayController.PrepareServerRestartSurfaceAsync();
+		await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.Restart));
 	}
 
 	private async Task PrepareShellForServerInterruptionAsync(string reason)
@@ -445,6 +465,7 @@ public partial class MainPage
 		_isBooted = false;
 		_bootReadyHandled = false;
 		_stabilizedVisualStateApplied = false;
+		_webInputMode = false;
 		HeaderControl.SetInstantQueueButtonStop(false);
 		WorkspaceControl.HideBrowserSurface();
 		await ResetWebViewForServerInterruptionAsync();
@@ -455,9 +476,9 @@ public partial class MainPage
 	{
 		try
 		{
-			await MainThread.InvokeOnMainThreadAsync(() =>
+			await MainThread.InvokeOnMainThreadAsync(async () =>
 			{
-				WorkspaceControl.BrowserView.Source = "about:blank";
+				await WorkspaceControl.BrowserSurface.NavigateAsync("about:blank");
 			});
 		}
 		catch (Exception ex)
@@ -501,7 +522,7 @@ public partial class MainPage
 			case "nexus login":
 			case "login":
 			case "setup":
-				ShowProductSetup();
+				await ShowProductSetupAsync();
 				break;
 		}
 
@@ -543,9 +564,9 @@ public partial class MainPage
 	{
 		try
 		{
-			if (_isBooted && WorkspaceControl?.BrowserView?.IsVisible == true)
+			if (_isBooted && WorkspaceControl?.BrowserSurface?.IsVisible == true)
 			{
-				PlatformManager.Current.WebView.Focus(WorkspaceControl.BrowserView);
+				WorkspaceControl.BrowserSurface.FocusBrowserInput();
 			}
 		}
 		catch

@@ -88,40 +88,7 @@
 				</BoxView.Background>
 			</BoxView>
 
-			<BoxView x:Name="FocusIndicatorBox"
-					 Opacity="0"
-					 ScaleY="1"
-					 AnchorY="0.5">
-				<BoxView.Background>
-					<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.0" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.0625" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.125" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.1875" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.25" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.3125" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.375" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.4375" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.5" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.5625" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.625" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.6875" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="0.75" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorVioletColor}" Offset="0.8125" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorPinkColor}" Offset="0.875" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorBlueColor}" Offset="0.9375" />
-						<GradientStop Color="{StaticResource MainFocusIndicatorCyanColor}" Offset="1.0" />
-					</LinearGradientBrush>
-				</BoxView.Background>
-			</BoxView>
 		</Grid>
-
-		<views:ControlDeckView x:Name="ControlDeckControl"
-								Grid.Row="0"
-								Grid.RowSpan="3"
-								Grid.Column="0"
-								HorizontalOptions="Fill"
-								ZIndex="10" />
 
 		<overlays:CommandMenuView x:Name="CommandMenuControl"
 								   Grid.Row="1"

@@ -9,7 +9,7 @@ internal static class BridgeMessageTypes
 	internal const string BootReady = "BOOT_READY";
 	internal const string RefreshRequest = "REFRESH_REQUEST";
 	internal const string WorkflowSync = "WORKFLOW_SYNC";
-	internal const string FocusChange = "FOCUS_CHANGE";
+	internal const string WebInputMode = "WEB_INPUT_MODE";
 	internal const string GpuStats = "GPU_STATS";
 	internal const string ModeUpdate = "MODE_UPDATE";
 	internal const string QueueUpdate = "QUEUE_UPDATE";

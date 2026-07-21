@@ -14,7 +14,7 @@ public partial class MainPage
 	private readonly Dictionary<string, DateTime> _throttleMap = new();
 	private readonly object _logThrottleGate = new();
 	private bool _webLogsEnabled = false;
-	private bool _devToolsEnabled = false;
+	private readonly NexusDevToolsController _devToolsController = new();
 
 	internal void Log(
 		string message,
@@ -31,10 +31,11 @@ public partial class MainPage
 			_allLogs.Add(fullMsg);
 			TrimStoredLogEntries();
 
-			string filter = ControlDeckControl?.GetLogFilterText() ?? string.Empty;
+			INexusControlDeck? deck = CurrentControlDeck;
+			string filter = deck?.GetLogFilterText() ?? string.Empty;
 			if (LogMatchesFilter(fullMsg, filter))
 			{
-				ControlDeckControl?.AppendLogLine(fullMsg);
+				deck?.AppendLogLine(fullMsg);
 			}
 		}, "MAIN_LOG:UI");
 	}
@@ -71,7 +72,7 @@ public partial class MainPage
 	{
 		string filter = e.NewTextValue ?? string.Empty;
 		var lines = _allLogs.Where(line => LogMatchesFilter(line, filter));
-		ControlDeckControl.SetLogText(CreateLogText(lines));
+		CurrentControlDeck?.SetLogText(CreateLogText(lines));
 	}
 
 	private static string CreateLogText(IEnumerable<string> lines)
@@ -80,13 +81,13 @@ public partial class MainPage
 	private void ExecuteControlDeckClearLog()
 	{
 		_allLogs.Clear();
-		ControlDeckControl?.ClearLogText();
+		CurrentControlDeck?.ClearLogText();
 	}
 
 	private async Task ExecuteControlDeckToggleWebLogsAsync()
 	{
 		_webLogsEnabled = !_webLogsEnabled;
-		ControlDeckControl.SetWebLogsState(_webLogsEnabled);
+		CurrentControlDeck?.SetWebLogsState(_webLogsEnabled);
 		RefreshControlDeckWebPulse(force: true);
 
 		Log(_webLogsEnabled ? "WEB LOGS: ENABLED" : "WEB LOGS: DISABLED");
@@ -96,20 +97,20 @@ public partial class MainPage
 
 	private void ExecuteControlDeckToggleDevTools()
 	{
-		_devToolsEnabled = !_devToolsEnabled;
-		ControlDeckControl.SetDevToolsState(_devToolsEnabled);
+		bool isEnabled = _devToolsController.Toggle();
+		CurrentControlDeck?.SetDevToolsState(isEnabled);
 		RefreshControlDeckWebPulse(force: true);
 
-		Log(_devToolsEnabled ? "DEVTOOLS: ENABLED (F12 AVAILABLE)" : "DEVTOOLS: DISABLED");
+		Log(isEnabled ? "DEVTOOLS: ENABLED (F12 AVAILABLE)" : "DEVTOOLS: DISABLED");
 
-		PlatformManager.Current.WebView.SetDevToolsEnabled(WorkspaceControl.BrowserView, _devToolsEnabled);
+		_devToolsController.Apply(WorkspaceControl.BrowserSurface);
 	}
 
 	private async Task ExecuteControlDeckOpenFullLogAsync()
 	{
 		string logPath = NexusLog.CurrentLatestLogPath
 			?? ComfyInstallService.GetLocalRuntimePath($"Logs/{SessionLogPaths.NexusLatestFileName}");
-		ControlDeckControl?.SetLogFileRelativePath(GetControlDeckLogRelativePath(logPath));
+		CurrentControlDeck?.SetLogFileRelativePath(GetControlDeckLogRelativePath(logPath));
 		var result = await PlatformManager.Current.Shell.OpenPathAsync(logPath);
 		if (!result.IsSuccess)
 		{
@@ -140,7 +141,7 @@ public partial class MainPage
 	private async Task ExecuteControlDeckToggleUiIsolationAsync()
 	{
 		_uiIsolationEnabled = !_uiIsolationEnabled;
-		ControlDeckControl.SetUiIsolationState(_uiIsolationEnabled);
+		CurrentControlDeck?.SetUiIsolationState(_uiIsolationEnabled);
 
 		Log(_uiIsolationEnabled
 			? "UI ISOLATION: ENABLED"

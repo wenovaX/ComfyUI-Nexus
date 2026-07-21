@@ -25,43 +25,36 @@
 	<Grid x:Name="LoadingOverlayGrid"
 		  BackgroundColor="{StaticResource LoadingShellColor}"
 		  ZIndex="1000">
-		<BoxView x:Name="ScanLine"
-				 BackgroundColor="{StaticResource LoadingWhiteColor}"
-				 Opacity="0.02"
-				 HeightRequest="1"
-				 VerticalOptions="Start" />
-
 		<StackLayout x:Name="LoadingStackLayout"
 					 VerticalOptions="Center"
 					 HorizontalOptions="Center"
+					 MinimumHeightRequest="400"
 					 Spacing="20"
 					 IsVisible="False">
 			<Grid WidthRequest="220"
-				  HeightRequest="170">
-				<Grid x:Name="LoadingOrbitHost"
-					  WidthRequest="158"
-					  HeightRequest="102"
-					  Rotation="-12"
-					  HorizontalOptions="Center"
-					  VerticalOptions="Center"
-					  InputTransparent="True">
-					<Ellipse x:Name="LoadingRingEllipse"
-							 Fill="{StaticResource LoadingAccentWashColor}"
-							 Opacity="0.06" />
-					<Ellipse x:Name="LoadingOrbitMarker"
-							 WidthRequest="7"
-							 HeightRequest="7"
-							 Fill="{StaticResource LoadingAccentColor}"
-							 HorizontalOptions="Center"
-							 VerticalOptions="Start"
-							 TranslationY="-3" />
-				</Grid>
-				<Image x:Name="LoadingLogoImage"
-					   Source="logo_neon_glass.png"
-					   WidthRequest="62"
-					   HeightRequest="62"
+				  HeightRequest="179">
+				<Image x:Name="LoadingProcessImage"
+					   Source="loading_process.webp"
+					   WidthRequest="216"
+					   HeightRequest="216"
+					   Aspect="AspectFit"
+					   AnchorX="0.5"
+					   AnchorY="0"
 					   HorizontalOptions="Center"
-					   VerticalOptions="Center" />
+					   VerticalOptions="Start"
+					   InputTransparent="True"
+					   Opacity="0" />
+				<Image x:Name="SuccessAnimationImage"
+					   WidthRequest="216"
+					   HeightRequest="216"
+					   Aspect="AspectFit"
+					   AnchorX="0.5"
+					   AnchorY="0"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Start"
+					   InputTransparent="True"
+					   ZIndex="1"
+					   Opacity="0" />
 				<Grid x:Name="SuccessIconHost"
 					  WidthRequest="104"
 					  HeightRequest="104"
@@ -98,16 +91,16 @@
 				<Label x:Name="LoadingTitleLabel"
 					   Text="{loc:Loc views.overlays.loading_overlay_view.nexus_shell}"
 					   TextColor="{StaticResource LoadingTitleTextColor}"
-					   FontSize="18"
+					   FontSize="24"
 					   FontAttributes="Bold"
 					   HorizontalTextAlignment="Center"
-					   HorizontalOptions="Center"
+					   HorizontalOptions="Fill"
 					   IsVisible="False" />
 
 				<Label x:Name="LoadingDescriptionLabel"
 					   Text=""
 					   TextColor="{StaticResource LoadingDescriptionTextColor}"
-					   FontSize="12"
+					   FontSize="13"
 					   HorizontalTextAlignment="Center"
 					   LineBreakMode="WordWrap"
 					   HorizontalOptions="Fill"
@@ -117,7 +110,7 @@
 			<Label x:Name="LoadingStatusLabel"
 				   Text="{loc:Loc views.overlays.loading_overlay_view.initializing_nexus_shell}"
 				   TextColor="{StaticResource LoadingNeonColor}"
-				   FontSize="14"
+			   FontSize="15"
 				   FontAttributes="Bold"
 			   HorizontalOptions="Center"
 			   Opacity="0.95" />
@@ -137,6 +130,28 @@
 							 HorizontalOptions="Start"
 							 WidthRequest="0" />
 				</Grid>
+			</Border>
+
+			<Border x:Name="LoadingRetryActionButton"
+					BackgroundColor="{StaticResource LoadingActionSurfaceColor}"
+					Stroke="{StaticResource LoadingAccentColor}"
+					StrokeThickness="1"
+					StrokeShape="RoundRectangle 16"
+					WidthRequest="144"
+					HeightRequest="42"
+					IsVisible="False"
+					Opacity="0">
+				<Border.GestureRecognizers>
+					<TapGestureRecognizer Tapped="OnLoadingRetryActionClicked" />
+					<PointerGestureRecognizer PointerEntered="OnLoadingSetupActionHovered" PointerExited="OnLoadingSetupActionUnhovered" />
+				</Border.GestureRecognizers>
+				<Label Text="RETRY"
+					   TextColor="{StaticResource LoadingAccentColor}"
+					   FontSize="12"
+					   FontAttributes="Bold"
+					   CharacterSpacing="1.4"
+					   HorizontalTextAlignment="Center"
+					   VerticalTextAlignment="Center" />
 			</Border>
 
 			<Border x:Name="LoadingSetupActionButton"
@@ -188,35 +203,19 @@
 					StrokeShape="RoundRectangle 28"
 					BackgroundColor="{StaticResource ServerBootPanelColor}"
 					Padding="28">
-				<Grid RowDefinitions="Auto,Auto,Auto,*,Auto" RowSpacing="10">
+				<Grid RowDefinitions="Auto,Auto,Auto,*,66" RowSpacing="10">
 					<Grid Grid.Row="0"
-						  WidthRequest="164"
-						  HeightRequest="126"
+						  WidthRequest="360"
+						  HeightRequest="180"
 						  HorizontalOptions="Center">
-						<Grid x:Name="ServerBootOuterRingHost"
-							  WidthRequest="158"
-							  HeightRequest="118"
-							  Rotation="-12"
-							  HorizontalOptions="Center"
-							  VerticalOptions="Center"
-							  InputTransparent="True">
-							<Ellipse x:Name="ServerBootOuterRingEllipse"
-									 Fill="{StaticResource LoadingAccentWashColor}"
-									 Opacity="0" />
-							<Ellipse x:Name="ServerBootOuterRingMarker"
-									 WidthRequest="7"
-									 HeightRequest="7"
-									 Fill="{StaticResource LoadingAccentColor}"
-									 HorizontalOptions="Center"
-									 VerticalOptions="Start"
-											 TranslationY="-3" />
-						</Grid>
-						<Image x:Name="ServerBootLogoImage"
-							   Source="logo_neon_glass.png"
-							   WidthRequest="62"
-							   HeightRequest="62"
+						<Image x:Name="ServerBootAnimationSurface"
+							   Source="server_boot_idle.webp"
+							   WidthRequest="360"
+							   HeightRequest="180"
+							   Aspect="AspectFit"
 							   HorizontalOptions="Center"
-							   VerticalOptions="Center" />
+							   VerticalOptions="Center"
+							   InputTransparent="True" />
 					</Grid>
 
 					<VerticalStackLayout Grid.Row="1"
@@ -234,6 +233,8 @@
 							   TextColor="{StaticResource ServerBootTextMutedColor}"
 							   FontSize="13"
 							   HorizontalTextAlignment="Center"
+							   VerticalTextAlignment="Center"
+							   MinimumHeightRequest="40"
 							   WidthRequest="580" />
 					</VerticalStackLayout>
 
@@ -399,7 +400,7 @@
 						</Grid>
 					</Border>
 
-					<Grid Grid.Row="4" ColumnDefinitions="Auto,Auto" ColumnSpacing="12" HorizontalOptions="Center">
+					<Grid Grid.Row="4" ColumnDefinitions="Auto,Auto" ColumnSpacing="12" HorizontalOptions="Center" HeightRequest="66">
 						<Border x:Name="ServerBootPrimaryActionButton"
 								BackgroundColor="#1A31d8ff"
 								StrokeThickness="0"

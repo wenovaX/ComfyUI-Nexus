@@ -10,6 +10,13 @@ internal enum LoginSequenceType
 	CoreLinkSelection,
 }
 
+[Flags]
+internal enum LoginSequenceCapability
+{
+	None = 0,
+	Refresh = 1,
+}
+
 /// <summary>
 /// Coordinates the app login lifecycle around WebView navigation, JS bridge handshaking, initial state sync, and shell reveal.
 /// </summary>
@@ -40,6 +47,18 @@ internal sealed class LoginSequenceOrchestrator
 			{
 				return _currentType;
 			}
+		}
+	}
+
+	internal bool Allows(LoginSequenceCapability capability)
+	{
+		lock (_gate)
+		{
+			return capability switch
+			{
+				LoginSequenceCapability.Refresh => _currentType is null,
+				_ => false,
+			};
 		}
 	}
 

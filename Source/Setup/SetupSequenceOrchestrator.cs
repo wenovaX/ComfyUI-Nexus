@@ -283,7 +283,7 @@ internal sealed class SetupSequenceOrchestrator
 			return new SetupStepResult(true, "Nexus bridge extension verified.", 1);
 		}
 
-		log?.Invoke("[Bridge] Nexus bridge extension missing or incomplete. Repairing before server boot...");
+		log?.Invoke("[Bridge] Nexus bridge extension is missing, incomplete, or outdated. Syncing before server boot...");
 		SetupStepResult bridgeResult = await _context.ComfyInstallService.PatchNexusBridgeAsync(cancellationToken);
 		if (!bridgeResult.IsSuccess)
 		{

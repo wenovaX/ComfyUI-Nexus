@@ -442,6 +442,11 @@ public partial class App : Application
 
 	private Task CloseConfirmedAsync(Microsoft.UI.Xaml.Window platformWindow)
 	{
+		if (Shell.Current?.CurrentPage is MainPage mainPage)
+		{
+			mainPage.CloseControlDeckWindow();
+		}
+
 		_isExitConfirmed = true;
 		platformWindow.Close();
 		return Task.CompletedTask;

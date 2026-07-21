@@ -416,7 +416,7 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 		{
 			StopWorkingTextLoop();
 			return;
-	}
+		}
 
 		UpdateWorkingText();
 	}

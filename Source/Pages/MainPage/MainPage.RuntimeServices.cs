@@ -1,5 +1,6 @@
 using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Setup.Runtime;
+using ComfyUI_Nexus.Ui;
 
 namespace ComfyUI_Nexus;
 
@@ -21,6 +22,17 @@ public partial class MainPage
 			NexusLog.Warning($"[RUNTIME] GPU discovery service completed without device data: {gpuStart.FailureMessage}");
 		}
 
+		await UiThread.InvokeAsync(() =>
+		{
+			return PrepareHeaderGpuVisualsAsync();
+		}, "RUNTIME:PREPARE_HEADER_GPU_VISUALS");
+
+		await UiThread.InvokeAsync(() =>
+		{
+			HeaderControl.UpdateSystemUsageSummary(_lastSystemCpuPercent);
+			RestoreGpuStatusAfterShellReveal();
+			return Task.CompletedTask;
+		}, "RUNTIME:RESTORE_GPU_STATUS_AFTER_SHELL_REVEAL");
 		StartNativeSystemTelemetry();
 		NexusLog.Info("[RUNTIME] Shell telemetry and indicators started.");
 	}

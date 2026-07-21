@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using ComfyUI_Nexus.Ui;
 
 namespace ComfyUI_Nexus.Views.Controls.OptionDeck;
 
@@ -12,6 +13,8 @@ public partial class RunModeOptionDeckView : ContentView
 {
 	private const double CollapsedHeight = 48;
 	private const double ExpandedHeight = 96;
+	private const string HoverAnimationName = "RunModeOptionDeck.Hover";
+	private const string ExpansionAnimationName = "RunModeOptionDeck.Expansion";
 
 	private readonly List<RunModeOptionDeckItem> _items = [];
 	private bool _isExpanded;
@@ -26,6 +29,7 @@ public partial class RunModeOptionDeckView : ContentView
 	public RunModeOptionDeckView()
 	{
 		InitializeComponent();
+		Unloaded += OnUnloaded;
 		SetExpanded(false, animate: false);
 	}
 
@@ -59,17 +63,15 @@ public partial class RunModeOptionDeckView : ContentView
 	{
 		if (sender == SelectedOption)
 		{
-			_ = SelectedHoverGlow.FadeToAsync(1, 130, Easing.CubicOut);
-			_ = Chevron.FadeToAsync(0.95, 130, Easing.CubicOut);
-			_ = SeamGlow.FadeToAsync(0.75, 150, Easing.CubicOut);
+			PlayHoverAnimation(1, 0.95, 0.75, CandidateHoverGlowA.Opacity, CandidateHoverGlowB.Opacity, 150, Easing.CubicOut);
 		}
 		else if (sender == CandidateOptionA)
 		{
-			_ = CandidateHoverGlowA.FadeToAsync(1, 130, Easing.CubicOut);
+			PlayHoverAnimation(SelectedHoverGlow.Opacity, Chevron.Opacity, SeamGlow.Opacity, 1, CandidateHoverGlowB.Opacity, 130, Easing.CubicOut);
 		}
 		else if (sender == CandidateOptionB)
 		{
-			_ = CandidateHoverGlowB.FadeToAsync(1, 130, Easing.CubicOut);
+			PlayHoverAnimation(SelectedHoverGlow.Opacity, Chevron.Opacity, SeamGlow.Opacity, CandidateHoverGlowA.Opacity, 1, 130, Easing.CubicOut);
 		}
 	}
 
@@ -77,17 +79,15 @@ public partial class RunModeOptionDeckView : ContentView
 	{
 		if (sender == SelectedOption)
 		{
-			_ = SelectedHoverGlow.FadeToAsync(0, 150, Easing.CubicIn);
-			_ = Chevron.FadeToAsync(_isExpanded ? 0.9 : 0.55, 150, Easing.CubicIn);
-			_ = SeamGlow.FadeToAsync(_isExpanded ? 0.45 : 0, 170, Easing.CubicIn);
+			PlayHoverAnimation(0, _isExpanded ? 0.9 : 0.55, _isExpanded ? 0.45 : 0, CandidateHoverGlowA.Opacity, CandidateHoverGlowB.Opacity, 170, Easing.CubicIn);
 		}
 		else if (sender == CandidateOptionA)
 		{
-			_ = CandidateHoverGlowA.FadeToAsync(0, 150, Easing.CubicIn);
+			PlayHoverAnimation(SelectedHoverGlow.Opacity, Chevron.Opacity, SeamGlow.Opacity, 0, CandidateHoverGlowB.Opacity, 150, Easing.CubicIn);
 		}
 		else if (sender == CandidateOptionB)
 		{
-			_ = CandidateHoverGlowB.FadeToAsync(0, 150, Easing.CubicIn);
+			PlayHoverAnimation(SelectedHoverGlow.Opacity, Chevron.Opacity, SeamGlow.Opacity, CandidateHoverGlowA.Opacity, 0, 150, Easing.CubicIn);
 		}
 	}
 
@@ -183,40 +183,70 @@ public partial class RunModeOptionDeckView : ContentView
 		CandidateOptionA.InputTransparent = true;
 		CandidateOptionB.InputTransparent = true;
 
-		var heightAnimation = new Animation(
-			SetOptionsHeight,
-			OptionsClip.HeightRequest,
-			targetHeight,
-			Easing.CubicOut);
-		heightAnimation.Commit(OptionsClip, "RunModeOptionsHeight", length: 160);
+		Animation expansionAnimation = SafeAnimation.Composite(
+			new SafeAnimation.TimelineSegment(0, 1, SetOptionsHeight, OptionsClip.HeightRequest, targetHeight, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.94, value => Chevron.Rotation = value, Chevron.Rotation, isExpanded ? -90 : 90, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.82, value => Chevron.Opacity = value, Chevron.Opacity, isExpanded ? 0.9 : 0.55, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.94, value => SeamGlow.Opacity = value, SeamGlow.Opacity, isExpanded ? 0.45 : 0, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.75, value => FirstDivider.Opacity = value, FirstDivider.Opacity, isExpanded ? 0.65 : 0, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.75, value => CandidateOptionA.Opacity = value, CandidateOptionA.Opacity, isExpanded ? 1 : 0, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.75, value => SecondDivider.Opacity = value, SecondDivider.Opacity, isExpanded ? 0.65 : 0, Easing.CubicOut),
+			new SafeAnimation.TimelineSegment(0, 0.75, value => CandidateOptionB.Opacity = value, CandidateOptionB.Opacity, isExpanded ? 1 : 0, Easing.CubicOut));
+		SafeAnimation.Commit(
+			expansionAnimation,
+			this,
+			ExpansionAnimationName,
+			16,
+			160,
+			null,
+			(_, wasCancelled) => FinishExpansion(isExpanded, wasCancelled),
+			null,
+			"RunModeOptionDeck");
+	}
 
-		_ = Chevron.RotateToAsync(isExpanded ? -90 : 90, 150, Easing.CubicOut);
-		_ = Chevron.FadeToAsync(isExpanded ? 0.9 : 0.55, 130, Easing.CubicOut);
-		_ = SeamGlow.FadeToAsync(isExpanded ? 0.45 : 0, 150, Easing.CubicOut);
+	private void PlayHoverAnimation(double selectedGlowOpacity, double chevronOpacity, double seamGlowOpacity, double candidateGlowAOpacity, double candidateGlowBOpacity, uint length, Easing easing)
+	{
+		SafeAnimation.Timeline(
+			this,
+			HoverAnimationName,
+			16,
+			length,
+			null,
+			null,
+			"RunModeOptionDeck",
+			new SafeAnimation.TimelineSegment(0, 1, value => SelectedHoverGlow.Opacity = value, SelectedHoverGlow.Opacity, selectedGlowOpacity, easing),
+			new SafeAnimation.TimelineSegment(0, 1, value => Chevron.Opacity = value, Chevron.Opacity, chevronOpacity, easing),
+			new SafeAnimation.TimelineSegment(0, 1, value => SeamGlow.Opacity = value, SeamGlow.Opacity, seamGlowOpacity, easing),
+			new SafeAnimation.TimelineSegment(0, 1, value => CandidateHoverGlowA.Opacity = value, CandidateHoverGlowA.Opacity, candidateGlowAOpacity, easing),
+			new SafeAnimation.TimelineSegment(0, 1, value => CandidateHoverGlowB.Opacity = value, CandidateHoverGlowB.Opacity, candidateGlowBOpacity, easing));
+	}
 
-		_ = Task.WhenAll(
-			FirstDivider.FadeToAsync(isExpanded ? 0.65 : 0, 120, Easing.CubicOut),
-			CandidateOptionA.FadeToAsync(isExpanded ? 1 : 0, 120, Easing.CubicOut),
-			SecondDivider.FadeToAsync(isExpanded ? 0.65 : 0, 120, Easing.CubicOut),
-			CandidateOptionB.FadeToAsync(isExpanded ? 1 : 0, 120, Easing.CubicOut))
-			.ContinueWith(_ =>
-			{
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					_isAnimating = false;
-					SelectedOption.InputTransparent = false;
-					CandidateOptionA.InputTransparent = false;
-					CandidateOptionB.InputTransparent = false;
+	private void FinishExpansion(bool isExpanded, bool wasCancelled)
+	{
+		if (wasCancelled)
+		{
+			return;
+		}
 
-					if (!isExpanded)
-					{
-						FirstDivider.IsVisible = false;
-						CandidateOptionA.IsVisible = false;
-						SecondDivider.IsVisible = false;
-						CandidateOptionB.IsVisible = false;
-					}
-				});
-			});
+		_isAnimating = false;
+		SelectedOption.InputTransparent = false;
+		CandidateOptionA.InputTransparent = false;
+		CandidateOptionB.InputTransparent = false;
+
+		if (!isExpanded)
+		{
+			FirstDivider.IsVisible = false;
+			CandidateOptionA.IsVisible = false;
+			SecondDivider.IsVisible = false;
+			CandidateOptionB.IsVisible = false;
+		}
+	}
+
+	private void OnUnloaded(object? sender, EventArgs e)
+	{
+		SafeAnimation.AbortAnimation(this, HoverAnimationName, "RunModeOptionDeck");
+		SafeAnimation.AbortAnimation(this, ExpansionAnimationName, "RunModeOptionDeck");
+		_isAnimating = false;
 	}
 
 	private void SetOptionsHeight(double height)

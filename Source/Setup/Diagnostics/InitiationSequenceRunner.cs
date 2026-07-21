@@ -10,6 +10,7 @@ using ComfyUI_Nexus.Ui;
 internal sealed class InitiationSequenceRunner(
 	Action<DiagnosticNodeViewModel, IConfigurableDiagnosticNode> populateActions,
 	Action<DiagnosticNodeViewModel> enableInteraction,
+	Action<bool> setSequenceInteractionBlocked,
 	Func<SetupDiagnosticStep, CancellationToken, Task> waitForStepCompleteAsync,
 	Func<SetupDiagnosticStep, SetupScrollReason, Task> requestScrollAsync,
 	Action evaluateReadiness,
@@ -25,46 +26,61 @@ internal sealed class InitiationSequenceRunner(
 
 	private async Task RunInteractiveSequenceAsync(IReadOnlyList<SetupDiagnosticStep> steps, CancellationToken cancellationToken)
 	{
-		for (int i = 0; i < steps.Count; i++)
+		if (steps.Count == 0)
 		{
-			cancellationToken.ThrowIfCancellationRequested();
-			SetupDiagnosticStep step = steps[i];
-			var vm = step.ViewModel;
-			await RunOnMainThreadAsync(() =>
-			{
-				step.State = SetupDiagnosticStepState.Preparing;
-				vm.IsHighlighted = true;
-			});
-
-			if (vm.Node is IConfigurableDiagnosticNode configurableNode)
-			{
-				await RunOnMainThreadAsync(() => vm.IsLoading = true);
-				await ProbeConfigurableNodeAsync(vm, configurableNode, cancellationToken);
-				await RunOnMainThreadAsync(() => vm.IsLoading = false);
-				await RunOnMainThreadAsync(() => step.State = SetupDiagnosticStepState.WaitingForUser);
-				await RunOnMainThreadAsync(() => enableInteraction(vm));
-				await RunOnMainThreadAsync(evaluateReadiness);
-				await requestScrollAsync(step, SetupScrollReason.StepFocused);
-				await waitForStepCompleteAsync(step, cancellationToken);
-				await RunOnMainThreadAsync(evaluateReadiness);
-			}
-			else
-			{
-				await RunOnMainThreadAsync(() => step.State = SetupDiagnosticStepState.Working);
-				await requestScrollAsync(step, SetupScrollReason.StepFocused);
-				await CheckOrRecoverNodeAsync(vm, cancellationToken);
-				await RunOnMainThreadAsync(() => MarkStepFromHealth(step));
-				await Task.Yield();
-			}
-
-			await RunOnMainThreadAsync(() =>
-			{
-				vm.IsHighlighted = false;
-			});
-			await RunOnMainThreadAsync(evaluateReadiness);
+			return;
 		}
 
-		await RunOnMainThreadAsync(evaluateReadiness);
+		setSequenceInteractionBlocked(true);
+		try
+		{
+			for (int i = 0; i < steps.Count; i++)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				SetupDiagnosticStep step = steps[i];
+				var vm = step.ViewModel;
+				await RunOnMainThreadAsync(() =>
+				{
+					step.State = SetupDiagnosticStepState.Preparing;
+					vm.IsHighlighted = true;
+				});
+
+				if (vm.Node is IConfigurableDiagnosticNode configurableNode)
+				{
+					await RunOnMainThreadAsync(() => vm.IsLoading = true);
+					await ProbeConfigurableNodeAsync(vm, configurableNode, cancellationToken);
+					await RunOnMainThreadAsync(() => vm.IsLoading = false);
+					await RunOnMainThreadAsync(() => step.State = SetupDiagnosticStepState.WaitingForUser);
+					await RunOnMainThreadAsync(() => enableInteraction(vm));
+					setSequenceInteractionBlocked(false);
+					await RunOnMainThreadAsync(evaluateReadiness);
+					await requestScrollAsync(step, SetupScrollReason.StepFocused);
+					await waitForStepCompleteAsync(step, cancellationToken);
+					setSequenceInteractionBlocked(true);
+					await RunOnMainThreadAsync(evaluateReadiness);
+				}
+				else
+				{
+					await RunOnMainThreadAsync(() => step.State = SetupDiagnosticStepState.Working);
+					await requestScrollAsync(step, SetupScrollReason.StepFocused);
+					await CheckOrRecoverNodeAsync(vm, cancellationToken);
+					await RunOnMainThreadAsync(() => MarkStepFromHealth(step));
+					await Task.Yield();
+				}
+
+				await RunOnMainThreadAsync(() =>
+				{
+					vm.IsHighlighted = false;
+				});
+				await RunOnMainThreadAsync(evaluateReadiness);
+			}
+
+			await RunOnMainThreadAsync(evaluateReadiness);
+		}
+		finally
+		{
+			setSequenceInteractionBlocked(false);
+		}
 	}
 
 	private async Task ProbeConfigurableNodeAsync(

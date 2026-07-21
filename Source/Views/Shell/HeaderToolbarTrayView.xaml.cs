@@ -155,6 +155,7 @@ public partial class HeaderToolbarTrayView : ContentView
 		GuardedMainMenuCommand = new Command(ExecuteMainMenuCommand);
 		InitializeComponent();
 		_mainActionMotion = new NexusMotionController("header-toolbar-main-action", "HeaderToolbar.MainActionPulse", Dispatcher);
+		_mainActionStopSignalClip = new NexusAnimatedWebpClip(_mainActionMotion, MainActionStopSignalSurface, "HeaderToolbar.MainActionStopSignal", NexusAnimatedWebpCacheCatalog.HeaderMainActionStopSignal);
 		RunModeOptionDeck.SelectionChanged += OnRunModeOptionDeckSelectionChanged;
 
 		StopActionButton.IsEnabled = false;
@@ -169,9 +170,15 @@ public partial class HeaderToolbarTrayView : ContentView
 		QueueCommandDeckPlacementUpdate();
 	}
 
-	private void OnToolbarLoaded(object? sender, EventArgs e)
+	private async void OnToolbarLoaded(object? sender, EventArgs e)
 	{
 		_isUnloaded = false;
+		await PrepareMainActionStopSignalAsync();
+
+		if (_isInstantQueueButtonStop)
+		{
+			StartMainActionPulse();
+		}
 	}
 
 	private void OnToolbarUnloaded(object? sender, EventArgs e)
@@ -180,6 +187,9 @@ public partial class HeaderToolbarTrayView : ContentView
 		StopQueueAdjustHold();
 		_mainActionMotion.StopAll();
 		StopMainActionPulse();
+		_mainActionStopSignalCacheLease?.Dispose();
+		_mainActionStopSignalCacheLease = null;
+		_mainActionStopSignalCacheAcquireTask = null;
 		ResetQueueCountDragState(null, hideGlow: false);
 		CancelHeaderAnimations();
 	}
@@ -191,7 +201,7 @@ public partial class HeaderToolbarTrayView : ContentView
 			MainActionIcon,
 			MainActionIconHover,
 			MainActionHoverGlow,
-			MainActionPulseGlow,
+			MainActionStopSignalSurface,
 			StopActionIcon,
 			StopActionIconHover,
 			StopActionHoverGlow,
@@ -203,6 +213,29 @@ public partial class HeaderToolbarTrayView : ContentView
 		})
 		{
 			SafeAnimation.CancelAnimations(element, "HeaderToolbar.Unload");
+		}
+	}
+
+	private async Task PrepareMainActionStopSignalAsync()
+	{
+		try
+		{
+			Task<NexusAnimatedWebpCacheLease> acquireTask = _mainActionStopSignalCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(
+				"header-toolbar-main-action",
+				[NexusAnimatedWebpCacheCatalog.HeaderMainActionStopSignal]);
+			NexusAnimatedWebpCacheLease lease = await acquireTask;
+			if (_isUnloaded || !ReferenceEquals(_mainActionStopSignalCacheAcquireTask, acquireTask))
+			{
+				lease.Dispose();
+				return;
+			}
+
+			_mainActionStopSignalCacheLease ??= lease;
+			await _mainActionStopSignalClip.PrepareAsync();
+		}
+		catch (Exception ex)
+		{
+			NexusLog.Warning($"[ANIMATED_WEBP] Header main action stop signal preparation failed. reason={ex.Message}");
 		}
 	}
 

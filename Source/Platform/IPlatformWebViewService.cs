@@ -2,16 +2,19 @@ namespace ComfyUI_Nexus.Platform;
 
 public interface IPlatformWebViewService
 {
+	Task EnsureReadyAsync(INexusBrowserSurface surface);
+
 	Task ConfigureBridgeAsync(
-		WebView webView,
+		INexusBrowserSurface surface,
 		Func<string, Task> processMessageAsync,
 		Action<string?> navigationStarting,
 		Action? bridgeActivated = null,
 		Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler = null);
 
-	Task DisableBrowserReloadHandlingAsync(WebView webView, Func<Task> clearBeforeUnloadAsync);
+	Task DisableBrowserReloadHandlingAsync(INexusBrowserSurface surface, Func<Task> clearBeforeUnloadAsync);
 
-	void Reload(WebView webView);
-	void Focus(WebView webView);
-	void SetDevToolsEnabled(WebView webView, bool isEnabled);
+	void Reload(INexusBrowserSurface surface);
+	void Focus(INexusBrowserSurface surface);
+	void SetDevToolsEnabled(INexusBrowserSurface surface, bool isEnabled);
+	void OpenDevTools(INexusBrowserSurface surface);
 }

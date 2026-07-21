@@ -17,13 +17,12 @@
 				StrokeShape="Rectangle"
 				BackgroundColor="Transparent">
 
-			<ContentView BackgroundColor="{StaticResource WorkspaceShellColor}">
+			<Grid x:Name="BrowserSurfaceHost" BackgroundColor="{StaticResource WorkspaceShellColor}">
 				<WebView x:Name="ComfyWebView"
 						 HorizontalOptions="Fill"
 						 VerticalOptions="Fill"
-						 BackgroundColor="{StaticResource WorkspaceShellColor}"
-						 Navigated="OnWebViewNavigated" />
-			</ContentView>
+						 BackgroundColor="{StaticResource WorkspaceShellColor}" />
+			</Grid>
 		</Border>
 	</Grid>
 </ContentView>

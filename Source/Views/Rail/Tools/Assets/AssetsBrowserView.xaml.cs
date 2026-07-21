@@ -110,7 +110,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 	private readonly RailDirectoryWatchController _treeWatcher;
 	private readonly AssetFileOperationService _fileOperations;
 	private readonly AssetHubNativeService _assetHubService = new();
-	private readonly NexusLatestOperationCoordinator _latestOperations = new("assets-browser");
+	private readonly NexusOperationController _latestOperations = new("assets-browser");
 	private bool _isAnimating;
 	private readonly AssetClipboardController _clipboard = new();
 	private readonly List<string> _bookmarkedPaths = [];
@@ -798,7 +798,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 
 		try
 		{
-			NexusLog.Info($"[ASSET_TREE] Build started: root='{_rootPath}', clearCache={clearDataCache}");
+			NexusLog.Trace($"[ASSET_TREE] Build started: root='{_rootPath}', clearCache={clearDataCache}");
 			_isTreeLoading = true;
 
 			if (clearDataCache)
@@ -847,7 +847,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 			await _loadingOverlay.HideAsync();
 			_isTreeLoading = false;
 			_treeLock.Release();
-			NexusLog.Info($"[ASSET_TREE] Build completed: root='{_rootPath}', nodes={_rootNodes.Count}");
+			NexusLog.Trace($"[ASSET_TREE] Build completed: root='{_rootPath}', nodes={_rootNodes.Count}");
 
 			string? pendingRoot = _pendingRootPath;
 			_pendingRootPath = null;
@@ -2158,7 +2158,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 		}
 
 		int version = ++_modelThumbnailHoverVersion;
-		_latestOperations.Request("model-thumbnail-hover", async lease =>
+		_latestOperations.RequestLatest("model-thumbnail-hover", async lease =>
 		{
 			if (!await lease.WaitForAsync(TimeSpan.FromMilliseconds(ModelThumbnailHoverDelayMs)))
 			{

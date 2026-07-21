@@ -7,6 +7,7 @@ using ComfyUI_Nexus.Platform;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Services;
 using ComfyUI_Nexus.Setup.Startup;
+using ComfyUI_Nexus.Ui;
 using Microsoft.Maui.Controls;
 
 namespace ComfyUI_Nexus;
@@ -38,7 +39,7 @@ public partial class MainPage
 			NexusLog.Exception(ex, "[STARTUP] Startup route sequence failed");
 			try
 			{
-				_loadingOverlayController.ShowProductSetup();
+				await PrepareStartupRouteForRevealAsync(StartupRouteKind.FullSetup);
 				await HideStartupSplashAsync();
 			}
 			catch (Exception fallbackEx)
@@ -54,7 +55,7 @@ public partial class MainPage
 		if (ForceProductSetupOnStartup)
 		{
 			Log("Startup route: forced full product setup.");
-			ShowProductSetup();
+			await PrepareStartupRouteForRevealAsync(StartupRouteKind.FullSetup);
 			await HideStartupSplashAsync();
 			return;
 		}
@@ -69,22 +70,38 @@ public partial class MainPage
 				await LaunchNexusAppEntryAsync(CancellationToken.None);
 				break;
 			case StartupRouteKind.MaintenanceRecovery:
-				_loadingOverlayController.ShowMaintenanceRecovery();
+				await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.MaintenanceRecovery));
 				await HideStartupSplashAsync();
 				break;
 			case StartupRouteKind.ServerLaunchOnly:
-				_loadingOverlayController.ShowServerLaunchOnly();
+				await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.Idle));
 				await HideStartupSplashAsync();
 				break;
 			case StartupRouteKind.ServerStartupPending:
-				_loadingOverlayController.ShowServerStartupPending();
+				await _loadingOverlayController.EnterServerBootAsync(new(ServerBootEntryKind.ResumePending));
 				await HideStartupSplashAsync();
 				break;
 			default:
-				ShowProductSetup();
+				await PrepareStartupRouteForRevealAsync(decision.Kind);
 				await HideStartupSplashAsync();
 				break;
 		}
+	}
+
+	private Task PrepareStartupRouteForRevealAsync(StartupRouteKind route)
+	{
+		return route switch
+		{
+			StartupRouteKind.FullSetup => PrepareProductSetupForStartupRevealAsync(),
+			_ => Task.CompletedTask,
+		};
+	}
+
+	private async Task PrepareProductSetupForStartupRevealAsync()
+	{
+		Log("[STARTUP] Preparing full setup route for splash reveal.");
+		await ShowProductSetupAsync();
+		Log("[STARTUP] Full setup route is ready for splash reveal.");
 	}
 
 	private async Task LaunchNexusAppEntryAsync(CancellationToken cancellationToken)
@@ -100,6 +117,9 @@ public partial class MainPage
 		PortablePreferences.Set(PreferenceKeys.ComfyUIPath, comfyPath);
 		SynchronizeConfiguredComfyPathSurfaces();
 		Log($"SYSTEM: Nexus App Entry launching from {comfyPath}");
+		// A server restart stops the loading clip while the boot monitor owns the overlay.
+		// Restart it before bridge preparation so the hand-off never leaves a static surface.
+		StartOverlayAnimations();
 
 		await _loginSequence.RunStartupAsync(
 			"ProductSetup.LaunchNexus",
@@ -357,7 +377,7 @@ public partial class MainPage
 		Log($"Core Link ready: {path}");
 		await EnsureNexusBridgeExtensionReadyAsync();
 		_loadingOverlayController.SetMode(showConfig: false);
-		UpdateSystemLoadingState(true);
+		await UpdateSystemLoadingStateAsync(true);
 		await HideStartupSplashAsync();
 	}
 
@@ -365,15 +385,10 @@ public partial class MainPage
 	{
 		PortablePreferences.Set(PreferenceKeys.ComfyUIPath, path);
 		SynchronizeConfiguredComfyPathSurfaces();
-		Log($"SUCCESS: Core Link Established at {path}");
+		Log($"[Nexus] ComfyUI root configured: {path}");
 		await EnsureNexusBridgeExtensionReadyAsync();
 		_loadingOverlayController.SetMode(showConfig: false);
-		_loadingOverlayController.Hold(
-			"Core Link Established",
-			"ComfyUI root is configured. Initializing Nexus services.",
-			"CORE LINK ESTABLISHED. INITIALIZING SYSTEM...",
-			LoadingInfoColor,
-			progress: 0.12);
+		await UpdateSystemLoadingStateAsync(true);
 	}
 
 	private async Task EnsureNexusBridgeExtensionReadyAsync()
@@ -405,10 +420,10 @@ public partial class MainPage
 
 		await WaitForWebViewPlatformReadyAsync();
 
-		await MainThread.InvokeOnMainThreadAsync(() =>
+		await MainThread.InvokeOnMainThreadAsync(async () =>
 		{
 			Log("System ignition: Connecting to ComfyUI server...");
-			WorkspaceControl.BrowserView.Source = ComfyApiOptions.LocalBaseUrl;
+			await WorkspaceControl.BrowserSurface.NavigateAsync(ComfyApiOptions.LocalBaseUrl);
 		});
 	}
 

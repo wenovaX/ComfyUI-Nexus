@@ -139,32 +139,19 @@
 						<Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
 							<!-- Status Icon -->
 							<Grid WidthRequest="44" HeightRequest="44" VerticalOptions="Center">
-								<Grid.Triggers>
-									<DataTrigger TargetType="Grid" Binding="{Binding IsLoading}" Value="True">
-										<Setter Property="Scale" Value="1.2" />
-									</DataTrigger>
-								</Grid.Triggers>
 								<Border StrokeThickness="1" Stroke="{Binding StatusBrush}" BackgroundColor="{StaticResource SetupGlassHoverColor}" Opacity="0.4" StrokeShape="RoundRectangle 8" />
-								<Border x:Name="DiagnosticLoadingRing"
+								<Image x:Name="DiagnosticLoadingRing"
 										StyleId="DiagnosticLoadingRing"
-										WidthRequest="38"
-										HeightRequest="38"
-										Stroke="{StaticResource SetupAccentColor}"
-										StrokeThickness="2"
-										StrokeShape="RoundRectangle 19"
+										WidthRequest="44"
+										HeightRequest="44"
+										Source="setup_diagnostic_loading_ring.webp"
+										Aspect="AspectFit"
 										Opacity="0"
 										HorizontalOptions="Center"
 										VerticalOptions="Center"
+										InputTransparent="True"
 										Loaded="OnDiagnosticLoadingRingLoaded"
-										Unloaded="OnDiagnosticLoadingRingUnloaded">
-									<Border.Background>
-										<LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-											<GradientStop Color="#0031d8ff" Offset="0.0" />
-											<GradientStop Color="#3331d8ff" Offset="0.35" />
-											<GradientStop Color="#AA31d8ff" Offset="1.0" />
-										</LinearGradientBrush>
-									</Border.Background>
-								</Border>
+										Unloaded="OnDiagnosticLoadingRingUnloaded" />
 								<Image Source="{Binding IconSource}"
 									   WidthRequest="24"
 									   HeightRequest="24"
@@ -394,15 +381,21 @@
 	<Grid x:Name="ProductSetupRoot"
 		  HorizontalOptions="Fill"
 		  VerticalOptions="Fill">
-		<!-- LAYER 1: BACKGROUND (Deep Space & Particles) -->
+		<!-- LAYER 1: BACKGROUND -->
 		<Grid x:Name="BackgroundLayer">
 			<Image Source="nexus_setup_bg.png"
 				   Aspect="AspectFill" />
-			<Grid x:Name="ParticleContainer" InputTransparent="True" CascadeInputTransparent="True" />
 		</Grid>
 
 		<!-- LAYER 1.5: GLOBAL CINEMATIC GLOW (Unclipped) -->
 		<Grid x:Name="GlobalGlowLayer" InputTransparent="True" CascadeInputTransparent="True">
+			<Image x:Name="CrossroadsAmbientLoop"
+				   Source="setup_crossroads_ambient.webp"
+				   Aspect="AspectFill"
+				   Opacity="0"
+				   HorizontalOptions="Fill"
+				   VerticalOptions="Fill" />
+
 			<Grid x:Name="GlowSyncGroup"
 				  ColumnDefinitions="*, *"
 				  WidthRequest="1150"
@@ -418,6 +411,15 @@
 					   Opacity="0.15"
 					   HorizontalOptions="Center"
 					   VerticalOptions="Center" />
+				<Image x:Name="VanguardSelectionBurst"
+					   Grid.Column="0"
+					   Source="setup_vanguard_selection_burst.webp"
+					   Aspect="AspectFit"
+					   WidthRequest="1200"
+					   HeightRequest="1000"
+					   Opacity="0"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center" />
 				<Image x:Name="ArchitectGlow"
 					   Grid.Column="1"
 					   Source="hover_cloud_architect.png"
@@ -425,6 +427,15 @@
 					   WidthRequest="1200"
 					   HeightRequest="1000"
 					   Opacity="0.15"
+					   HorizontalOptions="Center"
+					   VerticalOptions="Center" />
+				<Image x:Name="ArchitectSelectionBurst"
+					   Grid.Column="1"
+					   Source="setup_architect_selection_burst.webp"
+					   Aspect="AspectFit"
+					   WidthRequest="1200"
+					   HeightRequest="1000"
+					   Opacity="0"
 					   HorizontalOptions="Center"
 					   VerticalOptions="Center" />
 			</Grid>
@@ -450,7 +461,8 @@
 					  Margin="0,50,0,0"
 					  Opacity="0"
 					  IsVisible="False">
-					<Image Source="top_logo_neon_glass.png"
+					<Image x:Name="WelcomeTitleAnimation"
+						   Source="welcome_to_nexus_title.webp"
 						   HeightRequest="120"
 						   Aspect="AspectFit" />
 				</Grid>
@@ -501,13 +513,12 @@
 										<Grid ColumnDefinitions="200, *" InputTransparent="True" CascadeInputTransparent="True">
 											<!-- Object Prefab (Left) -->
 											<Grid Grid.Column="0" InputTransparent="True">
-												<Ellipse x:Name="VanguardRing1" Stroke="#4D31D8FF" StrokeThickness="1" Margin="25" StrokeDashArray="1,4" InputTransparent="True" />
-												<Ellipse x:Name="VanguardRing2" Stroke="#2631D8FF" StrokeThickness="2" Margin="45" StrokeDashArray="10,5" InputTransparent="True" />
-												<Image Source="setup_vanguard_high.png"
-													   Aspect="AspectFill"
-													   Opacity="0.8"
-													   Margin="15"
-													   x:Name="VanguardBgImage"
+											<Ellipse Stroke="#4D31D8FF" StrokeThickness="1" Margin="25" StrokeDashArray="1,4" InputTransparent="True" />
+											<Ellipse Stroke="#2631D8FF" StrokeThickness="2" Margin="45" StrokeDashArray="10,5" InputTransparent="True" />
+						<Image x:Name="VanguardModeIcon"
+							   Source="setup_vanguard_bold_animated.webp"
+							   Aspect="AspectFill"
+								   Margin="15"
 													   InputTransparent="True" />
 											</Grid>
 
@@ -556,13 +567,12 @@
 										<Grid ColumnDefinitions="200, *" InputTransparent="True" CascadeInputTransparent="True">
 											<!-- Object Prefab (Left) -->
 											<Grid Grid.Column="0" InputTransparent="True">
-												<Ellipse x:Name="ArchitectRing1" Stroke="#4Dc78bff" StrokeThickness="1" Margin="25" StrokeDashArray="2,6" InputTransparent="True" />
-												<Ellipse x:Name="ArchitectRing2" Stroke="#26c78bff" StrokeThickness="2" Margin="45" StrokeDashArray="15,10" InputTransparent="True" />
-												<Image Source="setup_architect_high.png"
-													   Aspect="AspectFill"
-													   Opacity="0.8"
-													   Margin="15"
-													   x:Name="ArchitectBgImage"
+											<Ellipse Stroke="#4Dc78bff" StrokeThickness="1" Margin="25" StrokeDashArray="2,6" InputTransparent="True" />
+											<Ellipse Stroke="#26c78bff" StrokeThickness="2" Margin="45" StrokeDashArray="15,10" InputTransparent="True" />
+						<Image x:Name="ArchitectModeIcon"
+							   Source="setup_architect_bold_animated.webp"
+							   Aspect="AspectFill"
+								   Margin="15"
 													   InputTransparent="True" />
 											</Grid>
 
@@ -784,12 +794,18 @@
 								<!-- Header: Command Center Banner -->
 								<Grid Grid.Row="0" ColumnDefinitions="*, Auto">
 									<StackLayout Spacing="8">
-										<Label Text="{loc:Loc views.overlays.product_setup_view.nexus_core_command_center}" TextColor="#31d8ff" FontSize="22" FontAttributes="Bold" CharacterSpacing="4" />
+										<Label Text="{loc:Loc views.overlays.product_setup_view.command_center}" TextColor="#31d8ff" FontSize="22" FontAttributes="Bold" CharacterSpacing="4" />
 										<Label Text="{loc:Loc views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus}" TextColor="#4D31d8ff" FontSize="11" FontAttributes="Bold" CharacterSpacing="1" />
 									</StackLayout>
-									<Border x:Name="ConsoleStatusBorder" Grid.Column="1" Stroke="#31d8ff" StrokeThickness="1" Padding="12,4" StrokeShape="RoundRectangle 4" VerticalOptions="Start">
-										<Label x:Name="ConsoleStatusLabel" Text="{loc:Loc common.online}" TextColor="#31d8ff" FontSize="12" FontAttributes="Bold" />
-									</Border>
+									<Grid Grid.Column="1" WidthRequest="120" HeightRequest="32" VerticalOptions="Start">
+										<Image x:Name="ConsoleStatusPulseSurface"
+											Opacity="0"
+											Aspect="Fill"
+											InputTransparent="True" />
+										<Border x:Name="ConsoleStatusBorder" Stroke="#31d8ff" StrokeThickness="1" Padding="12,4" StrokeShape="RoundRectangle 4">
+											<Label x:Name="ConsoleStatusLabel" Text="{loc:Loc common.online}" TextColor="#31d8ff" FontSize="12" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+										</Border>
+									</Grid>
 								</Grid>
 
 								<!-- Main Console Area -->
@@ -997,20 +1013,45 @@
 
 										<!-- CONSOLE INTERNAL ACTION BUTTONS -->
 										<VerticalStackLayout x:Name="ConsoleBootActionsGrid"
-															 Grid.Row="2"
-															 Spacing="6"
-															 Margin="0,2,0,0"
-															 VerticalOptions="Start">
+																 Grid.Row="2"
+																 Spacing="6"
+																 Margin="0,2,0,0"
+																 VerticalOptions="Start">
+											<Border x:Name="ConsoleRepairBeforeBootToggle"
+													BackgroundColor="#1Affaa00"
+													Stroke="#ffaa00"
+													StrokeThickness="1"
+													StrokeShape="RoundRectangle 8"
+													HeightRequest="26"
+													Padding="10,0">
+												<Border.GestureRecognizers>
+													<TapGestureRecognizer Tapped="OnConsoleRepairBeforeBootToggleClicked" />
+												</Border.GestureRecognizers>
+												<Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
+													<Label x:Name="ConsoleRepairBeforeBootGlyph"
+														   Text="□"
+														   TextColor="#ffaa00"
+														   FontSize="11"
+														   FontAttributes="Bold"
+														   VerticalOptions="Center" />
+													<Label Grid.Column="1"
+														   Text="{loc:Loc setup.console.repair_before_boot}"
+														   TextColor="#ffaa00"
+														   FontSize="11"
+														   FontAttributes="Bold"
+														   LineBreakMode="TailTruncation"
+														   VerticalOptions="Center" />
+												</Grid>
+											</Border>
+
 											<Grid HeightRequest="48">
-												<Border x:Name="ConsoleBootPulseGlow"
+												<Image x:Name="ConsoleBootPulseSurface"
 														Opacity="0"
-														BackgroundColor="#31d8ff"
-														StrokeThickness="0"
-														StrokeShape="RoundRectangle 12"
+														Aspect="Fill"
 														InputTransparent="True" />
 
 												<Border x:Name="ConsoleBootButton"
-														BackgroundColor="#1A31d8ff"
+														BackgroundColor="Transparent"
 														Stroke="#31d8ff"
 														StrokeThickness="2"
 														StrokeShape="RoundRectangle 12">
@@ -1047,32 +1088,6 @@
 												</Border>
 											</Grid>
 
-											<Border x:Name="ConsoleRepairBeforeBootToggle"
-													BackgroundColor="#1Affaa00"
-													Stroke="#ffaa00"
-													StrokeThickness="1"
-													StrokeShape="RoundRectangle 8"
-													HeightRequest="26"
-													Padding="10,0">
-												<Border.GestureRecognizers>
-													<TapGestureRecognizer Tapped="OnConsoleRepairBeforeBootToggleClicked" />
-												</Border.GestureRecognizers>
-												<Grid ColumnDefinitions="Auto,*" ColumnSpacing="8">
-													<Label x:Name="ConsoleRepairBeforeBootGlyph"
-														   Text="□"
-														   TextColor="#ffaa00"
-														   FontSize="11"
-														   FontAttributes="Bold"
-														   VerticalOptions="Center" />
-													<Label Grid.Column="1"
-														   Text="{loc:Loc setup.console.repair_before_boot}"
-														   TextColor="#ffaa00"
-														   FontSize="11"
-														   FontAttributes="Bold"
-														   LineBreakMode="TailTruncation"
-														   VerticalOptions="Center" />
-												</Grid>
-											</Border>
 										</VerticalStackLayout>
 									</Grid>
 								</Grid>
@@ -1134,14 +1149,10 @@
 							</Border.GestureRecognizers>
 							<Grid>
 								<!-- PULSE GLOW LAYER -->
-								<Border x:Name="PrimaryActionPulseGlow"
+								<Image x:Name="PrimaryActionPulseSurface"
 										Opacity="0"
-										StrokeThickness="2"
-										Stroke="#31d8ff"
-										BackgroundColor="Transparent"
-										StrokeShape="RoundRectangle 8"
-										InputTransparent="True">
-								</Border>
+										Aspect="Fill"
+										InputTransparent="True" />
 
 								<Label x:Name="PrimaryActionLabel"
 									   Text="{loc:Loc views.overlays.product_setup_view.start}"

@@ -160,8 +160,9 @@ internal sealed class HudBridgeInstaller
 	{
 		if (string.IsNullOrWhiteSpace(customNodesPath)) return false;
 
+		string sourceBridgeDir = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", NexusBridgePackageFolderName);
 		string bridgePath = Path.Combine(customNodesPath, NexusBridgeExtensionFolderName);
-		return HasRequiredNexusBridgeFiles(bridgePath);
+		return IsNexusBridgePayloadCurrent(sourceBridgeDir, bridgePath);
 	}
 
 	internal bool IsPackagedNexusBridgeAvailable()
@@ -235,9 +236,9 @@ internal sealed class HudBridgeInstaller
 			_log($"{HudTag} HUD duplicate extension guard patched. files={patchedHudFiles}");
 		}
 
-		if (!HasRequiredNexusBridgeFiles(targetBridgeDir))
+		if (!IsNexusBridgePayloadCurrent(sourceBridgeDir, targetBridgeDir))
 		{
-			return new SetupStepResult(false, "Nexus bridge patch finished, but required bridge files are still missing.", 0);
+			return new SetupStepResult(false, "Nexus bridge patch finished, but the installed payload does not match the packaged bridge.", 0);
 		}
 
 		return new SetupStepResult(true, "Nexus bridge extension successfully synced and patched.", copied);
@@ -350,6 +351,72 @@ internal sealed class HudBridgeInstaller
 		}
 
 		return NexusBridgeRequiredFiles.All(relativePath => File.Exists(Path.Combine(bridgePath, relativePath)));
+	}
+
+	private static bool IsNexusBridgePayloadCurrent(string sourceBridgeDir, string targetBridgeDir)
+	{
+		if (!HasRequiredNexusBridgeFiles(sourceBridgeDir) || !HasRequiredNexusBridgeFiles(targetBridgeDir))
+		{
+			return false;
+		}
+
+		try
+		{
+			foreach (string sourceFile in Directory.EnumerateFiles(sourceBridgeDir, "*", SearchOption.AllDirectories))
+			{
+				string relativePath = Path.GetRelativePath(sourceBridgeDir, sourceFile);
+				string targetFile = Path.Combine(targetBridgeDir, relativePath);
+				if (!AreFilesIdentical(sourceFile, targetFile))
+				{
+					return false;
+				}
+			}
+		}
+		catch (IOException)
+		{
+			return false;
+		}
+		catch (UnauthorizedAccessException)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	private static bool AreFilesIdentical(string sourceFile, string targetFile)
+	{
+		var sourceInfo = new FileInfo(sourceFile);
+		var targetInfo = new FileInfo(targetFile);
+		if (!targetInfo.Exists || sourceInfo.Length != targetInfo.Length)
+		{
+			return false;
+		}
+
+		const int BufferSize = 32 * 1024;
+		var sourceBuffer = new byte[BufferSize];
+		var targetBuffer = new byte[BufferSize];
+		using var source = new FileStream(sourceFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+		using var target = new FileStream(targetFile, FileMode.Open, FileAccess.Read, FileShare.Read);
+		while (true)
+		{
+			int sourceRead = source.Read(sourceBuffer, 0, sourceBuffer.Length);
+			int targetRead = target.Read(targetBuffer, 0, targetBuffer.Length);
+			if (sourceRead != targetRead)
+			{
+				return false;
+			}
+
+			if (sourceRead == 0)
+			{
+				return true;
+			}
+
+			if (!sourceBuffer.AsSpan(0, sourceRead).SequenceEqual(targetBuffer.AsSpan(0, targetRead)))
+			{
+				return false;
+			}
+		}
 	}
 
 }

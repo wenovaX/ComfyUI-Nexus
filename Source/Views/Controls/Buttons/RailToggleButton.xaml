@@ -5,6 +5,7 @@
 			 x:Name="RootView">
 	<Grid WidthRequest="40"
 		  HeightRequest="34"
+		  BackgroundColor="#03000000"
 		  HorizontalOptions="Fill"
 		  VerticalOptions="Center">
 		<Border x:Name="ButtonBorder"

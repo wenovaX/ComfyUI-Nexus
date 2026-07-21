@@ -253,14 +253,7 @@
 								SemanticProperties.Description="{loc:Loc views.controls.option_deck.run_mode_option_deck_view.run}"
 								SemanticProperties.Hint="{loc:Loc views.shell.header_toolbar_tray_view.run_help}">
 							<Grid IsClippedToBounds="False">
-								<Ellipse x:Name="MainActionPulseGlow" Opacity="0" WidthRequest="96" HeightRequest="62" Scale="0.82" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
-									<Ellipse.Fill>
-										<RadialGradientBrush Center="0.5,0.5" Radius="0.5">
-											<GradientStop Color="{StaticResource ToolbarDangerGlowCoreColor}" Offset="0.0" />
-											<GradientStop Color="{StaticResource ToolbarDangerGlowEdgeColor}" Offset="1.0" />
-										</RadialGradientBrush>
-									</Ellipse.Fill>
-								</Ellipse>
+								<Image x:Name="MainActionStopSignalSurface" Opacity="0" WidthRequest="112" HeightRequest="52" Aspect="AspectFit" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True" />
 								<Ellipse x:Name="MainActionHoverGlow" Opacity="0" WidthRequest="{StaticResource ToolbarActionGlowWidth}" HeightRequest="{StaticResource ToolbarActionGlowHeight}" HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True">
 									<Ellipse.Fill>
 										<RadialGradientBrush Center="0.5,0.5" Radius="0.5">

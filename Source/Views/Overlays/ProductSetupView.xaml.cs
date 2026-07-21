@@ -18,11 +18,8 @@ namespace ComfyUI_Nexus.Views.Overlays;
 
 public partial class ProductSetupView : ContentView
 {
-	private const int InitialLayoutDelayMs = 160;
 	private const int LayoutReadyPollDelayMs = 50;
 	private const int LayoutReadyMaxWaitMs = 1000;
-	private const int DashboardRevealDelayMs = 120;
-	private const int StabilizationDelayMs = 150;
 	private const double HeaderInitialOffsetY = 30;
 	private const double WelcomeInitialOffsetY = 50;
 	private const double PanelRevealOffsetY = 20;
@@ -30,7 +27,6 @@ public partial class ProductSetupView : ContentView
 	private const double BackgroundRevealOpacity = 0.5;
 	private const double BackgroundDimmedOpacity = 0.15;
 	private const double GlassInitialScale = 0.95;
-	private const int CrossroadsReturnDelayMs = 50;
 	private const int SystemBootKernelDelayMs = 800;
 	private const int SystemBootModulesDelayMs = 600;
 	private const int SystemBootValidationDelayMs = 700;
@@ -61,20 +57,10 @@ public partial class ProductSetupView : ContentView
 	private const uint WelcomeRevealLength = 1000;
 	private const uint PanelQuickAnimationLength = 300;
 	private const uint PanelShowLength = 500;
-	private const double AmbientCardGlowOpacity = 0.15;
-	private const double HoveredCardGlowOpacity = 0.8;
-	private const double PersistentCardGlowOpacity = 1.0;
-	private const double ConsolePulseHighOpacity = 0.2;
-	private const double ConsoleBootingGlowHighOpacity = 0.32;
-	private const double ConsoleBootingGlowLowOpacity = 0.03;
-	private const double ConsoleBootingButtonHighScale = 1.015;
 	private const double ConsoleConfigDisabledOpacity = 0.45;
 	private const double ConsoleBootActionsExpandedRowSpacing = 8;
 	private const double ConsoleButtonPreparingOpacity = 0.4;
 	private const double ConsoleButtonBootingOpacity = 0.5;
-	private const double PrimaryPulseHighOpacity = 0.8;
-	private const double PrimaryPulseLowOpacity = 0.1;
-	private const double ImpactCardScale = 1.04;
 	private const double GpuCardCornerRadius = 8;
 	private const double GpuCardTitleFontSize = 10;
 	private const double GpuCardNameFontSize = 9;
@@ -82,42 +68,15 @@ public partial class ProductSetupView : ContentView
 	private const double InitiationOverscrollResistance = 0.28;
 	private const double InitiationOverscrollMaxOffset = 42;
 	private const uint InitiationOverscrollReturnLength = 220;
-	private const uint DiagnosticLoadingRingRotateLength = 950;
-	private const int ImpactFirstFlashDelayMs = 70;
-	private const int ImpactVoidDelayMs = 50;
-	private const int ImpactSecondFlashDelayMs = 60;
-	private const int DriftFrameIntervalMs = 16;
-	private const int ParticleCount = 15;
-	private const int ParticleMinSize = 2;
-	private const int ParticleMaxSizeExclusive = 6;
-	private const int ParticleAccentInterval = 3;
-	private const uint PulseAnimationLength = 800;
-	private const uint ConsoleBootingPulseLength = 520;
-	private const string ConsoleBootPulseAnimationName = "ProductSetup.ConsoleBootPulse";
-	private const string ConsoleBootingAnimationName = "ProductSetup.ConsoleBooting";
-	private const string PrimaryActionPulseAnimationName = "ProductSetup.PrimaryActionPulse";
-	private const string DiagnosticLoadingRingPulseAnimationName = "ProductSetup.DiagnosticLoadingRingPulse";
-	private const string DriftMotionName = "ProductSetup.Drift";
-	private const uint CardGlowAnimationLength = 400;
-	private const uint PersistentCardGlowAnimationLength = 500;
-	private const uint OtherCardGlowHideLength = 300;
-	private const uint ImpactCardScaleOutLength = 100;
-	private const uint ImpactCardScaleInLength = 300;
-	private const double DriftTimeStep = 0.02;
-	private const double CrossroadsCommonDriftAmplitude = 8;
-	private const double CrossroadsBgDriftAmplitude = 5;
-	private const double ParticleDriftAmplitude = 20;
-	private const double ParticleOpacityBase = 0.1;
-	private const double ParticleOpacityRange = 0.3;
-	private const double ParticleOpacityPulseBase = 0.6;
-	private const double ParticleOpacityPulseRange = 0.4;
-	private const double ParticleMinSpeed = 0.01;
-	private const double ParticleSpeedRange = 0.02;
-	private const double ParticleMaxTimeOffset = 10;
-	private const double ParticleSpreadWidth = 1920;
-	private const double ParticleSpreadLeftOffset = 460;
-	private const double ParticleSpreadHeight = 1080;
-	private const double ParticleSpreadTopOffset = 150;
+	private const string CrossroadsAmbientWebpAnimationName = "ProductSetup.CrossroadsAmbientWebp";
+	private const string WelcomeTitleWebpAnimationName = "ProductSetup.WelcomeTitleWebp";
+	private const string VanguardIconWebpAnimationName = "ProductSetup.VanguardIconWebp";
+	private const string ArchitectIconWebpAnimationName = "ProductSetup.ArchitectIconWebp";
+	private const string ConsoleReadyPulseWebpAnimationName = "ProductSetup.ConsoleReadyPulseWebp";
+	private const string ConsoleBootingPulseWebpAnimationName = "ProductSetup.ConsoleBootingPulseWebp";
+	private const string ConsoleStatusBootingPulseWebpAnimationName = "ProductSetup.ConsoleStatusBootingPulseWebp";
+	private const string PrimaryActionReadyPulseWebpAnimationName = "ProductSetup.PrimaryActionReadyPulseWebp";
+	private const string DiagnosticLoadingRingWebpAnimationName = "ProductSetup.DiagnosticLoadingRingWebp";
 	private static readonly Color GpuCardTitleColor = Color.FromArgb("#e8fbff");
 	private static readonly Color GpuCardNameColor = NexusColors.TextDim;
 	private static readonly Color GpuCardMemoryColor = NexusColors.AccentGlow;
@@ -126,10 +85,8 @@ public partial class ProductSetupView : ContentView
 	private static readonly Color GpuCardSelectedStrokeColor = NexusColors.AccentStrokeStrong;
 	private static readonly Color GpuCardNormalStrokeColor = NexusColors.AccentStroke;
 	private static readonly Color ConsoleAccentColor = NexusColors.Accent;
-	private static readonly Color ConsoleWarningColor = NexusColors.Warning;
 	private static readonly Color ConsoleBootNormalColor = NexusColors.AccentSoft;
 	private static readonly Color ConsoleBootHoverColor = NexusColors.AccentHoverSoft;
-	private static readonly Color ConsoleBootingButtonColor = Color.FromArgb("#24ffaa00");
 	private static readonly Color ConsoleRetryNormalColor = Color.FromArgb("#1Aff4d4d");
 	private static readonly Color ConsoleRetryHoverColor = Color.FromArgb("#33ff4d4d");
 	private static readonly Color ConsoleRecoverNormalColor = NexusColors.WarningSoft;
@@ -166,7 +123,19 @@ public partial class ProductSetupView : ContentView
 	private readonly List<GpuDeviceInfo> _gpuDevices = new();
 	private readonly List<Border> _gpuOptionCards = new();
 	private readonly NexusMotionController _motion;
-	private readonly NexusLatestOperationCoordinator _latestOperations = new("product-setup");
+	private readonly SetupBackgroundController _background;
+	private readonly NexusAnimatedWebpClip _crossroadsAmbientClip;
+	private readonly NexusAnimatedWebpClip _welcomeTitleClip;
+	private readonly NexusAnimatedWebpClip _vanguardIconClip;
+	private readonly NexusAnimatedWebpClip _architectIconClip;
+	private readonly NexusAnimatedWebpClip _consoleReadyPulseClip;
+	private readonly NexusAnimatedWebpClip _consoleBootingPulseClip;
+	private readonly NexusAnimatedWebpClip _consoleStatusBootingPulseClip;
+	private readonly NexusAnimatedWebpClip _primaryActionReadyPulseClip;
+	private readonly Dictionary<Image, NexusAnimatedWebpClip> _diagnosticLoadingRingClips = new();
+	private NexusAnimatedWebpCacheLease? _animationCacheLease;
+	private Task<NexusAnimatedWebpCacheLease>? _animationCacheAcquireTask;
+	private readonly NexusOperationController _latestOperations = new("product-setup");
 	private CancellationTokenSource? _repairCts;
 	private readonly SemaphoreSlim _vanguardOptionalRefreshGate = new(1, 1);
 	private readonly SemaphoreSlim _architectOptionalRefreshGate = new(1, 1);
@@ -174,6 +143,7 @@ public partial class ProductSetupView : ContentView
 	private bool _isGpuSelectorExpanded;
 	private bool _isUpdatingServerPythonMode;
 	private bool _isDiagnosticActionRunning;
+	private bool _isInitiationSequenceRunning;
 	private bool _isInitiationUserScrollBlocked;
 	private bool _consoleRepairBeforeBoot;
 	private string _architectCandidateComfyPath = string.Empty;
@@ -191,10 +161,11 @@ public partial class ProductSetupView : ContentView
 	private enum ViewState { StartAction, Ready, EndAction }
 	private enum SetupScrollPivot { Top, Bottom }
 	private enum ViewContext { Intro, Crossroads, Vanguard, Architect, Repairing }
-	private enum CardState { Ambient, Hovered, Initiating, Persistent, Hidden }
 	private enum ConsoleBootActionState { Preparing, Standby, Booting, Failed, Online }
+	private enum SetupSceneMotionScope { Backdrop, WelcomeTitle, CrossroadsIcons }
 
 	private ViewContext _currentContext = ViewContext.Intro;
+	private SetupSceneMotionState _sceneMotionState = SetupSceneMotionState.Hidden;
 	private ConsoleBootActionState _consoleBootActionState = ConsoleBootActionState.Preparing;
 	private ViewState _currentStateField = ViewState.StartAction;
 	private ViewState _currentState
@@ -211,15 +182,32 @@ public partial class ProductSetupView : ContentView
 	}
 	private Point _lastGlobalMousePos;
 
-	private double _driftTime = 0;
-
 	public ProductSetupView()
 	{
 		InitializeComponent();
 		_motion = new NexusMotionController("product-setup", "SETUP:UI", Dispatcher);
+		_crossroadsAmbientClip = new NexusAnimatedWebpClip(_motion, CrossroadsAmbientLoop, CrossroadsAmbientWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupCrossroadsAmbient);
+		_welcomeTitleClip = new NexusAnimatedWebpClip(_motion, WelcomeTitleAnimation, WelcomeTitleWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupWelcomeTitle);
+		_vanguardIconClip = new NexusAnimatedWebpClip(_motion, VanguardModeIcon, VanguardIconWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupVanguardIcon);
+		_architectIconClip = new NexusAnimatedWebpClip(_motion, ArchitectModeIcon, ArchitectIconWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupArchitectIcon);
+		_consoleReadyPulseClip = new NexusAnimatedWebpClip(_motion, ConsoleBootPulseSurface, ConsoleReadyPulseWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupConsoleReadyPulse);
+		_consoleBootingPulseClip = new NexusAnimatedWebpClip(_motion, ConsoleBootPulseSurface, ConsoleBootingPulseWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupConsoleBootingPulse);
+		_consoleStatusBootingPulseClip = new NexusAnimatedWebpClip(_motion, ConsoleStatusPulseSurface, ConsoleStatusBootingPulseWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupConsoleStatusBootingPulse);
+		_primaryActionReadyPulseClip = new NexusAnimatedWebpClip(_motion, PrimaryActionPulseSurface, PrimaryActionReadyPulseWebpAnimationName, NexusAnimatedWebpCacheCatalog.SetupPrimaryActionReadyPulse);
+		_background = new SetupBackgroundController(
+			_motion,
+			BackgroundLayer,
+			CrossroadsAmbientLoop,
+			VanguardGlow,
+			ArchitectGlow,
+			VanguardSelectionBurst,
+			ArchitectSelectionBurst,
+			_vanguardIconClip,
+			_architectIconClip);
 		_initiationSequence = new InitiationSequenceRunner(
 			PopulateInlineActions,
 			EnableDiagnosticNodeInteraction,
+			SetInitiationSequenceInteractionBlocked,
 			WaitForStepCompleteAsync,
 			RequestDiagnosticScrollAsync,
 			EvaluateCurrentInitiationReadiness,
@@ -250,30 +238,31 @@ public partial class ProductSetupView : ContentView
 		this.Unloaded += OnProductSetupUnloaded;
 	}
 
-	internal void ActivateLifecycle()
+	internal Task ActivateLifecycleAsync()
 	{
 		_isDisposed = false;
-		StartDriftEngine();
 		AttachNativeInitiationScrollDragHandlers();
 		if (MainThread.IsMainThread)
 		{
-			InitializeLifecycle();
+			return InitializeLifecycleAsync();
 		}
-		else
-		{
-			MainThread.BeginInvokeOnMainThread(InitializeLifecycle);
-		}
+
+		return UiThread.InvokeAsync(InitializeLifecycleAsync, "SETUP:UI:ACTIVATE_LIFECYCLE");
 	}
+
+	internal Task PrepareAnimationCacheAsync()
+		=> EnsureAnimationCacheAsync();
 
 	internal void PrepareForLifecycleHandoff()
 	{
 		if (_introPlayed) return;
 
+		StopCrossroadsAmbientPulse();
 		_currentContext = ViewContext.Intro;
 		_currentState = ViewState.StartAction;
 		ScaleContainer.InputTransparent = true;
 
-		BackgroundLayer.Opacity = 0;
+		_background.SetBaseOpacity(0);
 		GlassPanel.Opacity = 0;
 		GlassPanel.Scale = GlassInitialScale;
 
@@ -288,9 +277,21 @@ public partial class ProductSetupView : ContentView
 
 	private void OnProductSetupUnloaded(object? sender, EventArgs e)
 	{
+		SetSceneMotionState(SetupSceneMotionState.Hidden);
 		DetachNativeInitiationScrollDragHandlers();
+		StopCrossroadsAmbientPulse();
 		CancelTransientAnimationLoops();
-		StopDriftEngine();
+		_crossroadsAmbientClip.Dispose();
+		_welcomeTitleClip.Dispose();
+		_vanguardIconClip.Dispose();
+		_architectIconClip.Dispose();
+		_consoleReadyPulseClip.Dispose();
+		_consoleBootingPulseClip.Dispose();
+		_consoleStatusBootingPulseClip.Dispose();
+		_primaryActionReadyPulseClip.Dispose();
+		DisposeDiagnosticLoadingRingClips();
+		_background.Dispose();
+		ReleaseAnimationCache();
 		_isDisposed = true;
 	}
 
@@ -485,17 +486,90 @@ public partial class ProductSetupView : ContentView
 	}
 #endif
 
+	private void StartCrossroadsAmbientPulse()
+	{
+		StartSetupBackdropMotion();
+		StartCrossroadsIconFloatLoop();
+	}
+
+	private void SetSceneMotionState(SetupSceneMotionState state)
+	{
+		_sceneMotionState = state;
+		_background.ApplySceneState(state);
+	}
+
+	private void StartSetupBackdropMotion()
+	{
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		_background.SetCrossroadsAmbientVisible(true);
+		_crossroadsAmbientClip.PlayLoop(() => CanRepeatSetupSceneMotion(SetupSceneMotionScope.Backdrop));
+		_welcomeTitleClip.PlayLoop(() => CanRepeatSetupSceneMotion(SetupSceneMotionScope.WelcomeTitle));
+	}
+
+	private void StopCrossroadsAmbientPulse(bool keepWelcomeTitle = false)
+	{
+		_crossroadsAmbientClip.Stop();
+		if (!keepWelcomeTitle)
+		{
+			_welcomeTitleClip.Stop();
+		}
+
+		_background.SetMode(SetupBackgroundMode.Crossroads);
+		_background.SetCrossroadsAmbientVisible(false);
+		StopCrossroadsIconFloatLoop();
+	}
+
+	private bool CanPlayCrossroadsExitMotion()
+		=> !_isDisposed
+			&& IsVisible
+			&& Handler is not null
+			&& WelcomeContainer.IsVisible;
+
+	private bool CanRepeatSetupSceneMotion(SetupSceneMotionScope scope)
+	{
+		bool isSetupSurfaceAvailable = !_isDisposed && IsVisible && Handler is not null;
+		return scope switch
+		{
+			SetupSceneMotionScope.Backdrop => isSetupSurfaceAvailable && !ServerConsolePanel.IsVisible,
+			SetupSceneMotionScope.WelcomeTitle => isSetupSurfaceAvailable && WelcomeTitleAnimation.IsVisible,
+			SetupSceneMotionScope.CrossroadsIcons => isSetupSurfaceAvailable
+				&& WelcomeContainer.IsVisible
+				&& _sceneMotionState is SetupSceneMotionState.Crossroads or SetupSceneMotionState.SelectionExit,
+			_ => false,
+		};
+	}
+
+	private void StartCrossroadsIconFloatLoop()
+	{
+		_vanguardIconClip.Rewind();
+		_architectIconClip.Rewind();
+		_vanguardIconClip.PlayLoop(() => CanRepeatSetupSceneMotion(SetupSceneMotionScope.CrossroadsIcons));
+		_architectIconClip.PlayLoop(() => CanRepeatSetupSceneMotion(SetupSceneMotionScope.CrossroadsIcons));
+	}
+
+	private void StopCrossroadsIconFloatLoop()
+	{
+		_vanguardIconClip.Stop();
+		_architectIconClip.Stop();
+	}
+
 	private void CancelTransientAnimationLoops()
 	{
 		_repairCts?.Cancel();
 		_latestOperations.StopAll();
-		StopConsoleBootPulse();
-		StopConsoleBootingAnimation();
-		StopPrimaryButtonPulse();
+		StopCrossroadsAmbientPulse();
+		StopConsoleReadyPulse();
+		StopConsoleBootingPulse();
+		StopConsoleStatusBootingPulse();
+		StopPrimaryActionReadyPulse();
 		StopDiagnosticLoadingRingAnimations();
 	}
 
-	private async void InitializeLifecycle()
+	private async Task InitializeLifecycleAsync()
 	{
 		if (_introPlayed) return;
 		_introPlayed = true;
@@ -509,6 +583,7 @@ public partial class ProductSetupView : ContentView
 			// Ensure install service is ready
 			if (ComfyInstallService.Instance == null) _ = new ComfyInstallService();
 			await WaitForProductSetupLayoutAsync();
+			await EnsureAnimationCacheAsync();
 
 			HeaderBar.IsVisible = true;
 			HeaderBar.Opacity = 0;
@@ -521,26 +596,22 @@ public partial class ProductSetupView : ContentView
 			GlassPanel.Opacity = 0;
 			GlassPanel.Scale = GlassInitialScale;
 
-			// Give MAUI a moment to prepare layout
-			await Task.Delay(InitialLayoutDelayMs);
-
-			// Reveal the setup dashboard after the shared startup splash hands off to this view.
-			await Task.Delay(DashboardRevealDelayMs);
+			// Yield only the frames needed for the newly visible setup surface to attach.
+			await UiThread.YieldDispatcherFramesAsync(2, "Setup.Reveal");
 
 			await Task.WhenAll(
-				BackgroundLayer.FadeToAsync(BackgroundRevealOpacity, BackgroundRevealLength, Easing.CubicOut),
+				_background.FadeBaseToAsync(BackgroundRevealOpacity, BackgroundRevealLength, Easing.CubicOut),
 
-				GlassPanel.FadeToAsync(1, GlassRevealLength, Easing.CubicOut),
+				SafeAnimation.FadeToAsync(GlassPanel, 1, GlassRevealLength, Easing.CubicOut, "Setup.Reveal"),
 				SafeAnimation.ScaleToAsync(GlassPanel, 1.0, GlassRevealLength, Easing.SpringOut, "Setup.Reveal"),
-				HeaderBar.FadeToAsync(1, HeaderRevealLength, Easing.CubicOut),
+				SafeAnimation.FadeToAsync(HeaderBar, 1, HeaderRevealLength, Easing.CubicOut, "Setup.Reveal"),
 				SafeAnimation.TranslateToAsync(HeaderBar, 0, 0, HeaderRevealLength, Easing.CubicOut, "Setup.Reveal"),
-				WelcomeContainer.FadeToAsync(1, WelcomeRevealLength, Easing.CubicOut),
+				SafeAnimation.FadeToAsync(WelcomeContainer, 1, WelcomeRevealLength, Easing.CubicOut, "Setup.Reveal"),
 				SafeAnimation.TranslateToAsync(WelcomeContainer, 0, 0, WelcomeRevealLength, Easing.CubicOut, "Setup.Reveal")
 			);
 
-			// 4. Final Stabilization Buffer
-			// Ensure everything is visually settled before unlocking
-			await Task.Delay(StabilizationDelayMs);
+			// Let the final reveal values reach the native surface before accepting input.
+			await UiThread.YieldDispatcherFramesAsync(2, "Setup.Reveal");
 			NexusLog.Info("[SETUP:UI] Product setup lifecycle reveal completed.");
 		}
 		catch (Exception ex)
@@ -556,8 +627,8 @@ public partial class ProductSetupView : ContentView
 				ScaleContainer.InputTransparent = false;
 				_currentState = ViewState.Ready;
 
-				ApplyCardState(VanguardCard, VanguardGlow, CardState.Ambient);
-				ApplyCardState(ArchitectCard, ArchitectGlow, CardState.Ambient);
+				SetSceneMotionState(SetupSceneMotionState.Crossroads);
+				StartCrossroadsAmbientPulse();
 				NexusLog.Info("[SETUP:UI] Product setup lifecycle unlock completed.");
 			}
 			catch (Exception ex)
@@ -581,135 +652,17 @@ public partial class ProductSetupView : ContentView
 		NexusLog.Info($"[SETUP:UI] Layout ready. view={Width:0}x{Height:0}, root={ProductSetupRoot.Width:0}x{ProductSetupRoot.Height:0}, overlay={CinematicOverlay.Width:0}x{CinematicOverlay.Height:0}");
 	}
 
-	private void StopDriftEngine()
-	{
-		_motion.Stop(DriftMotionName);
-	}
-
-	private void StartDriftEngine()
-	{
-		StopDriftEngine(); // Ensure previous timer is stopped
-		InitParticles();
-
-		_motion.StartFrameLoop(
-			DriftMotionName,
-			TimeSpan.FromMilliseconds(DriftFrameIntervalMs),
-			CanRunDriftEngine,
-			() =>
-			{
-			_driftTime += DriftTimeStep;
-
-			// 1. Prefab Layered Animation (Drift & Rotate)
-			if (_currentContext == ViewContext.Crossroads)
-			{
-				double commonDrift = Math.Sin(_driftTime) * CrossroadsCommonDriftAmplitude;
-
-				// Vanguard Prefab (Moving the Container moves Card + Proxy together for stability)
-				VanguardContainer.TranslationY = commonDrift;
-				VanguardGlow.TranslationY = commonDrift; // Sync Glow with Card
-				VanguardBgImage.TranslationY = Math.Sin(_driftTime * 1.2) * CrossroadsBgDriftAmplitude;
-				VanguardRing1.Rotation = _driftTime * 20;
-				VanguardRing2.Rotation = -_driftTime * 15;
-
-				// Architect Prefab (Moving the Container)
-				double architectDrift = Math.Cos(_driftTime * 0.8) * CrossroadsCommonDriftAmplitude;
-				ArchitectContainer.TranslationY = architectDrift;
-				ArchitectGlow.TranslationY = architectDrift; // Sync Glow
-				ArchitectBgImage.TranslationY = Math.Cos(_driftTime * 1.1) * CrossroadsBgDriftAmplitude;
-				ArchitectRing1.Rotation = _driftTime * 12;
-				ArchitectRing2.Rotation = -_driftTime * -25;
-			}
-
-			// 2. Neon Breathing (Glow) - Disabled to prevent conflict with hover logic
-			// double breathe = (Math.Sin(_driftTime * 0.5) + 1) / 2; // 0 to 1
-			// VanguardGlow.Opacity = 0.05 + (breathe * 0.15);
-			// ArchitectGlow.Opacity = 0.05 + (breathe * 0.15);
-
-			// 3. Particle Animation
-			foreach (var p in _particles)
-			{
-				p.TimeOffset += p.Speed;
-				p.Element.TranslationX = p.BaseX + Math.Sin(p.TimeOffset) * ParticleDriftAmplitude;
-				p.Element.TranslationY = p.BaseY + Math.Cos(p.TimeOffset * 0.7) * ParticleDriftAmplitude;
-				p.Element.Opacity = p.BaseOpacity * (ParticleOpacityPulseBase + Math.Sin(p.TimeOffset * 1.5) * ParticleOpacityPulseRange);
-			}
-			},
-			ResetDriftVisuals);
-	}
-
-	private bool CanRunDriftEngine()
-		=> !_isDisposed && IsVisible && Handler is not null;
-
-	private void ResetDriftVisuals()
-	{
-		VanguardContainer.TranslationY = 0;
-		VanguardGlow.TranslationY = 0;
-		VanguardBgImage.TranslationY = 0;
-		VanguardRing1.Rotation = 0;
-		VanguardRing2.Rotation = 0;
-		ArchitectContainer.TranslationY = 0;
-		ArchitectGlow.TranslationY = 0;
-		ArchitectBgImage.TranslationY = 0;
-		ArchitectRing1.Rotation = 0;
-		ArchitectRing2.Rotation = 0;
-
-		foreach (Particle particle in _particles)
-		{
-			particle.Element.TranslationX = particle.BaseX;
-			particle.Element.TranslationY = particle.BaseY;
-			particle.Element.Opacity = particle.BaseOpacity;
-		}
-	}
-
-	private sealed class Particle { public BoxView Element = null!; public double BaseX; public double BaseY; public double Speed; public double TimeOffset; public double BaseOpacity; }
-	private readonly List<Particle> _particles = new();
-
-	private void InitParticles()
-	{
-		var rand = new Random();
-		ParticleContainer.Children.Clear();
-		_particles.Clear();
-
-		for (int i = 0; i < ParticleCount; i++)
-		{
-			var size = rand.Next(ParticleMinSize, ParticleMaxSizeExclusive);
-			var pElement = new BoxView
-			{
-				WidthRequest = size,
-				HeightRequest = size,
-				CornerRadius = size / 2,
-				Color = i % ParticleAccentInterval == 0 ? ConsoleAccentColor : DiagnosticActionDefaultTextColor,
-				Opacity = 0,
-				HorizontalOptions = LayoutOptions.Start,
-				VerticalOptions = LayoutOptions.Start,
-				InputTransparent = true
-			};
-
-			double baseX = rand.NextDouble() * ParticleSpreadWidth - ParticleSpreadLeftOffset;
-			double baseY = rand.NextDouble() * ParticleSpreadHeight - ParticleSpreadTopOffset;
-
-			ParticleContainer.Children.Add(pElement);
-			_particles.Add(new Particle
-			{
-				Element = pElement,
-				BaseX = baseX,
-				BaseY = baseY,
-				Speed = ParticleMinSpeed + rand.NextDouble() * ParticleSpeedRange,
-				TimeOffset = rand.NextDouble() * ParticleMaxTimeOffset,
-				BaseOpacity = ParticleOpacityBase + rand.NextDouble() * ParticleOpacityRange
-			});
-		}
-	}
-
 	internal void ResetFlow()
 	{
 		try
 		{
 			NexusLog.Info("[SETUP:UI] ResetFlow starting.");
+			StopCrossroadsAmbientPulse();
 			CancelTransientAnimationLoops();
-			StopConsoleBootPulse();
-			StopConsoleBootingAnimation();
-			StopPrimaryButtonPulse();
+			StopConsoleReadyPulse();
+			StopConsoleBootingPulse();
+			StopConsoleStatusBootingPulse();
+			StopPrimaryActionReadyPulse();
 
 			_currentContext = ViewContext.Crossroads;
 			_currentState = ViewState.Ready;
@@ -717,7 +670,7 @@ public partial class ProductSetupView : ContentView
 			InputTransparent = false;
 			ScaleContainer.InputTransparent = false;
 
-			BackgroundLayer.Opacity = BackgroundRevealOpacity;
+			_background.SetBaseOpacity(BackgroundRevealOpacity);
 			GlassPanel.Opacity = 1;
 			GlassPanel.Scale = 1;
 			HeaderBar.IsVisible = true;
@@ -741,18 +694,12 @@ public partial class ProductSetupView : ContentView
 
 			VanguardContainer.CancelAnimations();
 			ArchitectContainer.CancelAnimations();
-			VanguardGlow.CancelAnimations();
-			ArchitectGlow.CancelAnimations();
 			VanguardContainer.Scale = 1;
 			ArchitectContainer.Scale = 1;
 			VanguardContainer.TranslationY = 0;
 			ArchitectContainer.TranslationY = 0;
-			VanguardGlow.TranslationY = 0;
-			ArchitectGlow.TranslationY = 0;
-			VanguardGlow.Opacity = AmbientCardGlowOpacity;
-			ArchitectGlow.Opacity = AmbientCardGlowOpacity;
-			ApplyCardState(VanguardCard, VanguardGlow, CardState.Ambient);
-			ApplyCardState(ArchitectCard, ArchitectGlow, CardState.Ambient);
+			SetSceneMotionState(SetupSceneMotionState.Crossroads);
+			StartCrossroadsAmbientPulse();
 
 			ResetActionBottomBar();
 			NexusLog.Info("[SETUP:UI] ResetFlow completed.");
@@ -789,16 +736,18 @@ public partial class ProductSetupView : ContentView
 		if (_currentState != ViewState.Ready || _currentContext != ViewContext.Crossroads) return;
 
 		_currentState = ViewState.StartAction;
+		SetSceneMotionState(SetupSceneMotionState.SelectionExit);
 		_selectedInstallMode = SetupInstallModes.LocalRuntime;
 		SetupSettingsService.Instance.UseLocalRuntime();
 
 		// Initiation Phase
 		PrepareVanguardChecklist();
-		_ = BackgroundLayer.FadeToAsync(BackgroundDimmedOpacity, BackgroundDimLength, Easing.CubicOut);
-		await Task.WhenAll(
-			TriggerInitiationImpact(VanguardContainer, VanguardGlow, ArchitectGlow),
-			TransitionToPanel(VanguardPanel, LocalizationManager.Text("setup.status.pending"))
-		);
+		_ = _background.FadeBaseToAsync(BackgroundDimmedOpacity, BackgroundDimLength, Easing.CubicOut);
+		if (!await _background.PlaySelectionAsync(SetupBackgroundMode.VanguardSelected, VanguardContainer, CanPlayCrossroadsExitMotion))
+		{
+			return;
+		}
+		await TransitionToPanel(VanguardPanel, LocalizationManager.Text("setup.status.pending"));
 		ResetInitiationScrollPosition(VanguardInitiationScrollView);
 		_ = RefreshVanguardOptionalNodesSafeAsync();
 
@@ -810,6 +759,7 @@ public partial class ProductSetupView : ContentView
 		if (_currentState != ViewState.Ready || _currentContext != ViewContext.Crossroads) return;
 
 		_currentState = ViewState.StartAction;
+		SetSceneMotionState(SetupSceneMotionState.SelectionExit);
 		_selectedInstallMode = SetupInstallModes.ExistingComfyPath;
 		ArchitectNodes.Clear();
 
@@ -817,11 +767,12 @@ public partial class ProductSetupView : ContentView
 		_architectCandidateComfyPath = settings.ComfyPath ?? string.Empty;
 		ArchitectFolderBrowser.InitializePath(string.IsNullOrWhiteSpace(_architectCandidateComfyPath) ? "C:\\" : _architectCandidateComfyPath);
 
-		_ = BackgroundLayer.FadeToAsync(BackgroundDimmedOpacity, BackgroundDimLength, Easing.CubicOut);
-		await Task.WhenAll(
-			TriggerInitiationImpact(ArchitectContainer, ArchitectGlow, VanguardGlow),
-			TransitionToPanel(ArchitectWorkspacePanel, LocalizationManager.Text("common.next"))
-		);
+		_ = _background.FadeBaseToAsync(BackgroundDimmedOpacity, BackgroundDimLength, Easing.CubicOut);
+		if (!await _background.PlaySelectionAsync(SetupBackgroundMode.ArchitectSelected, ArchitectContainer, CanPlayCrossroadsExitMotion))
+		{
+			return;
+		}
+		await TransitionToPanel(ArchitectWorkspacePanel, LocalizationManager.Text("common.next"));
 
 		UpdateArchitectWorkspaceReadiness();
 		_isTransitioning = false;
@@ -1061,11 +1012,11 @@ public partial class ProductSetupView : ContentView
 			if (allReady)
 			{
 				PrimaryActionLabel.Text = LocalizationManager.Text("common.next");
-				PrimaryActionButton.IsEnabled = !_isDiagnosticActionRunning;
-				PrimaryActionButton.InputTransparent = _isDiagnosticActionRunning;
-				PrimaryActionButton.Opacity = _isDiagnosticActionRunning ? 0.35 : 1;
-				if (_isDiagnosticActionRunning) StopPrimaryButtonPulse();
-				else StartPrimaryButtonPulse();
+				PrimaryActionButton.IsEnabled = !IsInitiationInteractionBlocked;
+				PrimaryActionButton.InputTransparent = IsInitiationInteractionBlocked;
+				PrimaryActionButton.Opacity = IsInitiationInteractionBlocked ? 0.35 : 1;
+				if (IsInitiationInteractionBlocked) StopPrimaryActionReadyPulse();
+				else StartPrimaryActionReadyPulse();
 			}
 			else
 			{
@@ -1073,7 +1024,7 @@ public partial class ProductSetupView : ContentView
 				PrimaryActionButton.IsEnabled = false;
 				PrimaryActionButton.InputTransparent = true;
 				PrimaryActionButton.Opacity = 0.3;
-				StopPrimaryButtonPulse();
+				StopPrimaryActionReadyPulse();
 			}
 		}
 		catch (ObjectDisposedException)
@@ -1109,10 +1060,10 @@ public partial class ProductSetupView : ContentView
 		PrimaryActionLabel.Text = LocalizationManager.Text("setup.status.pending");
 		PrimaryActionButton.IsEnabled = false;
 		PrimaryActionButton.Opacity = 0.3;
-		StopPrimaryButtonPulse();
+		StopPrimaryActionReadyPulse();
 
 		await Task.WhenAll(
-			ArchitectInitiationPanel.FadeToAsync(1, ArchitectInitiationShowLength, Easing.CubicOut),
+			SafeAnimation.FadeToAsync(ArchitectInitiationPanel, 1, ArchitectInitiationShowLength, Easing.CubicOut, "Setup.Architect"),
 			SafeAnimation.TranslateToAsync(ArchitectInitiationPanel, 0, 0, ArchitectInitiationShowLength, Easing.CubicOut, "Setup.Architect")
 		);
 		ResetInitiationScrollPosition(ArchitectInitiationScrollView);
@@ -1136,6 +1087,8 @@ public partial class ProductSetupView : ContentView
 
 		ConsoleLogTail.Clear(); // Clear existing logs
 
+		StopCrossroadsAmbientPulse(keepWelcomeTitle: true);
+		SetSceneMotionState(SetupSceneMotionState.Console);
 		PreparePanelReveal(ServerConsolePanel);
 
 		ShowActionBottomBar(LocalizationManager.Text("setup.action.launch_nexus"), false);
@@ -1152,9 +1105,9 @@ public partial class ProductSetupView : ContentView
 		if (label != null) label.Text = "BACK";
 
 		await Task.WhenAll(
-			ServerConsolePanel.FadeToAsync(1, ConsoleShowLength, Easing.CubicOut),
+			SafeAnimation.FadeToAsync(ServerConsolePanel, 1, ConsoleShowLength, Easing.CubicOut, "Setup.Console"),
 			SafeAnimation.TranslateToAsync(ServerConsolePanel, 0, 0, ConsoleShowLength, Easing.CubicOut, "Setup.Console"),
-			ActionBottomBar.FadeToAsync(1, ConsoleShowLength, Easing.CubicOut),
+			SafeAnimation.FadeToAsync(ActionBottomBar, 1, ConsoleShowLength, Easing.CubicOut, "Setup.Console"),
 			SafeAnimation.TranslateToAsync(ActionBottomBar, 0, 0, ConsoleShowLength, Easing.CubicOut, "Setup.Console")
 		);
 
@@ -1171,13 +1124,13 @@ public partial class ProductSetupView : ContentView
 		NexusLog.Info("[SETUP:UI] Console system boot check started.");
 		ApplyConsoleBootActionState(ConsoleBootActionState.Preparing);
 
-		AddConsoleLog("[SYSTEM] Initiating Secure Boot Protocol...");
+		AddConsoleLog("[SYSTEM] Preparing Nexus services...");
 		await Task.Delay(SystemBootKernelDelayMs);
 		AddConsoleLog("[SYSTEM] Loading Nexus Kernel Modules...");
 		await Task.Delay(SystemBootModulesDelayMs);
 		AddConsoleLog("[SYSTEM] Validating Environment Integrity...");
 		await Task.Delay(SystemBootValidationDelayMs);
-		AddConsoleLog("[SYSTEM] Establishing Neural Link with Workspace...");
+		AddConsoleLog("[SYSTEM] Connecting workspace services...");
 		await Task.Delay(SystemBootLinkDelayMs);
 		AddConsoleLog("[SYSTEM] System Health: OPTIMAL.");
 
@@ -1374,7 +1327,7 @@ public partial class ProductSetupView : ContentView
 		if (!IsConsoleConfigEditable() || sender is not Border border) return;
 
 		border.BackgroundColor = ConsoleConfigPillHoverColor;
-		_ = border.FadeToAsync(1, 120, Easing.CubicOut);
+		_ = SafeAnimation.FadeToAsync(border, 1, 120, Easing.CubicOut, "Setup.ConsoleConfig");
 	}
 
 	private void OnConsoleConfigPillUnhovered(object? sender, PointerEventArgs e)
@@ -1603,80 +1556,74 @@ public partial class ProductSetupView : ContentView
 		return UiThread.InvokeAsync(action, "PRODUCT_SETUP:UI");
 	}
 
-	private void StartConsoleBootPulse()
+	private void StartConsoleReadyPulse()
 	{
-		if (_isDisposed) return;
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		ConsoleBootPulseGlow.Opacity = 0;
-		_motion.StartTimeline(
-			ConsoleBootPulseAnimationName,
-			this,
-			16,
-			PulseAnimationLength * 2,
-			Easing.Linear,
-			CanRepeatConsoleBootPulse,
-			ResetConsoleBootPulse,
-			new SafeAnimation.TimelineSegment(0, 0.5, value => ConsoleBootPulseGlow.Opacity = value, 0, ConsolePulseHighOpacity, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => ConsoleBootPulseGlow.Opacity = value, ConsolePulseHighOpacity, 0, Easing.CubicInOut));
+		_consoleBootingPulseClip.Stop();
+		ConsoleBootPulseSurface.Opacity = 1;
+		_consoleReadyPulseClip.PlayLoop(CanRepeatConsoleReadyPulse);
 	}
 
-	private void StopConsoleBootPulse()
+	private void StopConsoleReadyPulse()
 	{
-		_motion.Stop(ConsoleBootPulseAnimationName);
-		ResetConsoleBootPulse();
+		_consoleReadyPulseClip.Stop();
+		ConsoleBootPulseSurface.Opacity = 0;
 	}
 
-	private void StartConsoleBootingAnimation()
+	private void StartConsoleBootingPulse()
 	{
-		if (_isDisposed) return;
+		if (_isDisposed)
+		{
+			return;
+		}
 
-		ConsoleBootPulseGlow.BackgroundColor = ConsoleWarningColor;
-		ConsoleBootPulseGlow.Opacity = ConsoleBootingGlowLowOpacity;
-		ConsoleStatusBorder.Opacity = 1;
-		ConsoleBootButton.Scale = 1;
-		_motion.StartTimeline(
-			ConsoleBootingAnimationName,
-			this,
-			16,
-			ConsoleBootingPulseLength * 2,
-			Easing.Linear,
-			CanRepeatConsoleBootingAnimation,
-			ResetConsoleBootingAnimation,
-			new SafeAnimation.TimelineSegment(0, 0.5, value => ConsoleBootPulseGlow.Opacity = value, ConsoleBootingGlowLowOpacity, ConsoleBootingGlowHighOpacity, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => ConsoleBootPulseGlow.Opacity = value, ConsoleBootingGlowHighOpacity, ConsoleBootingGlowLowOpacity, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0, 0.5, value => ConsoleStatusBorder.Opacity = value, 1, 0.55, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => ConsoleStatusBorder.Opacity = value, 0.55, 1, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0, 0.5, value => ConsoleBootButton.Scale = value, 1, ConsoleBootingButtonHighScale, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => ConsoleBootButton.Scale = value, ConsoleBootingButtonHighScale, 1, Easing.CubicInOut));
+		_consoleReadyPulseClip.Stop();
+		ConsoleBootPulseSurface.Opacity = 1;
+		_consoleBootingPulseClip.PlayLoop(CanRepeatConsoleBootingPulse);
 	}
 
-	private void StopConsoleBootingAnimation()
+	private void StopConsoleBootingPulse()
 	{
-		_motion.Stop(ConsoleBootingAnimationName);
-		ResetConsoleBootingAnimation();
+		_consoleBootingPulseClip.Stop();
+		ConsoleBootPulseSurface.Opacity = 0;
 	}
 
-	private void ResetConsoleBootPulse()
+	private void StartConsoleStatusBootingPulse()
 	{
-		ConsoleBootPulseGlow.Opacity = 0;
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		ConsoleStatusPulseSurface.Opacity = 1;
+		_consoleStatusBootingPulseClip.PlayLoop(CanRepeatConsoleStatusBootingPulse);
 	}
 
-	private void ResetConsoleBootingAnimation()
+	private void StopConsoleStatusBootingPulse()
 	{
-		ConsoleBootButton.Scale = 1.0;
-		ConsoleStatusBorder.Opacity = 1.0;
-		ConsoleBootPulseGlow.Opacity = 0;
-		ConsoleBootPulseGlow.BackgroundColor = ConsoleAccentColor;
+		_consoleStatusBootingPulseClip.Stop();
+		ConsoleStatusPulseSurface.Opacity = 0;
 	}
 
-	private bool CanRepeatConsoleBootPulse()
+	private bool CanRepeatConsoleReadyPulse()
 		=> !_isDisposed
 			&& IsVisible
 			&& Handler is not null
 			&& ServerConsolePanel.IsVisible
 			&& _consoleBootActionState == ConsoleBootActionState.Standby;
 
-	private bool CanRepeatConsoleBootingAnimation()
+	private bool CanRepeatConsoleBootingPulse()
+		=> !_isDisposed
+			&& IsVisible
+			&& Handler is not null
+			&& ServerConsolePanel.IsVisible
+			&& _consoleBootActionState == ConsoleBootActionState.Booting;
+
+	private bool CanRepeatConsoleStatusBootingPulse()
 		=> !_isDisposed
 			&& IsVisible
 			&& Handler is not null
@@ -1729,18 +1676,16 @@ public partial class ProductSetupView : ContentView
 		_consoleBootActionState = state;
 		if (_isDisposed) return;
 
-		StopConsoleBootPulse();
-		StopConsoleBootingAnimation();
-		StopPrimaryButtonPulse();
+		StopConsoleReadyPulse();
+		StopConsoleBootingPulse();
+		StopConsoleStatusBootingPulse();
+		StopPrimaryActionReadyPulse();
 
 		ConsoleBootButton.CancelAnimations();
 		ConsoleRepairBeforeBootToggle.CancelAnimations();
 		ConsoleRetryButton.CancelAnimations();
-		ConsoleBootPulseGlow.CancelAnimations();
-		ConsoleBootButton.Scale = 1.0;
 		ConsoleRetryButton.Scale = 1.0;
-		ConsoleBootPulseGlow.Opacity = 0;
-		ConsoleBootPulseGlow.BackgroundColor = ConsoleAccentColor;
+		ConsoleBootPulseSurface.Opacity = 0;
 
 		bool showRepairToggle = ShouldShowConsoleRecoverBoot(state);
 		if (!showRepairToggle)
@@ -1773,6 +1718,7 @@ public partial class ProductSetupView : ContentView
 		PrimaryActionButton.IsEnabled = state == ConsoleBootActionState.Online;
 		PrimaryActionButton.InputTransparent = state != ConsoleBootActionState.Online;
 		PrimaryActionButton.Opacity = state == ConsoleBootActionState.Online ? 1.0 : 0.4;
+		UpdateBackButtonAvailability();
 		UpdateConsoleConfigAvailability();
 
 		switch (state)
@@ -1780,19 +1726,17 @@ public partial class ProductSetupView : ContentView
 			case ConsoleBootActionState.Preparing:
 				SetServerState(LocalizationManager.Text("setup.console.state_standby"), LocalizationManager.Text("setup.console.preparing_detail"), ConsoleStateAccentHex, LocalizationManager.Text("setup.console.badge_ready"));
 				SetConsoleStatus(LocalizationManager.Text("setup.console.state_initializing"), ConsoleStateInitializingHex);
-				ConsoleBootButton.BackgroundColor = ConsoleBootNormalColor;
 				break;
 			case ConsoleBootActionState.Standby:
 				SetServerState(LocalizationManager.Text("setup.console.state_standby"), LocalizationManager.Text("setup.console.standby_detail"), ConsoleStateAccentHex, LocalizationManager.Text("setup.console.badge_ready"));
 				SetConsoleStatus(LocalizationManager.Text("setup.console.state_standby"), ConsoleStateAccentHex);
-				ConsoleBootButton.BackgroundColor = ConsoleBootNormalColor;
-				StartConsoleBootPulse();
+				StartConsoleReadyPulse();
 				break;
 			case ConsoleBootActionState.Booting:
 				SetServerState(LocalizationManager.Text("setup.console.state_booting"), LocalizationManager.Text("setup.console.booting_detail"), ConsoleStateWarningHex, LocalizationManager.Text("setup.console.badge_boot"));
 				SetConsoleStatus(LocalizationManager.Text("setup.console.state_booting"), ConsoleStateWarningHex);
-				ConsoleBootButton.BackgroundColor = ConsoleBootingButtonColor;
-				StartConsoleBootingAnimation();
+				StartConsoleBootingPulse();
+				StartConsoleStatusBootingPulse();
 				break;
 			case ConsoleBootActionState.Failed:
 				SetServerState(LocalizationManager.Text("setup.console.state_failed"), detail ?? LocalizationManager.Text("setup.console.failed_detail"), ConsoleStateFailedHex, LocalizationManager.Text("setup.console.badge_fail"));
@@ -1803,7 +1747,7 @@ public partial class ProductSetupView : ContentView
 				SetServerState(LocalizationManager.Text("setup.console.state_online"), LocalizationManager.Text("setup.console.online_detail"), ConsoleStateAccentHex, LocalizationManager.Text("setup.console.badge_live"));
 				SetConsoleStatus(LocalizationManager.Text("setup.console.state_online"), ConsoleStateAccentHex);
 				_currentState = ViewState.Ready;
-				StartPrimaryButtonPulse();
+				StartPrimaryActionReadyPulse();
 				break;
 		}
 
@@ -1905,24 +1849,24 @@ public partial class ProductSetupView : ContentView
 
 	private async Task TransitionToPanel(VisualElement panel, string actionText)
 	{
-		await WelcomeContainer.FadeToAsync(0, PanelQuickAnimationLength, Easing.CubicIn);
+		await SafeAnimation.FadeToAsync(WelcomeContainer, 0, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel");
 		WelcomeContainer.IsVisible = false;
-
+		SetSceneMotionState(SetupSceneMotionState.Panel);
 		PreparePanelReveal(panel);
 
 		ShowActionBottomBar(actionText, false);
 
 		await Task.WhenAll(
-			panel.FadeToAsync(1, PanelShowLength, Easing.CubicOut),
+			SafeAnimation.FadeToAsync(panel, 1, PanelShowLength, Easing.CubicOut, "Setup.Panel"),
 			SafeAnimation.TranslateToAsync(panel, 0, 0, PanelShowLength, Easing.CubicOut, "Setup.Panel"),
-			ActionBottomBar.FadeToAsync(1, PanelShowLength, Easing.CubicOut),
+			SafeAnimation.FadeToAsync(ActionBottomBar, 1, PanelShowLength, Easing.CubicOut, "Setup.Panel"),
 			SafeAnimation.TranslateToAsync(ActionBottomBar, 0, 0, PanelShowLength, Easing.CubicOut, "Setup.Panel")
 		);
 	}
 
 	private async void OnBackClicked(object? sender, EventArgs e)
 	{
-		if (_isDiagnosticActionRunning) return;
+		if (_isDiagnosticActionRunning || _consoleBootActionState == ConsoleBootActionState.Booting) return;
 		if (_currentState != ViewState.Ready || _isTransitioning) return;
 
 		if (_currentContext == ViewContext.Repairing)
@@ -1934,6 +1878,8 @@ public partial class ProductSetupView : ContentView
 		{
 			// RETRY ACTION: Go back to diagnostics
 			await FadeOutAndHideAsync(ServerConsolePanel, PanelQuickAnimationLength, Easing.CubicIn);
+			SetSceneMotionState(SetupSceneMotionState.Panel);
+			StartSetupBackdropMotion();
 
 			if (_selectedInstallMode == SetupInstallModes.LocalRuntime)
 			{
@@ -1960,18 +1906,21 @@ public partial class ProductSetupView : ContentView
 		_isTransitioning = true;
 		_currentState = ViewState.EndAction;
 
-		// 1. Instantly Revert Card States (while container is hidden)
-		ApplyCardState(VanguardCard, VanguardGlow, CardState.Ambient);
-		ApplyCardState(ArchitectCard, ArchitectGlow, CardState.Ambient);
+		// 1. Restore the complete Crossroads backdrop before the welcome surface returns.
+		SetSceneMotionState(SetupSceneMotionState.Crossroads);
+		VanguardContainer.CancelAnimations();
+		ArchitectContainer.CancelAnimations();
+		VanguardContainer.Scale = 1;
+		ArchitectContainer.Scale = 1;
 
 		var panel = _currentContext == ViewContext.Vanguard || _currentContext == ViewContext.Repairing ?
 					VanguardPanel :
 					(ArchitectInitiationPanel.IsVisible ? ArchitectInitiationPanel : ArchitectWorkspacePanel);
 
 		await Task.WhenAll(
-			panel.FadeToAsync(0, PanelQuickAnimationLength, Easing.CubicIn),
+			SafeAnimation.FadeToAsync(panel, 0, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel"),
 			SafeAnimation.TranslateToAsync(panel, 0, PanelRevealOffsetY, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel"),
-			ActionBottomBar.FadeToAsync(0, PanelQuickAnimationLength, Easing.CubicIn),
+			SafeAnimation.FadeToAsync(ActionBottomBar, 0, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel"),
 			SafeAnimation.TranslateToAsync(ActionBottomBar, 0, ActionBarHideOffsetY, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel")
 		);
 
@@ -1984,18 +1933,20 @@ public partial class ProductSetupView : ContentView
 		// Reset states for clean fade-in
 		WelcomeContainer.Opacity = 0;
 		WelcomeContainer.IsVisible = true;
-		BackgroundLayer.Opacity = BackgroundDimmedOpacity;
+		_background.SetBaseOpacity(BackgroundDimmedOpacity);
 
-		// Brief delay to allow MAUI to register IsVisible change before animating
-		await Task.Delay(CrossroadsReturnDelayMs);
+		// Let the restored crossroads surface attach before its reveal begins.
+		await UiThread.YieldDispatcherFramesAsync(1, "Setup.Crossroads");
 
-		_ = BackgroundLayer.FadeToAsync(BackgroundRevealOpacity, CrossroadsBackgroundRevealLength, Easing.CubicOut);
-		await WelcomeContainer.FadeToAsync(1, CrossroadsWelcomeRevealLength, Easing.CubicOut);
+		_ = _background.FadeBaseToAsync(BackgroundRevealOpacity, CrossroadsBackgroundRevealLength, Easing.CubicOut);
+		await SafeAnimation.FadeToAsync(WelcomeContainer, 1, CrossroadsWelcomeRevealLength, Easing.CubicOut, "Setup.Crossroads");
 
 		// 3. Ready State
 		_currentContext = ViewContext.Crossroads;
 		_currentState = ViewState.Ready;
 		_isTransitioning = false;
+		SetSceneMotionState(SetupSceneMotionState.Crossroads);
+		StartCrossroadsAmbientPulse();
 	}
 
 	private static void PreparePanelReveal(VisualElement panel)
@@ -2007,7 +1958,7 @@ public partial class ProductSetupView : ContentView
 
 	private static async Task FadeOutAndHideAsync(VisualElement panel, uint length, Easing? easing = null)
 	{
-		await panel.FadeToAsync(0, length, easing);
+		await SafeAnimation.FadeToAsync(panel, 0, length, easing, "Setup.Panel");
 		panel.IsVisible = false;
 	}
 
@@ -2017,8 +1968,8 @@ public partial class ProductSetupView : ContentView
 		EnsureActionBottomBarReady(restoreOpacity: false);
 
 		return Task.WhenAll(
-			panel.FadeToAsync(1, PanelQuickAnimationLength),
-			ActionBottomBar.FadeToAsync(1, PanelQuickAnimationLength));
+			SafeAnimation.FadeToAsync(panel, 1, PanelQuickAnimationLength, source: "Setup.Panel"),
+			SafeAnimation.FadeToAsync(ActionBottomBar, 1, PanelQuickAnimationLength, source: "Setup.Panel"));
 	}
 
 	private void HideArchitectPanelsAndActionBar()
@@ -2037,8 +1988,11 @@ public partial class ProductSetupView : ContentView
 		bool isOverVanguard = IsMouseOverElement(VanguardContainer, _lastGlobalMousePos);
 		bool isOverArchitect = IsMouseOverElement(ArchitectContainer, _lastGlobalMousePos);
 
-		ApplyCardState(VanguardCard, VanguardGlow, isOverVanguard ? CardState.Hovered : CardState.Ambient);
-		ApplyCardState(ArchitectCard, ArchitectGlow, isOverArchitect ? CardState.Hovered : CardState.Ambient);
+		_background.SetMode(isOverVanguard
+			? SetupBackgroundMode.VanguardHover
+			: isOverArchitect
+				? SetupBackgroundMode.ArchitectHover
+				: SetupBackgroundMode.Crossroads);
 	}
 
 	private void OnArchitectPathConfirmed(object? sender, string path)
@@ -2064,13 +2018,13 @@ public partial class ProductSetupView : ContentView
 		PrimaryActionButton.Opacity = isValid ? 1 : 0.4;
 		PrimaryActionLabel.Text = LocalizationManager.Text("common.next");
 
-		if (isValid) StartPrimaryButtonPulse();
-		else StopPrimaryButtonPulse();
+		if (isValid) StartPrimaryActionReadyPulse();
+		else StopPrimaryActionReadyPulse();
 	}
 
 	private async void OnPrimaryActionClicked(object? sender, EventArgs e)
 	{
-		if (_isDiagnosticActionRunning) return;
+		if (IsInitiationInteractionBlocked) return;
 		if (_currentState != ViewState.Ready) return;
 		NexusLog.Info($"[SETUP:UI] Primary action tapped. context={_currentContext}, vanguardVisible={VanguardPanel.IsVisible}, architectWorkspaceVisible={ArchitectWorkspacePanel.IsVisible}, architectInitiationVisible={ArchitectInitiationPanel.IsVisible}, consoleVisible={ServerConsolePanel.IsVisible}, consoleState={_consoleBootActionState}");
 
@@ -2125,18 +2079,37 @@ public partial class ProductSetupView : ContentView
 		this.InputTransparent = true;
 		_currentState = ViewState.EndAction;
 
-		AddConsoleLog("[SYSTEM] Handshaking complete. Redirecting to Nexus Dashboard...");
+		AddConsoleLog("[SYSTEM] Workspace ready. Opening Nexus...");
 
 		await Task.WhenAll(
-			GlassPanel.FadeToAsync(0, FinalizeGlassFadeLength, Easing.CubicIn),
-			BackgroundLayer.FadeToAsync(0, FinalizeBackgroundFadeLength, Easing.CubicIn),
-			ActionBottomBar.FadeToAsync(0, PanelQuickAnimationLength, Easing.CubicIn),
+			SafeAnimation.FadeToAsync(GlassPanel, 0, FinalizeGlassFadeLength, Easing.CubicIn, "Setup.Finalize"),
+			_background.FadeBaseToAsync(0, FinalizeBackgroundFadeLength, Easing.CubicIn),
+			SafeAnimation.FadeToAsync(ActionBottomBar, 0, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Finalize"),
 			SafeAnimation.TranslateToAsync(ActionBottomBar, 0, ActionBarHideOffsetY, PanelQuickAnimationLength, Easing.CubicIn, "Setup.Panel")
 		);
 
 		CancelTransientAnimationLoops();
+		ReleaseAnimationCache();
 		this.IsVisible = false;
 		SetupFinalized?.Invoke(this, EventArgs.Empty);
+	}
+
+	private async Task EnsureAnimationCacheAsync()
+	{
+		if (_animationCacheLease is not null)
+		{
+			return;
+		}
+
+		_animationCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(NexusAnimatedWebpCacheGroup.Setup);
+		_animationCacheLease = await _animationCacheAcquireTask.ConfigureAwait(false);
+	}
+
+	private void ReleaseAnimationCache()
+	{
+		_animationCacheLease?.Dispose();
+		_animationCacheLease = null;
+		_animationCacheAcquireTask = null;
 	}
 
 	private async Task RunRepairSequenceAsync()
@@ -2153,11 +2126,11 @@ public partial class ProductSetupView : ContentView
 
 		if (ArchitectWorkspacePanel.IsVisible)
 		{
-			await ArchitectWorkspacePanel.FadeToAsync(0, PanelQuickAnimationLength);
+			await SafeAnimation.FadeToAsync(ArchitectWorkspacePanel, 0, PanelQuickAnimationLength, source: "Setup.Repair");
 			ArchitectWorkspacePanel.IsVisible = false;
 			PrepareVanguardChecklist();
 			VanguardPanel.IsVisible = true;
-			await VanguardPanel.FadeToAsync(1, PanelQuickAnimationLength);
+			await SafeAnimation.FadeToAsync(VanguardPanel, 1, PanelQuickAnimationLength, source: "Setup.Repair");
 			ResetInitiationScrollPosition(VanguardInitiationScrollView);
 		}
 
@@ -2180,8 +2153,7 @@ public partial class ProductSetupView : ContentView
 			VanguardOptionalNodesList.InputTransparent = false;
 			EvaluateOverallReadiness();
 			_currentState = ViewState.Ready;
-			BackButton.IsEnabled = true;
-			BackButton.InputTransparent = false;
+			UpdateBackButtonAvailability();
 		}
 
 		if (VanguardOptionalNodes.Count > 0)
@@ -2191,9 +2163,8 @@ public partial class ProductSetupView : ContentView
 		}
 
 		// All done
-		BackButton.IsEnabled = true;
-		BackButton.InputTransparent = false;
 		_currentState = ViewState.Ready;
+		UpdateBackButtonAvailability();
 	}
 
 	private async Task WaitForStepCompleteAsync(SetupDiagnosticStep step, CancellationToken token)
@@ -2399,7 +2370,10 @@ public partial class ProductSetupView : ContentView
 
 	private void OnDiagnosticLoadingRingLoaded(object? sender, EventArgs e)
 	{
-		if (sender is not Border ring || ring.BindingContext is not DiagnosticNodeViewModel vm) return;
+		if (sender is not Image ring || ring.BindingContext is not DiagnosticNodeViewModel vm)
+		{
+			return;
+		}
 
 		vm.PropertyChanged -= OnDiagnosticLoadingRingViewModelChanged;
 		vm.PropertyChanged += OnDiagnosticLoadingRingViewModelChanged;
@@ -2408,14 +2382,17 @@ public partial class ProductSetupView : ContentView
 
 	private void OnDiagnosticLoadingRingUnloaded(object? sender, EventArgs e)
 	{
-		if (sender is not Border ring) return;
+		if (sender is not Image ring)
+		{
+			return;
+		}
 
 		if (ring.BindingContext is DiagnosticNodeViewModel vm)
 		{
 			vm.PropertyChanged -= OnDiagnosticLoadingRingViewModelChanged;
 		}
 
-		StopDiagnosticLoadingRing(ring);
+		DisposeDiagnosticLoadingRingClip(ring);
 	}
 
 	private void OnDiagnosticLoadingRingViewModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -2425,7 +2402,7 @@ public partial class ProductSetupView : ContentView
 
 		UiThread.TryBeginInvoke(() =>
 		{
-					UpdateLoadingRingInList(DiagnosticNodesList, vm);
+			UpdateLoadingRingInList(DiagnosticNodesList, vm);
 			UpdateLoadingRingInList(VanguardOptionalNodesList, vm);
 			UpdateLoadingRingInList(ArchitectNodesList, vm);
 			UpdateLoadingRingInList(ArchitectOptionalNodesList, vm);
@@ -2434,7 +2411,7 @@ public partial class ProductSetupView : ContentView
 
 	private void UpdateLoadingRingInList(Layout list, DiagnosticNodeViewModel vm)
 	{
-		foreach (var ring in FindVisualChildren<Border>(list))
+		foreach (Image ring in FindVisualChildren<Image>(list))
 		{
 			if (ring.BindingContext == vm && ring.StyleId == "DiagnosticLoadingRing")
 			{
@@ -2443,63 +2420,85 @@ public partial class ProductSetupView : ContentView
 		}
 	}
 
-	private void UpdateDiagnosticLoadingRing(Border ring, bool isLoading)
+	private void UpdateDiagnosticLoadingRing(Image ring, bool isLoading)
 	{
 		if (isLoading)
 		{
-			StartDiagnosticLoadingRingPulse(ring);
+			StartDiagnosticLoadingRing(ring);
 			return;
 		}
 
 		StopDiagnosticLoadingRing(ring);
 	}
 
-	private void StartDiagnosticLoadingRingPulse(Border ring)
+	private void StartDiagnosticLoadingRing(Image ring)
 	{
 		if (_isDisposed || !IsVisible || !ring.IsVisible)
 		{
 			return;
 		}
 
-		ring.Rotation = 0;
-		ring.Opacity = 0.35;
-		_motion.StartTimeline(
-			GetDiagnosticLoadingRingMotionName(ring),
-			ring,
-			16,
-			DiagnosticLoadingRingRotateLength,
-			Easing.Linear,
-			() => !_isDisposed && IsVisible && ring.IsVisible && ring.Opacity > 0,
-			() => ResetDiagnosticLoadingRing(ring),
-			new SafeAnimation.TimelineSegment(0, 1, value => ring.Rotation = value, 0, 360, Easing.Linear),
-			new SafeAnimation.TimelineSegment(0, 0.5, value => ring.Opacity = value, 0.35, 0.95, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => ring.Opacity = value, 0.95, 0.35, Easing.CubicInOut));
+		ring.Opacity = 1;
+		GetOrCreateDiagnosticLoadingRingClip(ring).PlayLoop(() => CanRunDiagnosticLoadingRing(ring));
 	}
 
-	private void StopDiagnosticLoadingRing(Border ring)
+	private void StopDiagnosticLoadingRing(Image ring)
 	{
-		_motion.Stop(GetDiagnosticLoadingRingMotionName(ring));
-		ResetDiagnosticLoadingRing(ring);
-	}
+		if (_diagnosticLoadingRingClips.TryGetValue(ring, out NexusAnimatedWebpClip? clip))
+		{
+			clip.Stop();
+		}
 
-	private static string GetDiagnosticLoadingRingMotionName(Border ring)
-		=> $"{DiagnosticLoadingRingPulseAnimationName}.{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ring):X8}";
-
-	private static void ResetDiagnosticLoadingRing(Border ring)
-	{
 		ring.Opacity = 0;
-		ring.Rotation = 0;
+	}
+
+	private NexusAnimatedWebpClip GetOrCreateDiagnosticLoadingRingClip(Image ring)
+	{
+		if (_diagnosticLoadingRingClips.TryGetValue(ring, out NexusAnimatedWebpClip? clip))
+		{
+			return clip;
+		}
+
+		string motionName = $"{DiagnosticLoadingRingWebpAnimationName}.{System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(ring):X8}";
+		clip = new NexusAnimatedWebpClip(_motion, ring, motionName, NexusAnimatedWebpCacheCatalog.SetupDiagnosticLoadingRing);
+		_diagnosticLoadingRingClips.Add(ring, clip);
+		return clip;
+	}
+
+	private bool CanRunDiagnosticLoadingRing(Image ring)
+		=> !_isDisposed
+			&& IsVisible
+			&& Handler is not null
+			&& ring.IsVisible
+			&& ring.Opacity > 0;
+
+	private void DisposeDiagnosticLoadingRingClip(Image ring)
+	{
+		if (_diagnosticLoadingRingClips.Remove(ring, out NexusAnimatedWebpClip? clip))
+		{
+			clip.Dispose();
+		}
+
+		ring.Opacity = 0;
 	}
 
 	private void StopDiagnosticLoadingRingAnimations()
 	{
-		foreach (Border ring in FindVisualChildren<Border>(this))
+		foreach ((Image ring, NexusAnimatedWebpClip clip) in _diagnosticLoadingRingClips)
 		{
-			if (ring.StyleId == "DiagnosticLoadingRing")
-			{
-				StopDiagnosticLoadingRing(ring);
-			}
+			clip.Stop();
+			ring.Opacity = 0;
 		}
+	}
+
+	private void DisposeDiagnosticLoadingRingClips()
+	{
+		foreach (NexusAnimatedWebpClip clip in _diagnosticLoadingRingClips.Values)
+		{
+			clip.Dispose();
+		}
+
+		_diagnosticLoadingRingClips.Clear();
 	}
 
 	private static IEnumerable<T> FindVisualChildren<T>(Element parent)
@@ -2963,18 +2962,16 @@ public partial class ProductSetupView : ContentView
 
 	private void SetDiagnosticActionNavigationBlocked(bool isBlocked)
 	{
-		SetInitiationUserScrollBlocked(isBlocked || IsAnyDiagnosticStepWorking());
+		bool isInteractionBlocked = isBlocked || _isInitiationSequenceRunning;
+		SetInitiationUserScrollBlocked(isInteractionBlocked || IsAnyDiagnosticStepWorking());
+		UpdateBackButtonAvailability();
 
-		BackButton.IsEnabled = !isBlocked;
-		BackButton.InputTransparent = isBlocked;
-		BackButton.Opacity = isBlocked ? 0.35 : 1.0;
-
-		if (isBlocked)
+		if (isInteractionBlocked)
 		{
 			PrimaryActionButton.IsEnabled = false;
 			PrimaryActionButton.InputTransparent = true;
 			PrimaryActionButton.Opacity = 0.35;
-			StopPrimaryButtonPulse();
+			StopPrimaryActionReadyPulse();
 			return;
 		}
 
@@ -2983,7 +2980,21 @@ public partial class ProductSetupView : ContentView
 
 	private void UpdateInitiationUserScrollBlock()
 	{
-		SetInitiationUserScrollBlocked(_isDiagnosticActionRunning || IsAnyDiagnosticStepWorking());
+		SetInitiationUserScrollBlocked(IsInitiationInteractionBlocked || IsAnyDiagnosticStepWorking());
+	}
+
+	private bool IsInitiationInteractionBlocked
+		=> _isDiagnosticActionRunning || _isInitiationSequenceRunning;
+
+	private void SetInitiationSequenceInteractionBlocked(bool isBlocked)
+	{
+		if (_isInitiationSequenceRunning == isBlocked)
+		{
+			return;
+		}
+
+		_isInitiationSequenceRunning = isBlocked;
+		SetDiagnosticActionNavigationBlocked(_isDiagnosticActionRunning);
 	}
 
 	private bool IsAnyDiagnosticStepWorking()
@@ -3169,6 +3180,11 @@ public partial class ProductSetupView : ContentView
 				&& actionId != DiagnosticActionSystem
 				&& actionId != DiagnosticActionKeep)
 			{
+				if (step != null)
+				{
+					await RequestDiagnosticScrollAsync(step, SetupScrollReason.WorkStarted);
+				}
+
 				vm.ShowProgress = true;
 				vm.ProgressValue = 0;
 
@@ -3301,7 +3317,7 @@ public partial class ProductSetupView : ContentView
 		if (_currentContext == ViewContext.Vanguard || _currentContext == ViewContext.Repairing)
 		{
 			EnsureActionBottomBarReady();
-			bool primaryEnabled = allReady && !_isDiagnosticActionRunning;
+			bool primaryEnabled = allReady && !IsInitiationInteractionBlocked;
 			PrimaryActionButton.IsEnabled = primaryEnabled;
 			PrimaryActionButton.InputTransparent = !primaryEnabled;
 			PrimaryActionButton.Opacity = primaryEnabled ? 1.0 : 0.3;
@@ -3309,8 +3325,8 @@ public partial class ProductSetupView : ContentView
 				? LocalizationManager.Text("common.next")
 				: LocalizationManager.Text("setup.status.requirements_pending");
 
-			if (primaryEnabled) StartPrimaryButtonPulse();
-			else StopPrimaryButtonPulse();
+			if (primaryEnabled) StartPrimaryActionReadyPulse();
+			else StopPrimaryActionReadyPulse();
 		}
 	}
 
@@ -3323,8 +3339,8 @@ public partial class ProductSetupView : ContentView
 		PrimaryActionButton.InputTransparent = !primaryEnabled;
 		PrimaryActionButton.Opacity = primaryEnabled ? 1 : 0.4;
 
-		if (primaryEnabled) StartPrimaryButtonPulse();
-		else StopPrimaryButtonPulse();
+		if (primaryEnabled) StartPrimaryActionReadyPulse();
+		else StopPrimaryActionReadyPulse();
 
 		// Reset Back button text to default
 		var label = BackButton.Content as Label;
@@ -3345,37 +3361,32 @@ public partial class ProductSetupView : ContentView
 		}
 
 		BackButton.IsVisible = true;
-		BackButton.IsEnabled = !_isDiagnosticActionRunning;
-		BackButton.InputTransparent = _isDiagnosticActionRunning;
-		BackButton.Opacity = _isDiagnosticActionRunning ? 0.35 : 1.0;
+		UpdateBackButtonAvailability();
 	}
 
-	private void StartPrimaryButtonPulse()
+	private void UpdateBackButtonAvailability()
 	{
-		if (_isDisposed) return;
-
-		PrimaryActionPulseGlow.Opacity = PrimaryPulseLowOpacity;
-		_motion.StartTimeline(
-			PrimaryActionPulseAnimationName,
-			this,
-			16,
-			PulseAnimationLength * 2,
-			Easing.Linear,
-			CanRepeatPrimaryActionPulse,
-			ResetPrimaryButtonPulse,
-			new SafeAnimation.TimelineSegment(0, 0.5, value => PrimaryActionPulseGlow.Opacity = value, PrimaryPulseLowOpacity, PrimaryPulseHighOpacity, Easing.CubicInOut),
-			new SafeAnimation.TimelineSegment(0.5, 1, value => PrimaryActionPulseGlow.Opacity = value, PrimaryPulseHighOpacity, PrimaryPulseLowOpacity, Easing.CubicInOut));
+		bool isBlocked = IsInitiationInteractionBlocked || _consoleBootActionState == ConsoleBootActionState.Booting;
+		BackButton.IsEnabled = !isBlocked;
+		BackButton.InputTransparent = isBlocked;
+		BackButton.Opacity = isBlocked ? 0.35 : 1.0;
 	}
 
-	private void StopPrimaryButtonPulse()
+	private void StartPrimaryActionReadyPulse()
 	{
-		_motion.Stop(PrimaryActionPulseAnimationName);
-		ResetPrimaryButtonPulse();
+		if (_isDisposed)
+		{
+			return;
+		}
+
+		PrimaryActionPulseSurface.Opacity = 1;
+		_primaryActionReadyPulseClip.PlayLoop(CanRepeatPrimaryActionPulse);
 	}
 
-	private void ResetPrimaryButtonPulse()
+	private void StopPrimaryActionReadyPulse()
 	{
-		PrimaryActionPulseGlow.Opacity = 0;
+		_primaryActionReadyPulseClip.Stop();
+		PrimaryActionPulseSurface.Opacity = 0;
 	}
 
 	private bool CanRepeatPrimaryActionPulse()
@@ -3384,7 +3395,7 @@ public partial class ProductSetupView : ContentView
 			&& Handler is not null
 			&& ActionBottomBar.IsVisible
 			&& PrimaryActionButton.IsEnabled
-			&& !_isDiagnosticActionRunning;
+			&& !IsInitiationInteractionBlocked;
 
 	private static bool IsValidComfyPath(string? path)
 		=> !string.IsNullOrWhiteSpace(path) && Directory.Exists(path) && File.Exists(System.IO.Path.Combine(path, "main.py"));
@@ -3398,28 +3409,30 @@ public partial class ProductSetupView : ContentView
 		_lastGlobalMousePos = e.GetPosition(null) ?? new Point(0, 0);
 	}
 
-	private void OnVanguardCardPointerEntered(object? sender, PointerEventArgs e)
+	private async void OnVanguardCardPointerEntered(object? sender, PointerEventArgs e)
 	{
 		if (_currentState != ViewState.Ready || _currentContext != ViewContext.Crossroads) return;
-		ApplyCardState(VanguardCard, VanguardGlow, CardState.Hovered);
+		_background.SetMode(SetupBackgroundMode.VanguardHover);
+		await _background.PrepareSelectionBurstAsync(SetupBackgroundMode.VanguardHover);
 	}
 
 	private void OnVanguardCardPointerExited(object? sender, PointerEventArgs e)
 	{
 		if (_currentContext != ViewContext.Crossroads || _isTransitioning) return;
-		ApplyCardState(VanguardCard, VanguardGlow, CardState.Ambient);
+		_background.SetMode(SetupBackgroundMode.Crossroads);
 	}
 
-	private void OnArchitectCardPointerEntered(object? sender, PointerEventArgs e)
+	private async void OnArchitectCardPointerEntered(object? sender, PointerEventArgs e)
 	{
 		if (_currentState != ViewState.Ready || _currentContext != ViewContext.Crossroads) return;
-		ApplyCardState(ArchitectCard, ArchitectGlow, CardState.Hovered);
+		_background.SetMode(SetupBackgroundMode.ArchitectHover);
+		await _background.PrepareSelectionBurstAsync(SetupBackgroundMode.ArchitectHover);
 	}
 
 	private void OnArchitectCardPointerExited(object? sender, PointerEventArgs e)
 	{
 		if (_currentContext != ViewContext.Crossroads || _isTransitioning) return;
-		ApplyCardState(ArchitectCard, ArchitectGlow, CardState.Ambient);
+		_background.SetMode(SetupBackgroundMode.Crossroads);
 	}
 
 	private void OnBackButtonHovered(object? sender, PointerEventArgs e)
@@ -3444,14 +3457,14 @@ public partial class ProductSetupView : ContentView
 	{
 		if (_consoleBootActionState != ConsoleBootActionState.Standby) return;
 
-		ConsoleBootButton.BackgroundColor = ConsoleBootHoverColor;
+		ConsoleBootButton.Stroke = NexusColors.White;
 	}
 
 	private void OnConsoleBootUnhovered(object? sender, PointerEventArgs e)
 	{
 		if (_consoleBootActionState != ConsoleBootActionState.Standby) return;
 
-		ConsoleBootButton.BackgroundColor = ConsoleBootNormalColor;
+		ConsoleBootButton.Stroke = ConsoleAccentColor;
 	}
 
 	private void OnConsoleRetryHovered(object? sender, PointerEventArgs e)
@@ -3468,72 +3481,15 @@ public partial class ProductSetupView : ContentView
 		ConsoleRetryButton.BackgroundColor = ConsoleRetryNormalColor;
 	}
 
-	private void ApplyCardState(Border card, View glow, CardState state)
-	{
-		glow.CancelAnimations();
-
-		switch (state)
-		{
-			case CardState.Ambient:
-				glow.FadeToAsync(AmbientCardGlowOpacity, CardGlowAnimationLength, Easing.CubicOut);
-				break;
-			case CardState.Hovered:
-				glow.FadeToAsync(HoveredCardGlowOpacity, CardGlowAnimationLength, Easing.CubicOut);
-				break;
-			case CardState.Persistent:
-				glow.FadeToAsync(PersistentCardGlowOpacity, PersistentCardGlowAnimationLength, Easing.CubicOut);
-				break;
-			case CardState.Hidden:
-				glow.FadeToAsync(0, CardGlowAnimationLength, Easing.CubicOut);
-				break;
-		}
-	}
-
-	private async Task TriggerInitiationImpact(VisualElement target, View selectedGlow, View otherGlow)
-	{
-		selectedGlow.CancelAnimations();
-		_ = otherGlow.FadeToAsync(0, OtherCardGlowHideLength, Easing.CubicOut);
-
-		// 1. Aura Pure Strobe (Opacity Flicker Only)
-		// First Flash
-		selectedGlow.Opacity = PersistentCardGlowOpacity;
-		await Task.Delay(ImpactFirstFlashDelayMs);
-
-		// Void
-		selectedGlow.Opacity = 0.0;
-		await Task.Delay(ImpactVoidDelayMs);
-
-		// Second Flash
-		selectedGlow.Opacity = PersistentCardGlowOpacity;
-		await Task.Delay(ImpactSecondFlashDelayMs);
-
-		// Final Lock at max brightness with a smooth transition
-		await selectedGlow.FadeToAsync(PersistentCardGlowOpacity, CardGlowAnimationLength, Easing.CubicOut);
-
-		// Ensure final state machine integrity
-		ApplyCardState(selectedGlow == VanguardGlow ? VanguardCard : ArchitectCard, selectedGlow, CardState.Persistent);
-		ApplyCardState(otherGlow == VanguardGlow ? VanguardCard : ArchitectCard, otherGlow, CardState.Hidden);
-
-		// 2. Impact Scale for the Card (Physical Pulse)
-		await SafeAnimation.ScaleToAsync(target, ImpactCardScale, ImpactCardScaleOutLength, Easing.CubicOut, "Setup.Impact");
-		_ = SafeAnimation.ScaleToAsync(target, 1.0, ImpactCardScaleInLength, Easing.CubicIn, "Setup.Impact");
-	}
-
-	private void UpdateCardHoverState(Border card, View glow, bool isHovered, string accentColor)
-	{
-		// Only react to hover in Crossroads state when READY
-		if (_currentState != ViewState.Ready || _currentContext != ViewContext.Crossroads) return;
-
-		// Restore smooth cinematic aura animation (Fade between Ambient 0.15 and Active 0.8)
-		glow.CancelAnimations();
-		double targetGlow = isHovered ? HoveredCardGlowOpacity : AmbientCardGlowOpacity;
-		glow.FadeToAsync(targetGlow, CardGlowAnimationLength, Easing.CubicInOut);
-	}
-
 	// ------------------------------------------------------------
 	// SMART SCALING
 	// ------------------------------------------------------------
 	private void OnViewSizeChanged(object? sender, EventArgs e)
+	{
+		ApplySetupScale();
+	}
+
+	private void ApplySetupScale()
 	{
 		if (Width <= 0 || Height <= 0) return;
 

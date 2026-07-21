@@ -1,30 +1,19 @@
 using ComfyUI_Nexus.Configuration;
-using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Ui;
 using System.Windows.Input;
 
 namespace ComfyUI_Nexus.Views;
 
-public partial class ControlDeckView : ContentView
+public partial class ControlDeckView : ContentView, INexusControlDeck
 {
-	private const uint PulseRunBlinkRiseLength = 420;
-	private const uint PulseRunBlinkFallLength = 520;
-	private static readonly Color TraceActiveColor = NexusColors.AccentText;
-	private static readonly Color TraceInactiveTextColor = NexusColors.TextFaint;
-	private static Color TraceInactiveBorderColor => ResourceColor("DeckToggleInactiveBorderColor", "#445566");
-	private static Color DevToolsActiveColor => ResourceColor("DeckDevToolsActiveColor", "#88aa66");
-	private static Color DevToolsInactiveTextColor => ResourceColor("DeckDevToolsInactiveTextColor", "#668877");
-	private static Color DevToolsInactiveBorderColor => ResourceColor("DeckDevToolsInactiveBorderColor", "#446655");
-	private static readonly Color PulseLiveColor = NexusColors.Accent;
-	private static Color PulseIdleColor => ResourceColor("DeckPulseIdleColor", "#2373ff");
-	private static Color PulseWarnColor => ResourceColor("DeckPulseWarningColor", "#ffcc66");
-	private static Color PulseDangerColor => ResourceColor("DeckPulseDangerColor", "#ff4d6d");
 	private static readonly Color PulseMutedTextColor = NexusColors.TextMuted;
 	private static Color PulseLiveTextColor => ResourceColor("DeckPulseLiveTextColor", "#baf8ff");
 	private static Color PulseWarnTextColor => ResourceColor("DeckPulseWarningTextColor", "#ffe7a6");
 	private static Color PulseDangerTextColor => ResourceColor("DeckPulseDangerTextColor", "#ffc4cf");
 
 	public static readonly BindableProperty ManualRebootCommandProperty = BindableProperty.Create(nameof(ManualRebootCommand), typeof(ICommand), typeof(ControlDeckView));
+	public static readonly BindableProperty BootServerCommandProperty = BindableProperty.Create(nameof(BootServerCommand), typeof(ICommand), typeof(ControlDeckView));
+	public static readonly BindableProperty ShutdownServerCommandProperty = BindableProperty.Create(nameof(ShutdownServerCommand), typeof(ICommand), typeof(ControlDeckView));
 	public static readonly BindableProperty ToggleBridgeDiagnosticsCommandProperty = BindableProperty.Create(nameof(ToggleBridgeDiagnosticsCommand), typeof(ICommand), typeof(ControlDeckView));
 	public static readonly BindableProperty ToggleWebLogsCommandProperty = BindableProperty.Create(nameof(ToggleWebLogsCommand), typeof(ICommand), typeof(ControlDeckView));
 	public static readonly BindableProperty ToggleDevToolsCommandProperty = BindableProperty.Create(nameof(ToggleDevToolsCommand), typeof(ICommand), typeof(ControlDeckView));
@@ -34,17 +23,40 @@ public partial class ControlDeckView : ContentView
 	public static readonly BindableProperty OpenFullLogCommandProperty = BindableProperty.Create(nameof(OpenFullLogCommand), typeof(ICommand), typeof(ControlDeckView));
 	public static readonly BindableProperty ClearLogCommandProperty = BindableProperty.Create(nameof(ClearLogCommand), typeof(ICommand), typeof(ControlDeckView));
 
-	internal event EventHandler<TextChangedEventArgs>? LogSearchChanged;
+	public event EventHandler<TextChangedEventArgs>? LogSearchChanged;
 
 	private readonly List<string> _displayedLogLines = new();
-	private int _pulseRunBlinkVersion;
-	private bool _isPulseRunBlinking;
+	private readonly NexusMotionController _motion;
+	private readonly NexusAnimatedWebpClip _pulseRunIdleClip;
+	private readonly NexusAnimatedWebpClip _pulseRunActiveClip;
+	private readonly NexusAnimatedWebpClip _pulseWebIdleClip;
+	private readonly NexusAnimatedWebpClip _pulseWebLiveClip;
+	private NexusAnimatedWebpCacheLease? _animationCacheLease;
+	private Task<NexusAnimatedWebpCacheLease>? _animationCacheAcquireTask;
 	private bool _isUnloaded;
+	private bool _isPulseAnimationActive;
+	private bool _isPulseRunActive;
+	private bool _isPulseWebLive;
+	private bool? _lastPulseRunAnimationState;
+	private bool? _lastPulseWebAnimationState;
+	private bool _isApplyingToggleState;
 
 	public ICommand? ManualRebootCommand
 	{
 		get => (ICommand?)GetValue(ManualRebootCommandProperty);
 		set => SetValue(ManualRebootCommandProperty, value);
+	}
+
+	public ICommand? BootServerCommand
+	{
+		get => (ICommand?)GetValue(BootServerCommandProperty);
+		set => SetValue(BootServerCommandProperty, value);
+	}
+
+	public ICommand? ShutdownServerCommand
+	{
+		get => (ICommand?)GetValue(ShutdownServerCommandProperty);
+		set => SetValue(ShutdownServerCommandProperty, value);
 	}
 
 	public ICommand? ToggleBridgeDiagnosticsCommand
@@ -98,15 +110,26 @@ public partial class ControlDeckView : ContentView
 	public ControlDeckView()
 	{
 		InitializeComponent();
+		_motion = new NexusMotionController("control-deck", "CONTROL_DECK", Dispatcher);
+		_pulseRunIdleClip = new NexusAnimatedWebpClip(_motion, PulseRunIdleSurface, "ControlDeck.PulseRunIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
+		_pulseRunActiveClip = new NexusAnimatedWebpClip(_motion, PulseRunActiveSurface, "ControlDeck.PulseRunActive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
+		_pulseWebIdleClip = new NexusAnimatedWebpClip(_motion, PulseWebIdleSurface, "ControlDeck.PulseWebIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
+		_pulseWebLiveClip = new NexusAnimatedWebpClip(_motion, PulseWebLiveSurface, "ControlDeck.PulseWebLive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
 		Loaded += OnLoaded;
 		Unloaded += OnUnloaded;
 		ConsoleLogTail.RowColorResolver = ResolveConsoleRowColor;
 		SetPulseRun(isRunning: false, isInstantStop: false);
-		SetPulseWeb(isLive: false, errorCount: 0, bridgeTraceEnabled: false, webLogsEnabled: false, devToolsEnabled: false);
+		SetPulseWeb(
+			isBridgeLive: false,
+			serverStatus: NexusControlDeckServerStatus.Unknown,
+			errorCount: 0,
+			bridgeTraceEnabled: false,
+			webLogsEnabled: false,
+			devToolsEnabled: false);
 		SetUiIsolationState(enabled: true);
 	}
 
-	internal void SetLogFileRelativePath(string relativePath)
+	public void SetLogFileRelativePath(string relativePath)
 	{
 		LogFilePathLabel.Text = string.IsNullOrWhiteSpace(relativePath)
 			? "Logs/nexus-latest.log"
@@ -114,19 +137,24 @@ public partial class ControlDeckView : ContentView
 	}
 
 	private void OnLoaded(object? sender, EventArgs e)
-		=> _isUnloaded = false;
+	{
+		_isUnloaded = false;
+		_ = EnsureAnimationCacheAsync();
+		StartPulseAnimations();
+	}
 
 	private void OnUnloaded(object? sender, EventArgs e)
 	{
 		_isUnloaded = true;
-		_isPulseRunBlinking = false;
-		_pulseRunBlinkVersion++;
-		SafeAnimation.AbortAnimation(PulseRunBar, "PulseRunBlink", "ControlDeck.PulseRun");
+		_isPulseAnimationActive = false;
+		StopPulseAnimations();
+		_motion.StopAll();
+		ReleaseAnimationCache();
 	}
 
-	internal string GetLogFilterText() => LogSearchEntry.Text ?? string.Empty;
+	public string GetLogFilterText() => LogSearchEntry.Text ?? string.Empty;
 
-	internal void AppendLogLine(string line)
+	public void AppendLogLine(string line)
 	{
 		_displayedLogLines.Add(line);
 
@@ -142,7 +170,7 @@ public partial class ControlDeckView : ContentView
 		}
 	}
 
-	internal void SetLogText(string text)
+	public void SetLogText(string text)
 	{
 		_displayedLogLines.Clear();
 
@@ -163,121 +191,48 @@ public partial class ControlDeckView : ContentView
 		}
 	}
 
-	internal void ClearLogText()
+	public void ClearLogText()
 	{
 		_displayedLogLines.Clear();
 		ConsoleLogTail.Clear();
 	}
 
-	internal void SetDisplayState(bool isVisible, double opacity)
-	{
-		IsVisible = isVisible;
-		Opacity = opacity;
-		if (!isVisible)
-		{
-			ConsoleLogTail.ReleaseRows();
-			return;
-		}
+	public void SetBridgeDiagnosticsState(bool enabled)
+		=> SetToggleState(BridgeDiagnosticsToggle, enabled);
 
-		ConsoleLogTail.SetLines(_displayedLogLines);
-	}
+	public void SetWebLogsState(bool enabled)
+		=> SetToggleState(WebLogsToggle, enabled);
 
-	internal void PrepareToShow()
-	{
-		Opacity = 0;
-		IsVisible = true;
-		ConsoleLogTail.SetLines(_displayedLogLines);
-	}
+	public void SetDevToolsState(bool enabled)
+		=> SetToggleState(DevToolsToggle, enabled);
 
-	internal Task AnimateShowAsync(uint length, Easing easing)
-	{
-		return SafeAnimation.FadeToAsync(this, 1, length, easing, "ControlDeck.Show");
-	}
+	public void SetUiIsolationState(bool enabled)
+		=> SetToggleState(UiIsolationToggle, enabled);
 
-	internal Task AnimateHideAsync(uint length, Easing easing)
+	public void SetPulseRun(bool isRunning, bool isInstantStop)
 	{
-		return SafeAnimation.FadeToAsync(this, 0, length, easing, "ControlDeck.Hide");
-	}
-
-	internal void CompleteHide()
-	{
-		IsVisible = false;
-		ConsoleLogTail.ReleaseRows();
-	}
-
-	internal void SetBridgeDiagnosticsState(bool enabled)
-	{
-		SetToggleButtonState(
-			BridgeDiagnosticsButton,
-			enabled,
-			"BRIDGE TRACE: ON",
-			"BRIDGE TRACE: OFF",
-			TraceActiveColor,
-			TraceInactiveTextColor,
-			TraceInactiveBorderColor);
-	}
-
-	internal void SetWebLogsState(bool enabled)
-	{
-		SetToggleButtonState(
-			WebLogsButton,
-			enabled,
-			"WEB LOGS: ON",
-			"WEB LOGS: OFF",
-			TraceActiveColor,
-			TraceInactiveTextColor,
-			TraceInactiveBorderColor);
-	}
-
-	internal void SetDevToolsState(bool enabled)
-	{
-		SetToggleButtonState(
-			DevToolsButton,
-			enabled,
-			"DEVTOOLS: ON",
-			"DEVTOOLS: OFF",
-			DevToolsActiveColor,
-			DevToolsInactiveTextColor,
-			DevToolsInactiveBorderColor);
-	}
-
-	internal void SetUiIsolationState(bool enabled)
-	{
-		SetToggleButtonState(
-			UiIsolationButton,
-			enabled,
-			"UI ISOLATION: ON",
-			"UI ISOLATION: OFF",
-			TraceActiveColor,
-			ResourceColor("DeckPulseWarningColor", "#ffcc66"),
-			ResourceColor("DeckPulseWarningTrackColor", "#806622"));
-	}
-
-	internal void SetPulseRun(bool isRunning, bool isInstantStop)
-	{
+		_isPulseRunActive = isRunning || isInstantStop;
 		PulseRunLabel.Text = isInstantStop ? "RUN STOP" : isRunning ? "RUN ACTIVE" : "RUN IDLE";
 		PulseRunLabel.TextColor = isInstantStop ? PulseDangerTextColor : isRunning ? PulseLiveTextColor : PulseMutedTextColor;
-		PulseRunBar.Color = isInstantStop ? PulseDangerColor : isRunning ? PulseLiveColor : PulseIdleColor;
-		PulseRunBar.Opacity = isInstantStop || isRunning ? 0.9 : 0.34;
-		SetPulseRunBlink(isRunning || isInstantStop);
+		UpdatePulseClipState();
 	}
 
-	internal void SetPulseWeb(
-		bool isLive,
+	public void SetPulseWeb(
+		bool isBridgeLive,
+		NexusControlDeckServerStatus serverStatus,
 		int errorCount,
 		bool bridgeTraceEnabled,
 		bool webLogsEnabled,
 		bool devToolsEnabled)
 	{
-		PulseBridgeStatusLabel.Text = isLive ? "BRIDGE LIVE" : "BRIDGE IDLE";
-		PulseBridgeStatusLabel.TextColor = isLive ? PulseLiveTextColor : PulseMutedTextColor;
+		_isPulseWebLive = isBridgeLive;
+		SetServerStatus(serverStatus);
 
 		if (errorCount > 0)
 		{
 			PulseWebLabel.Text = $"WEB ERR {errorCount}";
 			PulseWebLabel.TextColor = PulseDangerTextColor;
-			PulseWebBar.Color = PulseDangerColor;
-			PulseWebBar.Opacity = 0.86;
+			UpdatePulseClipState();
 			return;
 		}
 
@@ -285,68 +240,152 @@ public partial class ControlDeckView : ContentView
 		{
 			PulseWebLabel.Text = "WEB TRACE";
 			PulseWebLabel.TextColor = PulseWarnTextColor;
-			PulseWebBar.Color = PulseWarnColor;
-			PulseWebBar.Opacity = 0.76;
+			UpdatePulseClipState();
 			return;
 		}
 
-		PulseWebLabel.Text = isLive ? "WEB LIVE" : "WEB IDLE";
-		PulseWebLabel.TextColor = isLive ? PulseLiveTextColor : PulseMutedTextColor;
-		PulseWebBar.Color = isLive ? PulseLiveColor : PulseIdleColor;
-		PulseWebBar.Opacity = isLive ? 0.78 : 0.3;
+		PulseWebLabel.Text = isBridgeLive ? "BRIDGE LIVE" : "BRIDGE IDLE";
+		PulseWebLabel.TextColor = isBridgeLive ? PulseLiveTextColor : PulseMutedTextColor;
+		UpdatePulseClipState();
 	}
 
-	private async void SetPulseRunBlink(bool shouldBlink)
+	private void SetServerStatus(NexusControlDeckServerStatus serverStatus)
 	{
-		if (!shouldBlink)
+		switch (serverStatus)
 		{
-			_isPulseRunBlinking = false;
-			_pulseRunBlinkVersion++;
-			SafeAnimation.AbortAnimation(PulseRunBar, "PulseRunBlink", "ControlDeck.PulseRun");
-			if (!_isUnloaded)
-			{
-				PulseRunBar.Opacity = 0.34;
-			}
-			return;
-		}
-
-		if (_isUnloaded || _isPulseRunBlinking)
-		{
-			return;
-		}
-
-		_isPulseRunBlinking = true;
-		int version = ++_pulseRunBlinkVersion;
-		while (version == _pulseRunBlinkVersion)
-		{
-			if (_isUnloaded) break;
-
-			bool rose = await SafeAnimation.TryFadeToAsync(PulseRunBar, 1, PulseRunBlinkRiseLength, Easing.CubicOut, "ControlDeck.PulseRun");
-			if (!rose || _isUnloaded || version != _pulseRunBlinkVersion) break;
-
-			bool fell = await SafeAnimation.TryFadeToAsync(PulseRunBar, 0.38, PulseRunBlinkFallLength, Easing.CubicIn, "ControlDeck.PulseRun");
-			if (!fell || _isUnloaded) break;
-		}
-
-		if (_isUnloaded)
-		{
-			_isPulseRunBlinking = false;
-			return;
+			case NexusControlDeckServerStatus.Ready:
+				PulseBridgeStatusLabel.Text = "API READY";
+				PulseBridgeStatusLabel.TextColor = PulseLiveTextColor;
+				break;
+			case NexusControlDeckServerStatus.Transitioning:
+				PulseBridgeStatusLabel.Text = "API TRANSITION";
+				PulseBridgeStatusLabel.TextColor = PulseWarnTextColor;
+				break;
+			case NexusControlDeckServerStatus.Offline:
+				PulseBridgeStatusLabel.Text = "API OFFLINE";
+				PulseBridgeStatusLabel.TextColor = PulseDangerTextColor;
+				break;
+			default:
+				PulseBridgeStatusLabel.Text = "API UNKNOWN";
+				PulseBridgeStatusLabel.TextColor = PulseMutedTextColor;
+				break;
 		}
 	}
 
-	private static void SetToggleButtonState(
-		Button button,
-		bool enabled,
-		string enabledText,
-		string disabledText,
-		Color enabledColor,
-		Color disabledTextColor,
-		Color disabledBorderColor)
+	private void StartPulseAnimations()
 	{
-		button.Text = enabled ? enabledText : disabledText;
-		button.TextColor = enabled ? enabledColor : disabledTextColor;
-		button.BorderColor = enabled ? enabledColor : disabledBorderColor;
+		if (_isUnloaded || _isPulseAnimationActive
+			|| PulseRunIdleSurface.Handler is null
+			|| PulseRunActiveSurface.Handler is null
+			|| PulseWebIdleSurface.Handler is null
+			|| PulseWebLiveSurface.Handler is null)
+		{
+			return;
+		}
+
+		_isPulseAnimationActive = true;
+		UpdatePulseClipState();
+	}
+
+	private void StopPulseAnimations()
+	{
+		_lastPulseRunAnimationState = null;
+		_lastPulseWebAnimationState = null;
+		_pulseRunIdleClip.Stop();
+		_pulseRunActiveClip.Stop();
+		_pulseWebIdleClip.Stop();
+		_pulseWebLiveClip.Stop();
+	}
+
+	private async Task EnsureAnimationCacheAsync()
+	{
+		if (_animationCacheLease is not null)
+		{
+			return;
+		}
+
+		_animationCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(NexusAnimatedWebpCacheGroup.ControlDeck);
+		_animationCacheLease = await _animationCacheAcquireTask;
+	}
+
+	private void ReleaseAnimationCache()
+	{
+		_animationCacheLease?.Dispose();
+		_animationCacheLease = null;
+		_animationCacheAcquireTask = null;
+	}
+
+	private void UpdatePulseClipState()
+	{
+		if (_isUnloaded || !_isPulseAnimationActive)
+		{
+			return;
+		}
+
+		if (_lastPulseRunAnimationState != _isPulseRunActive)
+		{
+			ApplyPulseClipState(_pulseRunIdleClip, _pulseRunActiveClip, PulseRunIdleSurface, PulseRunActiveSurface, _isPulseRunActive);
+			_lastPulseRunAnimationState = _isPulseRunActive;
+		}
+
+		if (_lastPulseWebAnimationState != _isPulseWebLive)
+		{
+			ApplyPulseClipState(_pulseWebIdleClip, _pulseWebLiveClip, PulseWebIdleSurface, PulseWebLiveSurface, _isPulseWebLive);
+			_lastPulseWebAnimationState = _isPulseWebLive;
+		}
+	}
+
+	private void ApplyPulseClipState(
+		NexusAnimatedWebpClip idleClip,
+		NexusAnimatedWebpClip activeClip,
+		Image idleSurface,
+		Image activeSurface,
+		bool isActive)
+	{
+		idleSurface.Opacity = isActive ? 0 : 0.34;
+		activeSurface.Opacity = isActive ? 1 : 0;
+
+		if (isActive)
+		{
+			idleClip.Stop();
+			activeClip.PlayLoop(() => CanRunPulseSurface(activeSurface));
+			return;
+		}
+
+		activeClip.Stop();
+		idleClip.PlayLoop(() => CanRunPulseSurface(idleSurface));
+	}
+
+	private bool CanRunPulseSurface(Image surface)
+		=> !_isUnloaded && IsVisible && Handler is not null && surface.Handler is not null;
+
+	private void SetToggleState(Switch toggle, bool enabled)
+	{
+		_isApplyingToggleState = true;
+		toggle.IsToggled = enabled;
+		_isApplyingToggleState = false;
+	}
+
+	private void OnBridgeDiagnosticsToggled(object? sender, ToggledEventArgs e)
+		=> ExecuteToggleCommand(ToggleBridgeDiagnosticsCommand);
+
+	private void OnWebLogsToggled(object? sender, ToggledEventArgs e)
+		=> ExecuteToggleCommand(ToggleWebLogsCommand);
+
+	private void OnDevToolsToggled(object? sender, ToggledEventArgs e)
+		=> ExecuteToggleCommand(ToggleDevToolsCommand);
+
+	private void OnUiIsolationToggled(object? sender, ToggledEventArgs e)
+		=> ExecuteToggleCommand(ToggleUiIsolationCommand);
+
+	private void ExecuteToggleCommand(ICommand? command)
+	{
+		if (_isApplyingToggleState || command?.CanExecute(null) != true)
+		{
+			return;
+		}
+
+		command.Execute(null);
 	}
 
 	private bool IsConsoleRenderActive => IsVisible;

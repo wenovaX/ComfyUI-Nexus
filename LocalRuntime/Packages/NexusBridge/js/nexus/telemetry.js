@@ -127,7 +127,7 @@ export function setupGpuRelay(bridge) {
                 ...(lastGpuPayload || {}),
                 is_running: computeRunningState(),
             };
-            const serialized = JSON.stringify(mergedPayload);
+            const serialized = JSON.stringify(getGpuStateSignature(mergedPayload));
             if (serialized === bridge.lastGpuPayload) return;
             bridge.lastGpuPayload = serialized;
             bridge.send("GPU_STATS", mergedPayload);
@@ -139,6 +139,14 @@ export function setupGpuRelay(bridge) {
     const relayCurrentGpuState = () => {
         if (disposed || !lastGpuPayload) return;
         relayGpuStats(lastGpuPayload);
+    };
+
+    // HUD emits a fresh timestamp every sample. It is transport metadata, not a
+    // UI state change, so never use it to create a new native bridge message.
+    const getGpuStateSignature = (payload) => {
+        if (!payload || typeof payload !== "object") return payload;
+        const { timestamp, time, updated_at, last_updated, ...state } = payload;
+        return state;
     };
 
     const onHudGpuStats = (e) => relayGpuStats(e.detail);

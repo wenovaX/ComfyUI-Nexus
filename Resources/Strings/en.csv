@@ -106,10 +106,10 @@ views.overlays.canvas_toolbar_view.map,MAP
 views.overlays.canvas_toolbar_view.links,LINKS
 views.overlays.command_input_view.console,console
 views.overlays.loading_overlay_view.nexus_shell,NEXUS SHELL
-views.overlays.loading_overlay_view.initializing_nexus_shell,INITIALIZING NEXUS SHELL...
+views.overlays.loading_overlay_view.initializing_nexus_shell,PREPARING NEXUS...
 views.overlays.loading_overlay_view.open_setup,OPEN SETUP
 views.overlays.loading_overlay_view.check_install,CHECK INSTALL
-views.overlays.loading_overlay_view.nexus_server_boot,NEXUS SERVER BOOT
+views.overlays.loading_overlay_view.nexus_server_boot,COMFYUI SERVER // STANDBY
 views.overlays.loading_overlay_view.comfyui_configuration_is_ready_start_the_backend_service,ComfyUI configuration is ready.\nStart the backend service to continue.
 views.overlays.loading_overlay_view.state,STATE
 views.overlays.loading_overlay_view.engage_server,ENGAGE SERVER
@@ -122,8 +122,8 @@ views.overlays.loading_overlay_view.no_comfyui_core_detected_on_this_terminal,No
 views.overlays.loading_overlay_view.get_official_launcher,GET OFFICIAL LAUNCHER
 views.overlays.loading_overlay_view.clone_from_github,CLONE FROM GITHUB
 views.overlays.loading_overlay_view.nexus_maintenance,NEXUS MAINTENANCE
-views.overlays.loading_overlay_view.backend_process_already_starting,Backend is starting. Live server log attached below.
-views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI backend is offline. Engage the server to continue.
+views.overlays.loading_overlay_view.backend_process_already_starting,ComfyUI server is already starting.\nChecking the port connection and API readiness.
+views.overlays.loading_overlay_view.backend_offline_engage,ComfyUI server is currently offline.\nStart the server to continue preparing Nexus.
 views.overlays.loading_overlay_view.recover_runtime_and_boot_title,Recover runtime and boot?
 views.overlays.loading_overlay_view.recover_runtime_and_boot_message,"This will sync ComfyUI requirements, repair the CUDA PyTorch wheel for the selected server runtime, then start the server. It can take several minutes.\n\nTarget: {0}"
 views.overlays.loading_overlay_view.preparing_runtime_cleanup_recovery,Preparing runtime cleanup recovery.\nInput is locked until maintenance completes.
@@ -132,9 +132,9 @@ views.overlays.loading_overlay_view.retry_cleanup,RETRY CLEANUP
 views.overlays.loading_overlay_view.runtime_cleanup_complete_setup,Runtime cleanup complete. Setup will resume now.
 views.overlays.loading_overlay_view.backend_alive_waiting_for_port,Backend process is alive.\nWaiting for the ComfyUI port to accept connections.
 views.overlays.loading_overlay_view.repairing_runtime_before_backend_launch,Repairing runtime dependencies before backend launch.\nLive log is attached below.
-views.overlays.loading_overlay_view.starting_backend_process,Starting backend process. Live server log is attached below.
-views.overlays.loading_overlay_view.maintenance_completed_setup,Maintenance completed. Setup will resume now.
-views.overlays.loading_overlay_view.backend_ready_handoff,Backend is ready. Preparing Nexus shell hand-off.
+views.overlays.loading_overlay_view.starting_backend_process,Starting the ComfyUI server.\nLive server logs appear below.
+views.overlays.loading_overlay_view.maintenance_completed_setup,Maintenance is complete.\nResuming setup.
+views.overlays.loading_overlay_view.backend_ready_handoff,ComfyUI server is ready.\nConnecting the Nexus interface.
 views.overlays.loading_overlay_view.backend_online_title,Backend Online
 views.overlays.loading_overlay_view.comfyui_ready_loading_nexus_interface,ComfyUI is ready. Loading Nexus interface.
 views.overlays.loading_overlay_view.finalizing_nexus_link,FINALIZING NEXUS LINK...
@@ -169,7 +169,7 @@ views.overlays.product_setup_view.required_systems_are_checked_in_order_optional
 views.overlays.product_setup_view.optional_setup,OPTIONAL SETUP
 views.overlays.product_setup_view.workspace_link,WORKSPACE LINK
 views.overlays.product_setup_view.identify_the_root_directory_of_your_existing_comfyui_ins,Identify the root directory of your existing ComfyUI installation.
-views.overlays.product_setup_view.nexus_core_command_center,NEXUS CORE COMMAND CENTER
+views.overlays.product_setup_view.command_center,COMMAND CENTER
 views.overlays.product_setup_view.system_runtime_monitoring_kernel_v4_2_0_nexus,SYSTEM RUNTIME MONITORING // KERNEL v4.2.0-NEXUS
 views.overlays.product_setup_view.boot_matrix,BOOT MATRIX
 views.overlays.product_setup_view.cuda_device,CUDA DEVICE
@@ -904,8 +904,8 @@ setup.console.badge_fail,FAIL
 setup.console.badge_live,LIVE
 setup.console.preparing_detail,Preparing runtime checks before boot engagement.
 setup.console.standby_detail,Ready to start the ComfyUI backend.
-setup.console.booting_detail,Backend process is launching. Watching log stream and port probe.
-setup.console.failed_detail,Boot sequence failed. Review the console log and retry.
+setup.console.booting_detail,Backend process is launching.\nWatching log stream and port probe.
+setup.console.failed_detail,Boot sequence failed.\nReview the console log and retry.
 setup.console.online_detail,ComfyUI backend is reachable and ready for Nexus hand-off.
 setup.steps.welcome.title,Welcome
 setup.steps.welcome.description,Initialize the Nexus setup deck and prepare the local command center.
@@ -925,17 +925,20 @@ setup.steps.server.title,Server Standby
 setup.steps.server.description,Start ComfyUI with configured server options and wait for the local port.
 setup.steps.launch.title,Launch Nexus
 setup.steps.launch.description,Hand off to the existing WebView login sequence once the server is ready.
-loading.bridge_online_title,Neural Bridge Online
-loading.bridge_online_detail,ComfyUI has answered the shell handshake.
-loading.bridge_online_status,WELCOME TO NEXUS
+loading.preparing_nexus_title,Preparing Nexus
+loading.preparing_nexus_detail,Connecting to ComfyUI and preparing your workspace.
+loading.preparing_nexus_status,PREPARING NEXUS...
+loading.bridge_online_title,Nexus Connected
+loading.bridge_online_detail,ComfyUI connection confirmed.
+loading.bridge_online_status,NEXUS READY
 loading.finalizing_title,Finalizing Workspace
 loading.finalizing_detail,"Mounting tools, syncing shell controls, and preparing the reveal."
 loading.finalizing_status,PLEASE STAND BY // PREPARING WORKSPACE...
 loading.comfy_unreachable_title,ComfyUI Core Unreachable
 loading.comfy_unreachable_status,COMFYUI CORE UNREACHABLE // RETRYING...
-loading.bridge_timeout_title,Bridge Handshake Timeout
-loading.bridge_timeout_detail,PROTOS did not answer before the retry budget was exhausted. The Nexus bridge extension may be missing or incomplete.
-loading.bridge_timeout_status,PROTOS TIMEOUT // SETUP AVAILABLE
+loading.bridge_timeout_title,Nexus Connection Timed Out
+loading.bridge_timeout_detail,Nexus could not complete its connection to ComfyUI. Check the Nexus bridge extension, then retry.
+loading.bridge_timeout_status,NEXUS CONNECTION TIMEOUT // SETUP AVAILABLE
 toast.interrupting_job,Interrupting current job...
 setup.gpu.scanning,Scanning...
 setup.console.boot_canceled,Boot sequence was canceled before the server became ready.

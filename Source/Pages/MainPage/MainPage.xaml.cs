@@ -21,10 +21,12 @@ public partial class MainPage : ContentPage
 	private readonly NexusServerLifecycleCoordinator _serverLifecycle;
 	private readonly HeaderGpuStatusController _gpuStatusController;
 	private readonly NexusWebViewBridge _webViewBridge;
+	private readonly NexusControlDeckWindowService _controlDeckWindow = new();
 	private readonly NexusUiSurfaceManager _uiSurfaceManager = new();
 	private NexusPopupManager _popupManager = null!;
 	private readonly NexusInputRouter _inputRouter;
-	private readonly NexusLatestOperationCoordinator _latestOperations = new("main-page");
+	private readonly NexusOperationController _latestOperations = new("main-page");
+	private readonly NexusOperationController _bridgeOperations = new("main-page-bridge");
 	private readonly NodeLibraryService _nodeLibraryService = new();
 	private readonly ShellLayoutSignals _shellLayoutSignals = new();
 	private readonly TaskCompletionSource<bool> _webViewPlatformReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -47,7 +49,8 @@ public partial class MainPage : ContentPage
 	private bool _isRailAnimating = false;
 	private bool _isSystemLoading = true;
 	private bool _startupSplashHiding = false;
-	private bool _isControlDeckVisible = false;
+	private System.Diagnostics.Stopwatch? _serverBootSetupRouteStopwatch;
+	private int _serverBootSetupRouteGeneration;
 	private bool _isAssetDragActive = false;
 	private bool _isAssetDragCompleting = false;
 	private bool _assetDragSawPrimaryPressed = false;
@@ -92,7 +95,7 @@ public partial class MainPage : ContentPage
 			_serverLifecycle = (Application.Current as App)?.ServerLifecycle
 				?? throw new InvalidOperationException("Nexus server lifecycle coordinator is unavailable.");
 			_inputRouter = new NexusInputRouter(_uiSurfaceManager);
-			_webViewBridge = new NexusWebViewBridge(() => WorkspaceControl?.BrowserView);
+			_webViewBridge = new NexusWebViewBridge(() => WorkspaceControl?.BrowserSurface);
 			_tabController = new WorkflowTabController(
 				HeaderControl,
 				WorkflowDropdownControl,
@@ -103,7 +106,7 @@ public partial class MainPage : ContentPage
 				HandleWorkflowTabActionAsync,
 				_webViewBridge.ExecuteRawScriptAsync,
 				UpdateWorkflowContextBar);
-			_loadingOverlayController = new LoadingOverlayController(this, LoadingOverlayControl, HeaderControl);
+			_loadingOverlayController = new LoadingOverlayController(LoadingOverlayControl, HeaderControl);
 			_loadingOverlayController.SetNexusAppEntry(new DelegateNexusAppEntry(LaunchNexusAppEntryAsync));
 			_loadingOverlayController.SetServerLifecycleRunner(RunServerLifecycleFromLoadingAsync);
 			_serverLifecycle.AttachShell(this, new ServerLifecycleShellHooks(
@@ -113,6 +116,8 @@ public partial class MainPage : ContentPage
 			_serverLifecycle.StateChanged += OnServerLifecycleStateChanged;
 			_serverLifecycle.LogEmitted += OnServerLifecycleLogEmitted;
 			_gpuStatusController = new HeaderGpuStatusController(this, HeaderControl);
+			HeaderControl.Loaded += OnHeaderControlLoaded;
+			HeaderControl.GpuVisualSurfaceLoaded += OnGpuVisualSurfaceLoaded;
 			HeaderControl.Unloaded += OnHeaderControlUnloaded;
 			_shellLayoutSignals.LayoutInvalidated += OnShellLayoutInvalidated;
 			InitializeComfyPaths();
@@ -129,7 +134,6 @@ public partial class MainPage : ContentPage
 			InitializeNativeSystemTelemetry();
 			ApplyTabUiTuning();
 
-			ControlDeckControl.SetDisplayState(isVisible: false, opacity: 0);
 			ApplyRailState();
 			InitializeRailRoot();
 			Loaded += OnMainPageLoaded;
@@ -175,6 +179,8 @@ public partial class MainPage : ContentPage
 	private void OnMainPageUnloaded(object? sender, EventArgs e)
 	{
 		_isShuttingDown = true;
+		_controlDeckWindow.Close();
+		_loadingOverlayController.Stop();
 		RailControl?.StopPrewarmForShutdown();
 		StopShellRuntimeServicesForUnload();
 		StopToastHoldTimer();
@@ -182,8 +188,11 @@ public partial class MainPage : ContentPage
 		_serverLifecycle.LogEmitted -= OnServerLifecycleLogEmitted;
 		_serverLifecycle.DetachShell(this);
 		HeaderControl.Unloaded -= OnHeaderControlUnloaded;
+		HeaderControl.Loaded -= OnHeaderControlLoaded;
+		HeaderControl.GpuVisualSurfaceLoaded -= OnGpuVisualSurfaceLoaded;
 		_loginSequence.Cancel();
 		_latestOperations.StopAll();
+		_bridgeOperations.StopAll();
 		NexusDialogService.Closed -= OnNexusDialogClosed;
 		NexusDialogService.Unregister(NexusDialogOverlayControl);
 	}
@@ -221,6 +230,22 @@ public partial class MainPage : ContentPage
 		_gpuStatusController.Stop();
 	}
 
+	private async void OnHeaderControlLoaded(object? sender, EventArgs e)
+	{
+		await PrepareHeaderGpuVisualsAsync();
+	}
+
+	private async void OnGpuVisualSurfaceLoaded(object? sender, EventArgs e)
+	{
+		await PrepareHeaderGpuVisualsAsync();
+	}
+
+	private async Task PrepareHeaderGpuVisualsAsync()
+	{
+		await _gpuStatusController.PrepareSurfacesAsync();
+		_gpuStatusController.RestoreAfterSurfaceAttach();
+	}
+
 	private void OnShellLayoutInvalidated(object? sender, ShellLayoutInvalidatedEventArgs e)
 	{
 		HeaderControl.InvalidateShellLayout();
@@ -232,7 +257,6 @@ public partial class MainPage : ContentPage
 		WireHeaderEvents();
 		WireWorkspaceEvents();
 		WireOverlayEvents();
-		WireControlDeckEvents();
 		WireToolbarEvents();
 	}
 
@@ -263,6 +287,8 @@ public partial class MainPage : ContentPage
 	private void WireOverlayEvents()
 	{
 		LoadingOverlayControl.SelectCoreRequested += OnSelectCoreClicked;
+		LoadingOverlayControl.RetryRequested += OnLoadingRetryRequested;
+		LoadingOverlayControl.ServerBootSetupRequested += OnServerBootSetupRequested;
 		LoadingOverlayControl.GetComfyRequested += OnGetComfyClicked;
 		LoadingOverlayControl.GetGitHubRequested += OnGetGitHubClicked;
 
@@ -288,19 +314,39 @@ public partial class MainPage : ContentPage
 		CommandInputControl.BackdropTapped += OnCommandInputBackdropTapped;
 	}
 
-	private void WireControlDeckEvents()
+	private INexusControlDeck? CurrentControlDeck => _controlDeckWindow.CurrentDeck;
+
+	internal void CloseControlDeckWindow()
+		=> _controlDeckWindow.Close();
+
+	private void ConfigureControlDeck(INexusControlDeck deck)
 	{
-		ControlDeckControl.ManualRebootCommand = new Command(async () => await ExecuteControlDeckManualRebootAsync());
-		ControlDeckControl.ToggleBridgeDiagnosticsCommand = new Command(ExecuteControlDeckToggleBridgeDiagnostics);
-		ControlDeckControl.ToggleWebLogsCommand = new Command(async () => await ExecuteControlDeckToggleWebLogsAsync());
-		ControlDeckControl.ToggleDevToolsCommand = new Command(ExecuteControlDeckToggleDevTools);
-		ControlDeckControl.ToggleUiIsolationCommand = new Command(async () => await ExecuteControlDeckToggleUiIsolationAsync());
-		ControlDeckControl.PatchLocalHudCommand = new Command(async () => await ExecuteControlDeckPatchLocalHudAsync());
-		ControlDeckControl.PatchNexusBridgeCommand = new Command(async () => await ExecuteControlDeckPatchNexusBridgeAsync());
-		ControlDeckControl.OpenFullLogCommand = new Command(async () => await ExecuteControlDeckOpenFullLogAsync());
-		ControlDeckControl.ClearLogCommand = new Command(ExecuteControlDeckClearLog);
-		ControlDeckControl.SetLogFileRelativePath(GetControlDeckLogRelativePath());
-		ControlDeckControl.LogSearchChanged += OnLogSearchChanged;
+		deck.ManualRebootCommand = new Command(async () => await ExecuteControlDeckManualRebootAsync());
+		deck.BootServerCommand = new Command(async () => await ExecuteControlDeckBootServerAsync());
+		deck.ShutdownServerCommand = new Command(async () => await ExecuteControlDeckShutdownServerAsync());
+		deck.ToggleBridgeDiagnosticsCommand = new Command(ExecuteControlDeckToggleBridgeDiagnostics);
+		deck.ToggleWebLogsCommand = new Command(async () => await ExecuteControlDeckToggleWebLogsAsync());
+		deck.ToggleDevToolsCommand = new Command(ExecuteControlDeckToggleDevTools);
+		deck.ToggleUiIsolationCommand = new Command(async () => await ExecuteControlDeckToggleUiIsolationAsync());
+		deck.PatchLocalHudCommand = new Command(async () => await ExecuteControlDeckPatchLocalHudAsync());
+		deck.PatchNexusBridgeCommand = new Command(async () => await ExecuteControlDeckPatchNexusBridgeAsync());
+		deck.OpenFullLogCommand = new Command(async () => await ExecuteControlDeckOpenFullLogAsync());
+		deck.ClearLogCommand = new Command(ExecuteControlDeckClearLog);
+		deck.SetLogFileRelativePath(GetControlDeckLogRelativePath());
+		deck.SetBridgeDiagnosticsState(_bridgeDiagnosticsEnabled);
+		deck.SetWebLogsState(_webLogsEnabled);
+		deck.SetDevToolsState(_devToolsController.IsEnabled);
+		deck.SetUiIsolationState(_uiIsolationEnabled);
+		deck.SetPulseRun(_pulseIsRunning, _pulseInstantStop);
+		deck.SetPulseWeb(
+			isBridgeLive: _bridgeSession.Snapshot.State == NexusBridgeSessionState.Live,
+			serverStatus: _controlDeckServerStatus,
+			errorCount: _webPulseErrorCount,
+			bridgeTraceEnabled: _bridgeDiagnosticsEnabled,
+			webLogsEnabled: _webLogsEnabled,
+			devToolsEnabled: _devToolsController.IsEnabled);
+		deck.SetLogText(CreateLogText(_allLogs));
+		deck.LogSearchChanged += OnLogSearchChanged;
 	}
 
 	private void WireToolbarEvents()
@@ -365,7 +411,7 @@ public partial class MainPage : ContentPage
 			}
 
 			var pointer = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
-			double railRight = GetControlDeckWidth() + GetTargetRailWidth();
+			double railRight = GetTargetRailWidth();
 			double x = railRight + 10;
 			double y = pointer?.Y + 14 ?? HeaderControl.Height + 24;
 			double maxX = Math.Max(4, RootLayoutGrid.Width - request.Width - 8);
@@ -409,9 +455,6 @@ public partial class MainPage : ContentPage
 		ModelThumbnailPreview.Opacity = 0;
 	}
 
-	private double GetControlDeckWidth()
-		=> ControlDeckColumn.Width.IsAbsolute ? ControlDeckColumn.Width.Value : 0;
-
 	private async void OnRailWorkflowBookmarksChanged(object? sender, EventArgs e)
 	{
 		try
@@ -449,14 +492,14 @@ public partial class MainPage : ContentPage
 
 					_tabController.TrackOpenedWorkflow(Path.GetFileNameWithoutExtension(request.FullPath), relativePath);
 					await WebViewUtility.SimulateFileDropAsync(
-						WorkspaceControl.BrowserView,
+					WorkspaceControl.BrowserSurface,
 						request.FullPath,
 						WorkflowTabController.StripWorkflowPrefix(relativePath));
 					return;
 				}
 			}
 
-			await ComfyUI_Nexus.Ui.AssetActionDispatcher.DispatchAsync(_webViewBridge, WorkspaceControl.BrowserView, request);
+			await ComfyUI_Nexus.Ui.AssetActionDispatcher.DispatchAsync(_webViewBridge, WorkspaceControl.BrowserSurface, request);
 		}
 		catch (Exception ex)
 		{
@@ -479,7 +522,7 @@ public partial class MainPage : ContentPage
 
 		if (request.Action is AssetInteractionAction.Open or AssetInteractionAction.Insert)
 		{
-			await ComfyUI_Nexus.Ui.AssetActionDispatcher.DispatchAsync(_webViewBridge, WorkspaceControl.BrowserView, request);
+			await ComfyUI_Nexus.Ui.AssetActionDispatcher.DispatchAsync(_webViewBridge, WorkspaceControl.BrowserSurface, request);
 			return;
 		}
 
@@ -507,7 +550,7 @@ public partial class MainPage : ContentPage
 			_assetDragStartedUtc = DateTime.UtcNow;
 			_lastAppliedCursor = CssCursorNames.Grabbing;
 			ShowAssetDragGhost(request);
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserView, NexusCursorShape.Grabbing);
+			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Grabbing);
 			if (request.Mode == AssetInteractionMode.Image)
 			{
 				await _webViewBridge.NotifyAssetDropFeedbackSourceAsync(request);
@@ -523,7 +566,7 @@ public partial class MainPage : ContentPage
 			_assetDragSawPrimaryPressed = false;
 			_activeAssetDragRequest = null;
 			HideAssetDragGhost();
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserView, NexusCursorShape.Arrow);
+			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
 			Log($"Asset drag intent failed: {ex.GetType().Name} - {ex.Message}");
 		}
 	}
@@ -578,7 +621,7 @@ public partial class MainPage : ContentPage
 		}
 
 		double blockedLeftWidth =
-			(_isControlDeckVisible ? ShellLayoutScale.H(ShellLayoutOptions.ControlDeckExpandedWidth, 200) : 0)
+			0
 			+ (_isFileRailExpanded ? _expandedRailWidth : ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
 		double topLimit = HeaderControl.Height;
 		double bottomLimit = Math.Max(topLimit, RootLayoutGrid.Height - ToolbarControl.Height);
@@ -642,7 +685,7 @@ public partial class MainPage : ContentPage
 			_assetDragSawPrimaryPressed = false;
 			_lastAppliedCursor = CssCursorNames.Default;
 			HideAssetDragGhost();
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserView, NexusCursorShape.Arrow);
+			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
 			_isAssetDragCompleting = false;
 		}
 	}
@@ -717,7 +760,7 @@ public partial class MainPage : ContentPage
 
 	private AssetOpenRequest AttachAssetDropClientPosition(AssetOpenRequest request)
 	{
-		var point = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(WorkspaceControl.BrowserView);
+		var point = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(WorkspaceControl.BrowserSurface.InputElement);
 		if (point is null)
 		{
 			return request;
@@ -733,7 +776,7 @@ public partial class MainPage : ContentPage
 	private AssetOpenRequest AttachRailWidth(AssetOpenRequest request)
 	{
 		double railWidth =
-			(_isControlDeckVisible ? ShellLayoutScale.H(ShellLayoutOptions.ControlDeckExpandedWidth, 200) : 0)
+			0
 			+ (_isFileRailExpanded ? _expandedRailWidth : ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
 		return request with { RailWidth = railWidth };
 	}
