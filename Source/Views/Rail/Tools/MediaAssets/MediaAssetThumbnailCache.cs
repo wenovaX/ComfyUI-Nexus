@@ -15,6 +15,11 @@ namespace ComfyUI_Nexus.Views.Rail.Tools.MediaAssets;
 internal sealed class MediaAssetThumbnailCache
 {
 	private const uint MaxThumbnailPixelSize = 360;
+	private static readonly JsonSerializerOptions WriteIndentedJsonOptions = new()
+	{
+		WriteIndented = true,
+	};
+
 	private readonly object _manifestGate = new();
 	private MediaThumbnailManifest? _manifest;
 
@@ -333,7 +338,7 @@ internal sealed class MediaAssetThumbnailCache
 
 	private void SaveManifestUnsafe()
 	{
-		string json = JsonSerializer.Serialize(GetManifestUnsafe(), new JsonSerializerOptions { WriteIndented = true });
+		string json = JsonSerializer.Serialize(GetManifestUnsafe(), WriteIndentedJsonOptions);
 		File.WriteAllText(ManifestPath, json, Encoding.UTF8);
 	}
 

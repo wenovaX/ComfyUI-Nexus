@@ -11,6 +11,13 @@ using ComfyUI_Nexus.Setup.Services;
 
 internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDiagnosticNode
 {
+	private readonly ComfyInstallService _comfyInstall;
+
+	internal PythonEnvironmentDiagnosticNode(ComfyInstallService comfyInstall)
+	{
+		_comfyInstall = comfyInstall ?? throw new ArgumentNullException(nameof(comfyInstall));
+	}
+
 	private const string CreateOption = "create-venv";
 	private const string ResetOption = "reset-venv";
 	private const string KeepOption = "keep-venv";
@@ -21,7 +28,7 @@ internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDia
 	public bool IsCritical => false;
 
 	public string EnvironmentDetails { get; private set; } = Text("setup.venv.checking");
-	public string EnvironmentPath { get; private set; } = ComfyInstallService.ComfyVenvPath;
+	public string EnvironmentPath { get; private set; } = string.Empty;
 	public IReadOnlyList<DiagnosticOption> AvailableOptions { get; private set; } = Array.Empty<DiagnosticOption>();
 	public string SelectedOptionId { get; private set; } = CreateOption;
 
@@ -34,7 +41,7 @@ internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDia
 	public void SelectOption(string optionId)
 	{
 		SelectedOptionId = optionId;
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _comfyInstall.SettingsService.Settings;
 
 		if (optionId is CreateOption or ResetOption or KeepOption)
 		{
@@ -44,19 +51,19 @@ internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDia
 				: Text("setup.venv.mode_selected");
 		}
 
-		SetupSettingsService.Instance.Save();
+		_comfyInstall.SettingsService.Save();
 	}
 
 	public Task<HealthState> CheckHealthAsync(CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _comfyInstall.SettingsService.Settings;
 		bool useVenv = RuntimePythonModePresenter.ShouldDisplayVenvMode(settings, includeActiveLaunchSnapshot: false);
-		bool hasVenvDirectory = Directory.Exists(ComfyInstallService.ComfyVenvPath);
-		bool hasVenvPython = File.Exists(ComfyInstallService.ComfyVenvPythonExe);
+		bool hasVenvDirectory = Directory.Exists(_comfyInstall.Paths.ActiveVenvPath);
+		bool hasVenvPython = File.Exists(_comfyInstall.Paths.ActiveVenvPythonExe);
 
-		EnvironmentPath = hasVenvDirectory ? ComfyInstallService.ComfyVenvPath : ComfyInstallService.ComfyPath;
+		EnvironmentPath = hasVenvDirectory ? _comfyInstall.Paths.ActiveVenvPath : _comfyInstall.Paths.ActiveComfyPath;
 
 		if (!useVenv)
 		{
@@ -94,22 +101,22 @@ internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDia
 
 			if (SelectedOptionId == ResetOption)
 			{
-				var result = await ComfyInstallService.Instance.RebuildComfyVenvOnlyAsync(cancellationToken);
+				var result = await _comfyInstall.RebuildComfyVenvOnlyAsync(cancellationToken);
 				progress?.Report(result.IsSuccess ? 1.0 : 0.0);
 				return new RecoveryResult(result.IsSuccess, result.Message);
 			}
 
 			if (SelectedOptionId == KeepOption)
 			{
-				SetupSettingsService.Instance.Settings.ServerPythonMode = PythonExecutionModes.Venv;
-				SetupSettingsService.Instance.Save();
+				_comfyInstall.SettingsService.Settings.ServerPythonMode = PythonExecutionModes.Venv;
+				_comfyInstall.SettingsService.Save();
 				progress?.Report(1.0);
 				return new RecoveryResult(true, Text("setup.venv.keep_selected"));
 			}
 
 			if (SelectedOptionId == CreateOption)
 			{
-				var result = await ComfyInstallService.Instance.EnsureComfyVenvOnlyAsync(cancellationToken);
+				var result = await _comfyInstall.EnsureComfyVenvOnlyAsync(cancellationToken);
 				progress?.Report(result.IsSuccess ? 1.0 : 0.0);
 				return new RecoveryResult(result.IsSuccess, result.Message);
 			}
@@ -125,23 +132,38 @@ internal sealed class PythonEnvironmentDiagnosticNode : IOptionalConfigurableDia
 
 	private void RefreshOptions()
 	{
-		bool hasVenvDirectory = Directory.Exists(ComfyInstallService.ComfyVenvPath);
-		bool hasVenvPython = File.Exists(ComfyInstallService.ComfyVenvPythonExe);
+		bool hasVenvDirectory = Directory.Exists(_comfyInstall.Paths.ActiveVenvPath);
+		bool hasVenvPython = File.Exists(_comfyInstall.Paths.ActiveVenvPythonExe);
 
 		var options = new List<DiagnosticOption>();
 
 		if (!hasVenvDirectory)
 		{
-			options.Add(DiagnosticNodeHelpers.CreateOption(CreateOption, Text("setup.venv.option_create"), Text("setup.venv.option_create_description"), isRecommended: true));
+			options.Add(DiagnosticNodeHelpers.CreateOption(
+				CreateOption,
+				Text("setup.venv.option_create"),
+				Text("setup.venv.option_create_description"),
+				isRecommended: true,
+				requiresToolingLease: true));
 		}
 		else if (hasVenvPython)
 		{
-			options.Add(DiagnosticNodeHelpers.CreateOption(ResetOption, Text("setup.venv.option_reset"), Text("setup.venv.option_reset_description"), isRecommended: true));
-			options.Add(DiagnosticNodeHelpers.CreateOption(KeepOption, Text("setup.venv.option_keep"), Text("setup.venv.option_keep_description")));
+			options.Add(DiagnosticNodeHelpers.CreateOption(
+				ResetOption,
+				Text("setup.venv.option_reset"),
+				Text("setup.venv.option_reset_description"),
+				isRecommended: true,
+				requiresToolingLease: true));
+			options.Add(DiagnosticNodeHelpers.CreateOption(KeepOption, Text("setup.venv.option_keep"), Text("setup.venv.option_keep_description"), requiresRecovery: false));
 		}
 		else
 		{
-			options.Add(DiagnosticNodeHelpers.CreateOption(ResetOption, Text("setup.venv.option_reset"), Text("setup.venv.option_reset_incomplete_description"), isRecommended: true));
+			options.Add(DiagnosticNodeHelpers.CreateOption(
+				ResetOption,
+				Text("setup.venv.option_reset"),
+				Text("setup.venv.option_reset_incomplete_description"),
+				isRecommended: true,
+				requiresToolingLease: true));
 		}
 
 		AvailableOptions = options;

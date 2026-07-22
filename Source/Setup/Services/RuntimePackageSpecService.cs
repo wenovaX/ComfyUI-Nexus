@@ -15,11 +15,11 @@ internal sealed class RuntimePackageSpecService
 	};
 
 	internal static RuntimePackageSpec Load()
-		=> LoadFromRoot(ComfyInstallService.RootPath);
+		=> LoadFromPackageRoot(ComfyInstallService.PackageRoot);
 
-	internal static RuntimePackageSpec LoadFromRoot(string rootPath)
+	internal static RuntimePackageSpec LoadFromPackageRoot(string packageRoot)
 	{
-		string specPath = Path.Combine(rootPath, SpecRelativePath);
+		string specPath = Path.Combine(packageRoot, SpecRelativePath);
 		if (!File.Exists(specPath))
 		{
 			return RuntimePackageSpec.CreateFallback();
@@ -32,8 +32,8 @@ internal sealed class RuntimePackageSpecService
 		return spec;
 	}
 
-	internal static string GetPackageRoot(string rootPath)
-		=> Path.Combine(rootPath, "LocalRuntime", "Packages");
+	internal static string GetPackageRoot(string packageRoot)
+		=> Path.Combine(packageRoot, "LocalRuntime", "Packages");
 }
 
 internal sealed record RuntimePackageSpec(

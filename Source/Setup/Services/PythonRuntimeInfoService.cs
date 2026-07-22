@@ -1,6 +1,7 @@
 namespace ComfyUI_Nexus.Setup.Services;
 
 using System.Text;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Runtime;
 
 internal sealed record PythonRuntimeInfo(
@@ -11,14 +12,16 @@ internal sealed record PythonRuntimeInfo(
 
 internal sealed class PythonRuntimeInfoService
 {
-	internal static PythonRuntimeInfoService Instance { get; } = new();
-
 	private readonly Dictionary<string, PythonRuntimeInfo> _cache = new(StringComparer.OrdinalIgnoreCase);
-	private readonly SemaphoreSlim _gate = new(1, 1);
+	private readonly object _cacheGate = new();
+	private readonly SemaphoreSlim _probeGate = new(1, 1);
+	private long _generation;
 
-	internal async Task<PythonRuntimeInfo?> GetCurrentAsync(CancellationToken cancellationToken)
+	internal async Task<PythonRuntimeInfo?> GetAsync(
+		string executablePath,
+		NexusRuntimeToolingLease? lease,
+		CancellationToken cancellationToken)
 	{
-		string executablePath = RuntimeRepairTarget.GetPythonExecutable();
 		if (!File.Exists(executablePath))
 		{
 			return null;
@@ -26,54 +29,62 @@ internal sealed class PythonRuntimeInfoService
 
 		string fullPath = Path.GetFullPath(executablePath);
 		string cacheKey = CreateCacheKey(fullPath);
-		await _gate.WaitAsync(cancellationToken);
-		try
+		lock (_cacheGate)
 		{
 			if (_cache.TryGetValue(cacheKey, out PythonRuntimeInfo? cached))
 			{
 				return cached;
 			}
+		}
 
-			var result = await ProcessRunner.RunAsync(
-				fullPath,
-				"-c \"import platform, sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}|{sys.implementation.cache_tag}|{platform.machine()}')\"",
-				Path.GetDirectoryName(fullPath),
-				cancellationToken: cancellationToken,
-				outputEncoding: Encoding.UTF8);
-			if (result.ExitCode != 0)
+		await _probeGate.WaitAsync(cancellationToken);
+		try
+		{
+			lock (_cacheGate)
 			{
-				return null;
+				if (_cache.TryGetValue(cacheKey, out PythonRuntimeInfo? cached))
+				{
+					return cached;
+				}
 			}
 
-			string[] values = result.Output
-				.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-				.LastOrDefault()
-				?.Split('|', StringSplitOptions.TrimEntries) ?? [];
-			if (values.Length != 3 || !TryNormalizeAbi(values[1], out string? pythonAbi) || !TryNormalizePlatform(values[2], out string? platform))
+			long generation = Volatile.Read(ref _generation);
+			string toolingExecutablePath = lease?.GetToolingPath(fullPath) ?? fullPath;
+			string? toolingWorkingDirectory = Path.GetDirectoryName(toolingExecutablePath);
+			string[]? values = await PythonRuntimeProbe.ReadAsync(
+				toolingExecutablePath,
+				toolingWorkingDirectory,
+				cancellationToken);
+			if (values is null
+				|| values.Length != 3
+				|| !TryNormalizeAbi(values[1], out string? pythonAbi)
+				|| !TryNormalizePlatform(values[2], out string? platform))
 			{
 				return null;
 			}
 
 			var runtimeInfo = new PythonRuntimeInfo(fullPath, values[0], pythonAbi, platform);
-			_cache[cacheKey] = runtimeInfo;
+			lock (_cacheGate)
+			{
+				if (generation == _generation)
+				{
+					_cache[cacheKey] = runtimeInfo;
+				}
+			}
 			return runtimeInfo;
 		}
 		finally
 		{
-			_gate.Release();
+			_probeGate.Release();
 		}
 	}
 
 	internal void Invalidate()
 	{
-		_gate.Wait();
-		try
+		lock (_cacheGate)
 		{
 			_cache.Clear();
-		}
-		finally
-		{
-			_gate.Release();
+			_generation++;
 		}
 	}
 
@@ -111,5 +122,30 @@ internal sealed class PythonRuntimeInfoService
 			_ => string.Empty
 		};
 		return platform.Length > 0;
+	}
+}
+
+internal static class PythonRuntimeProbe
+{
+	internal static async Task<string[]?> ReadAsync(
+		string toolingExecutablePath,
+		string? toolingWorkingDirectory,
+		CancellationToken cancellationToken)
+	{
+		var result = await ProcessRunner.RunAsync(
+			toolingExecutablePath,
+			"-c \"import platform, sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}|{sys.implementation.cache_tag}|{platform.machine()}')\"",
+			toolingWorkingDirectory,
+			cancellationToken: cancellationToken,
+			outputEncoding: Encoding.UTF8);
+		if (result.ExitCode != 0)
+		{
+			return null;
+		}
+
+		return result.Output
+			.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+			.LastOrDefault()
+			?.Split('|', StringSplitOptions.TrimEntries);
 	}
 }

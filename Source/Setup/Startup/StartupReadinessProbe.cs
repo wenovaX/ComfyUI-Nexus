@@ -11,6 +11,13 @@ internal sealed record StartupReadinessResult(bool IsUsable, string Reason)
 
 internal sealed class StartupReadinessProbe
 {
+	private readonly NexusComfyRuntimePaths _paths;
+
+	internal StartupReadinessProbe(NexusComfyRuntimePaths paths)
+	{
+		_paths = paths ?? throw new ArgumentNullException(nameof(paths));
+	}
+
 	internal async Task<StartupReadinessResult> CheckAsync(SetupSettings settings, CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(settings.ListenAddress))
@@ -23,7 +30,7 @@ internal sealed class StartupReadinessProbe
 			return NotUsable($"Server port is invalid: {settings.ServerPort}.");
 		}
 
-		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
+		string comfyPath = _paths.ActiveComfyPath;
 		if (string.IsNullOrWhiteSpace(comfyPath) || !Directory.Exists(comfyPath))
 		{
 			return NotUsable($"ComfyUI path is missing or unavailable: {comfyPath}");
@@ -40,7 +47,7 @@ internal sealed class StartupReadinessProbe
 			return packageResult;
 		}
 
-		string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable(settings);
+		string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable(settings, _paths);
 		if (string.IsNullOrWhiteSpace(pythonExecutable))
 		{
 			return NotUsable("Python runtime is missing or unavailable.");
@@ -62,7 +69,7 @@ internal sealed class StartupReadinessProbe
 	private static StartupReadinessResult CheckBuiltInPackageAvailability(SetupSettings settings)
 	{
 		var packageSpec = RuntimePackageSpecService.Load();
-		string pythonPackagePath = packageSpec.GetPythonPackagePath(ComfyInstallService.RootPath);
+		string pythonPackagePath = packageSpec.GetPythonPackagePath(ComfyInstallService.PackageRoot);
 		if (UsesBuiltInPython(settings)
 			&& !File.Exists(ComfyInstallService.PythonExe)
 			&& !File.Exists(pythonPackagePath))
@@ -71,7 +78,7 @@ internal sealed class StartupReadinessProbe
 		}
 
 		string builtInGitExe = Path.Combine(ComfyInstallService.InstalledPath, "Git", "cmd", "git.exe");
-		string gitPackagePath = packageSpec.GetGitPackagePath(ComfyInstallService.RootPath);
+		string gitPackagePath = packageSpec.GetGitPackagePath(ComfyInstallService.PackageRoot);
 		if (UsesBuiltInGit(settings)
 			&& !File.Exists(builtInGitExe)
 			&& !File.Exists(gitPackagePath))

@@ -1,23 +1,19 @@
 namespace ComfyUI_Nexus.Setup.Services;
 
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 
 internal sealed class SetupSettingsService
 {
-	private static readonly Lazy<SetupSettingsService> _instance = new(() => new SetupSettingsService());
-	internal static SetupSettingsService Instance => _instance.Value;
-
-	private const string SettingsFileName = "nexus_settings.json";
 	private readonly string _settingsPath;
 
 	internal SetupSettings Settings { get; private set; }
 
-	private SetupSettingsService()
+	internal SetupSettingsService()
 	{
-		string settingsRoot = ResolveSettingsRoot();
-		_settingsPath = Path.Combine(settingsRoot, SettingsFileName);
+		_settingsPath = NexusStorageLayout.SettingsPath;
 		Settings = SetupSettings.Load(_settingsPath);
-		NormalizeSettings(settingsRoot);
+		NormalizeSettings();
 
 		// Ensure file exists with current defaults if missing
 		if (!File.Exists(_settingsPath))
@@ -26,61 +22,10 @@ internal sealed class SetupSettingsService
 		}
 	}
 
-	private static string ResolveSettingsRoot()
-	{
-		string? portableRoot = Environment.GetEnvironmentVariable("COMFYUI_NEXUS_PORTABLE_ROOT");
-		if (!string.IsNullOrWhiteSpace(portableRoot))
-		{
-			try
-			{
-				return Path.GetFullPath(portableRoot)
-					.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			}
-			catch
-			{
-				// Fall back to the executable directory when a launcher provides an invalid root.
-			}
-		}
-
-		string baseDirectory = Path.GetFullPath(GetExecutableDirectory())
-			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-		string[] segments = baseDirectory.Split(
-			[Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar],
-			StringSplitOptions.RemoveEmptyEntries);
-
-		if (!segments.Contains("bin", StringComparer.OrdinalIgnoreCase))
-		{
-			return baseDirectory;
-		}
-
-		string? root = baseDirectory;
-		while (root != null && !File.Exists(Path.Combine(root, "ComfyUI-Nexus.csproj")))
-		{
-			root = Path.GetDirectoryName(root);
-		}
-
-		return root ?? baseDirectory;
-	}
-
-	private static string GetExecutableDirectory()
-	{
-		string? processPath = Environment.ProcessPath;
-		if (!string.IsNullOrWhiteSpace(processPath))
-		{
-			string? processDirectory = Path.GetDirectoryName(processPath);
-			if (!string.IsNullOrWhiteSpace(processDirectory))
-			{
-				return processDirectory;
-			}
-		}
-
-		return AppContext.BaseDirectory;
-	}
-
 	internal void Reload()
 	{
 		Settings = SetupSettings.Load(_settingsPath);
-		NormalizeSettings(Path.GetDirectoryName(_settingsPath) ?? AppContext.BaseDirectory);
+		NormalizeSettings();
 	}
 
 	internal void Save()
@@ -133,14 +78,14 @@ internal sealed class SetupSettingsService
 		RemoveBootTask(PendingBootTaskIds.RuntimePurge, save: false);
 		RemoveBootTask(PendingBootTaskIds.ResetSetup, save: false);
 
-		NormalizeSettings(Path.GetDirectoryName(_settingsPath) ?? AppContext.BaseDirectory);
+		NormalizeSettings();
 		Save();
 	}
 
 	internal void ResetAll()
 	{
 		Settings = new SetupSettings();
-		NormalizeSettings(Path.GetDirectoryName(_settingsPath) ?? AppContext.BaseDirectory);
+		NormalizeSettings();
 		Save();
 	}
 
@@ -314,10 +259,8 @@ internal sealed class SetupSettingsService
 			_ => 100
 		};
 
-	private void NormalizeSettings(string settingsRoot)
+	private void NormalizeSettings()
 	{
-		Settings.RootPath = settingsRoot;
-
 		if (!SetupInstallModes.IsKnown(Settings.InstallMode))
 		{
 			Settings.InstallMode = SetupInstallModes.LocalRuntime;
@@ -335,12 +278,12 @@ internal sealed class SetupSettingsService
 
 		if (string.Equals(Settings.GitSource, "builtin", StringComparison.Ordinal))
 		{
-			Settings.GitPath = Path.Combine(settingsRoot, "LocalRuntime", "Installed", "Git", "cmd", "git.exe");
+			Settings.GitPath = Path.Combine(NexusStorageLayout.LocalRuntimeRoot, "Installed", "Git", "cmd", "git.exe");
 		}
 
 		if (string.Equals(Settings.PythonSource, "builtin", StringComparison.Ordinal))
 		{
-			Settings.PythonPath = Path.Combine(settingsRoot, "LocalRuntime", "Installed", "Python", "python.exe");
+			Settings.PythonPath = Path.Combine(NexusStorageLayout.LocalRuntimeRoot, "Installed", "Python", "python.exe");
 		}
 
 		Settings.PendingBootTasks ??= new List<PendingBootTask>();

@@ -7,22 +7,23 @@ using ComfyUI_Nexus.Diagnostics;
 
 namespace ComfyUI_Nexus.Setup.Runtime;
 
-internal static class GpuDiscoveryService
+internal sealed class GpuDiscoveryService
 {
 	private const string QueryArguments = "--query-gpu=index,name,memory.total --format=csv,noheader,nounits";
-	private static readonly object Gate = new();
-	private static readonly SemaphoreSlim ShutdownGate = new(1, 1);
-	private static readonly List<Process> ActiveProcesses = new();
-	private static IReadOnlyList<GpuDeviceInfo>? _cachedDevices;
-	private static Task<GpuDiscoveryResult>? _discoveryTask;
-	private static bool _isRunning;
-	private static bool _isShutdownInProgress;
-	private static bool _externalQueriesSealed;
+	private static readonly char[] LineSeparators = ['\r', '\n'];
+	private readonly object _gate = new();
+	private readonly SemaphoreSlim _shutdownGate = new(1, 1);
+	private readonly List<Process> _activeProcesses = new();
+	private IReadOnlyList<GpuDeviceInfo>? _cachedDevices;
+	private Task<GpuDiscoveryResult>? _discoveryTask;
+	private bool _isRunning;
+	private bool _isShutdownInProgress;
+	private bool _externalQueriesSealed;
 
-	internal static async Task<StartResult> StartAsync()
+	internal async Task<StartResult> StartAsync()
 	{
 		Task<GpuDiscoveryResult> discoveryTask;
-		lock (Gate)
+		lock (_gate)
 		{
 			if (_isShutdownInProgress || (_isRunning && _externalQueriesSealed))
 			{
@@ -51,7 +52,7 @@ internal static class GpuDiscoveryService
 		try
 		{
 			GpuDiscoveryResult result = await discoveryTask;
-			lock (Gate)
+			lock (_gate)
 			{
 				if (ReferenceEquals(_discoveryTask, discoveryTask))
 				{
@@ -69,7 +70,7 @@ internal static class GpuDiscoveryService
 		}
 		catch (Exception ex)
 		{
-			lock (Gate)
+			lock (_gate)
 			{
 				if (ReferenceEquals(_discoveryTask, discoveryTask))
 				{
@@ -81,17 +82,17 @@ internal static class GpuDiscoveryService
 		}
 	}
 
-	internal static IReadOnlyList<GpuDeviceInfo> GetCachedDevicesOrFallback()
+	internal IReadOnlyList<GpuDeviceInfo> GetCachedDevicesOrFallback()
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			return _cachedDevices ?? GetFallbackDevices();
 		}
 	}
 
-	internal static void BeginQuiesce()
+	internal void BeginQuiesce()
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			if (!_externalQueriesSealed)
 			{
@@ -102,9 +103,9 @@ internal static class GpuDiscoveryService
 		}
 	}
 
-	internal static string? TryGetCachedDeviceName(string? id)
+	internal string? TryGetCachedDeviceName(string? id)
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			if (_cachedDevices is not { Count: > 0 } devices)
 			{
@@ -127,10 +128,10 @@ internal static class GpuDiscoveryService
 		}
 	}
 
-	internal static async Task<StopResult> StopAsync()
+	internal async Task<StopResult> StopAsync()
 	{
 		NexusLog.Info("[GPU] Discovery stop requested.");
-		await ShutdownGate.WaitAsync();
+		await _shutdownGate.WaitAsync();
 		Task<GpuDiscoveryResult>? discoveryTask = null;
 		try
 		{
@@ -138,7 +139,7 @@ internal static class GpuDiscoveryService
 			// that lifetime, so never launch another nvidia-smi process after shutdown
 			// begins. Subsequent callers receive the completed cache or generic fallback.
 			BeginQuiesce();
-			lock (Gate)
+			lock (_gate)
 			{
 				discoveryTask = _discoveryTask;
 			}
@@ -148,16 +149,16 @@ internal static class GpuDiscoveryService
 			// Block new discovery requests, then let the in-flight query finish normally.
 			await AwaitDiscoveryCompletionAsync(discoveryTask);
 			Process[] activeProcesses;
-			lock (Gate)
+			lock (_gate)
 			{
-				activeProcesses = ActiveProcesses.ToArray();
+				activeProcesses = _activeProcesses.ToArray();
 			}
 
 			await WaitForProcessesToExitAsync(activeProcesses);
 
-			lock (Gate)
+			lock (_gate)
 			{
-				ActiveProcesses.RemoveAll(process => !IsProcessRunning(process));
+				_activeProcesses.RemoveAll(process => !IsProcessRunning(process));
 				_isRunning = false;
 				if (ReferenceEquals(_discoveryTask, discoveryTask))
 				{
@@ -175,16 +176,16 @@ internal static class GpuDiscoveryService
 		}
 		finally
 		{
-			lock (Gate)
+			lock (_gate)
 			{
 				_isShutdownInProgress = false;
 			}
 
-			ShutdownGate.Release();
+			_shutdownGate.Release();
 		}
 	}
 
-	private static async Task<GpuDiscoveryResult> DiscoverUncachedAsync()
+	private async Task<GpuDiscoveryResult> DiscoverUncachedAsync()
 	{
 		var (exitCode, output) = await RunNvidiaSmiQueryAsync();
 		if (exitCode != 0 || string.IsNullOrWhiteSpace(output))
@@ -198,7 +199,7 @@ internal static class GpuDiscoveryService
 			: GpuDiscoveryResult.Fallback(GetFallbackDevices(), "nvidia-smi returned no GPU devices.");
 	}
 
-	private static async Task<(int ExitCode, string Output)> RunNvidiaSmiQueryAsync()
+	private async Task<(int ExitCode, string Output)> RunNvidiaSmiQueryAsync()
 	{
 #if !WINDOWS
 		await Task.CompletedTask;
@@ -257,11 +258,11 @@ internal static class GpuDiscoveryService
 #endif
 	}
 
-	private static void Register(Process process)
+	private void Register(Process process)
 	{
-		lock (Gate)
+		lock (_gate)
 		{
-			ActiveProcesses.Add(process);
+			_activeProcesses.Add(process);
 		}
 	}
 
@@ -312,11 +313,11 @@ internal static class GpuDiscoveryService
 
 	}
 
-	private static void Unregister(Process process)
+	private void Unregister(Process process)
 	{
-		lock (Gate)
+		lock (_gate)
 		{
-			ActiveProcesses.Remove(process);
+			_activeProcesses.Remove(process);
 		}
 	}
 
@@ -347,7 +348,7 @@ internal static class GpuDiscoveryService
 	private static List<GpuDeviceInfo> ParseNvidiaSmiOutput(string output)
 	{
 		var devices = new List<GpuDeviceInfo>();
-		foreach (string rawLine in output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+		foreach (string rawLine in output.Split(LineSeparators, StringSplitOptions.RemoveEmptyEntries))
 		{
 			string[] parts = rawLine.Split(',', 3, StringSplitOptions.TrimEntries);
 			if (parts.Length < 2) continue;
@@ -420,7 +421,7 @@ internal static class GpuDiscoveryService
 #if WINDOWS
 			if (_active)
 			{
-				SetErrorMode(_previousMode);
+				_ = SetErrorMode(_previousMode);
 			}
 #endif
 		}

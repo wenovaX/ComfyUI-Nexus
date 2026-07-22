@@ -6,22 +6,28 @@ using System.Text.Json.Serialization;
 using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Setup.Services;
 
-internal static class ComfyServerProcessRegistry
+internal sealed class ComfyServerProcessRegistry
 {
-	private static readonly TimeSpan GpuUtilitySettleInterval = TimeSpan.FromMilliseconds(250);
+	private readonly TimeSpan _gpuUtilitySettleInterval = TimeSpan.FromMilliseconds(250);
 	private const int RequiredGpuUtilityClearPasses = 2;
-	private static readonly object Gate = new();
-	private static string ProcessStatePath => ComfyInstallService.GetLocalRuntimePath("State/comfy-server-process.json");
-	private static Process? _serverProcess;
-	private static string? _serverLogPath;
-	private static int? _shuttingDownProcessId;
+	private readonly object _gate = new();
+	private readonly SetupSettingsService _settingsService;
+	private string ProcessStatePath => ComfyInstallService.GetLocalRuntimePath("State/comfy-server-process.json");
+	private Process? _serverProcess;
+	private string? _serverLogPath;
+	private int? _shuttingDownProcessId;
 
-	internal static void Register(Process process, string logPath)
+	internal ComfyServerProcessRegistry(SetupSettingsService settingsService)
+	{
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+	}
+
+	internal void Register(Process process, string logPath)
 	{
 #if !WINDOWS
 		return;
 #else
-		lock (Gate)
+		lock (_gate)
 		{
 			_serverProcess = process;
 			_serverLogPath = logPath;
@@ -32,17 +38,17 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	internal static bool IsShuttingDown(Process process)
+	internal bool IsShuttingDown(Process process)
 	{
 		if (!TryGetProcessId(process, out int processId)) return false;
 
-		lock (Gate)
+		lock (_gate)
 		{
 			return _shuttingDownProcessId == processId;
 		}
 	}
 
-	internal static ComfyServerProcessInfo? FindServerProcess()
+	internal ComfyServerProcessInfo? FindServerProcess()
 	{
 #if !WINDOWS
 		return null;
@@ -60,11 +66,11 @@ internal static class ComfyServerProcessRegistry
 			return TryCreateInfo(persistedProcess, "Persisted Nexus launch process", persistedLogPath);
 		}
 
-		return TryFindProcessByPort(SetupSettingsService.Instance.Settings.ServerPort);
+		return TryFindProcessByPort(_settingsService.Settings.ServerPort);
 #endif
 	}
 
-	internal static Process? TryGetProcess(ComfyServerProcessInfo processInfo)
+	internal Process? TryGetProcess(ComfyServerProcessInfo processInfo)
 	{
 #if !WINDOWS
 		return null;
@@ -81,7 +87,7 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	internal static async Task ShutdownAsync(ComfyServerProcessInfo processInfo, TimeSpan timeout)
+	internal async Task ShutdownAsync(ComfyServerProcessInfo processInfo, TimeSpan timeout)
 	{
 #if !WINDOWS
 		await Task.CompletedTask;
@@ -104,7 +110,7 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	internal static async Task EnsureStoppedAsync(
+	internal async Task EnsureStoppedAsync(
 		ComfyServerProcessInfo? expectedProcess,
 		int port,
 		TimeSpan timeout,
@@ -144,7 +150,7 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	private static async Task<bool> KillAndWaitForExitAsync(int processId, TimeSpan timeout)
+	private async Task<bool> KillAndWaitForExitAsync(int processId, TimeSpan timeout)
 	{
 		if (!IsProcessRunning(processId))
 		{
@@ -155,13 +161,13 @@ internal static class ComfyServerProcessRegistry
 		IReadOnlyList<int> targetProcessIds = WindowsProcessTreeInspector.TerminateTree(
 			processId,
 			failure => NexusLog.Warning($"[LIFECYCLE] {failure}"));
-		return await WaitUntilProcessesExitedAsync(targetProcessIds, timeout, GpuUtilitySettleInterval);
+		return await WaitUntilProcessesExitedAsync(targetProcessIds, timeout, _gpuUtilitySettleInterval);
 #else
 		return true;
 #endif
 	}
 
-	private static async Task<bool> WaitUntilProcessesExitedAsync(
+	private async Task<bool> WaitUntilProcessesExitedAsync(
 		IReadOnlyList<int> processIds,
 		TimeSpan timeout,
 		TimeSpan pollingInterval)
@@ -185,12 +191,12 @@ internal static class ComfyServerProcessRegistry
 		return processIds.All(processId => !IsProcessRunning(processId));
 	}
 
-	private static async Task WaitForGpuUtilityChildrenToExitAsync(int rootProcessId, TimeSpan timeout)
+	private async Task WaitForGpuUtilityChildrenToExitAsync(int rootProcessId, TimeSpan timeout)
 	{
 #if !WINDOWS
 		await Task.CompletedTask;
 #else
-		using var settleTimer = new PeriodicTimer(GpuUtilitySettleInterval);
+		using var settleTimer = new PeriodicTimer(_gpuUtilitySettleInterval);
 		var stopwatch = Stopwatch.StartNew();
 		int clearPasses = 0;
 		string? lastObservedProcesses = null;
@@ -242,7 +248,7 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	private static async Task<bool> WaitUntilProcessExitedAsync(
+	private async Task<bool> WaitUntilProcessExitedAsync(
 		int processId,
 		TimeSpan timeout,
 		TimeSpan pollingInterval,
@@ -268,23 +274,23 @@ internal static class ComfyServerProcessRegistry
 		return !IsProcessRunning(processId);
 	}
 
-	private static Process? GetOwnedProcess()
+	private Process? GetOwnedProcess()
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			return _serverProcess;
 		}
 	}
 
-	private static string? GetOwnedLogPath()
+	private string? GetOwnedLogPath()
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			return _serverLogPath;
 		}
 	}
 
-	private static Process? GetPersistedProcess(out string? logPath)
+	private Process? GetPersistedProcess(out string? logPath)
 	{
 		logPath = null;
 		ComfyServerProcessState? state = LoadProcessState();
@@ -299,7 +305,7 @@ internal static class ComfyServerProcessRegistry
 				return null;
 			}
 
-			lock (Gate)
+			lock (_gate)
 			{
 				_serverProcess = process;
 				_serverLogPath = state.LogPath;
@@ -315,7 +321,7 @@ internal static class ComfyServerProcessRegistry
 		}
 	}
 
-	private static ComfyServerProcessInfo? TryFindProcessByPort(int port)
+	private ComfyServerProcessInfo? TryFindProcessByPort(int port)
 	{
 		foreach (IPEndPointInfo listener in GetTcpListenersWithProcessId(port))
 		{
@@ -331,7 +337,7 @@ internal static class ComfyServerProcessRegistry
 		return null;
 	}
 
-	private static IEnumerable<IPEndPointInfo> GetTcpListenersWithProcessId(int port)
+	private IEnumerable<IPEndPointInfo> GetTcpListenersWithProcessId(int port)
 	{
 #if WINDOWS
 		return WindowsTcpProcessFinder.GetListeners(port);
@@ -340,16 +346,16 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	private static ComfyServerProcessInfo? TryCreateInfo(Process process, string source, string? logPath = null)
+	private ComfyServerProcessInfo? TryCreateInfo(Process process, string source, string? logPath = null)
 	{
 		if (!TryGetProcessId(process, out int processId)) return null;
 
 		return new ComfyServerProcessInfo(processId, TryGetProcessName(process), source, logPath);
 	}
 
-	private static void ClearIfSame(int processId)
+	private void ClearIfSame(int processId)
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			if (_serverProcess?.Id == processId)
 			{
@@ -366,15 +372,15 @@ internal static class ComfyServerProcessRegistry
 		}
 	}
 
-	private static void MarkShuttingDown(int processId)
+	private void MarkShuttingDown(int processId)
 	{
-		lock (Gate)
+		lock (_gate)
 		{
 			_shuttingDownProcessId = processId;
 		}
 	}
 
-	private static void PersistProcess(Process process, string logPath)
+	private void PersistProcess(Process process, string logPath)
 	{
 #if !WINDOWS
 		return;
@@ -396,7 +402,7 @@ internal static class ComfyServerProcessRegistry
 #endif
 	}
 
-	private static ComfyServerProcessState? LoadProcessState()
+	private ComfyServerProcessState? LoadProcessState()
 	{
 		try
 		{
@@ -411,7 +417,7 @@ internal static class ComfyServerProcessRegistry
 		}
 	}
 
-	private static void ClearPersistedProcess(int processId)
+	private void ClearPersistedProcess(int processId)
 	{
 		try
 		{

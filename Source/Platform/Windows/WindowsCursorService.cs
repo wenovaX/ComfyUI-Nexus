@@ -21,19 +21,19 @@ public sealed class WindowsCursorService : IPlatformCursorService
 	private const int VK_LBUTTON = 0x01;
 	private const uint WM_SETCURSOR = 0x0020;
 	private static readonly UIntPtr CursorSubclassId = new(0x4E435552);
-	private static readonly SubclassProc CursorSubclassProc = HandleCursorSubclassMessage;
+	private readonly SubclassProc _cursorSubclassProc;
 	private static readonly Dictionary<NexusCursorShape, string> CustomCursorFiles = new()
 	{
 		[NexusCursorShape.Hand] = "hand_open.cur",
 		[NexusCursorShape.Grabbing] = "hand_closed.cur",
 		[NexusCursorShape.ZoomIn] = "zoom_in.cur",
 	};
-	private static readonly Dictionary<NexusCursorShape, IntPtr> CustomCursorHandles = new();
-	private static readonly Dictionary<NexusCursorShape, Microsoft.UI.Input.InputCursor?> CustomInputCursors = new();
-	private static readonly HashSet<Microsoft.UI.Xaml.FrameworkElement> DynamicCursorSurfaces = [];
-	private static readonly object CursorGate = new();
-	private static IntPtr _subclassedHwnd;
-	private static IntPtr _activeCustomCursorHandle;
+	private readonly Dictionary<NexusCursorShape, IntPtr> _customCursorHandles = new();
+	private readonly Dictionary<NexusCursorShape, Microsoft.UI.Input.InputCursor?> _customInputCursors = new();
+	private readonly HashSet<Microsoft.UI.Xaml.FrameworkElement> _dynamicCursorSurfaces = [];
+	private readonly object _cursorGate = new();
+	private IntPtr _subclassedHwnd;
+	private IntPtr _activeCustomCursorHandle;
 
 	// WinUI owns the visible cursor through UIElement.ProtectedCursor. A raw
 	// HCURSOR/SetCursor call is not enough for MAUI controls, so custom .cur
@@ -89,6 +89,11 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		["sw-resize"] = IDC_SIZENESW,
 		["all-scroll"] = IDC_SIZEALL,
 	};
+
+	public WindowsCursorService()
+	{
+		_cursorSubclassProc = HandleCursorSubclassMessage;
+	}
 
 	public void SetCursor(NexusCursorShape shape)
 	{
@@ -246,9 +251,9 @@ public sealed class WindowsCursorService : IPlatformCursorService
 			return;
 		}
 
-		lock (CursorGate)
+		lock (_cursorGate)
 		{
-			if (!DynamicCursorSurfaces.Add(platformElement))
+			if (!_dynamicCursorSurfaces.Add(platformElement))
 			{
 				return;
 			}
@@ -388,12 +393,12 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		}
 	}
 
-	private static bool TryGetCustomInputCursor(NexusCursorShape shape, IntPtr cursorHandle, out Microsoft.UI.Input.InputCursor? inputCursor)
+	private bool TryGetCustomInputCursor(NexusCursorShape shape, IntPtr cursorHandle, out Microsoft.UI.Input.InputCursor? inputCursor)
 	{
 		inputCursor = null;
-		lock (CursorGate)
+		lock (_cursorGate)
 		{
-			if (CustomInputCursors.TryGetValue(shape, out inputCursor))
+			if (_customInputCursors.TryGetValue(shape, out inputCursor))
 			{
 				return inputCursor != null;
 			}
@@ -436,19 +441,19 @@ public sealed class WindowsCursorService : IPlatformCursorService
 					}
 				}
 
-				CustomInputCursors[shape] = inputCursor;
+				_customInputCursors[shape] = inputCursor;
 				return inputCursor != null;
 			}
 			catch (Exception ex)
 			{
 				ComfyUI_Nexus.Diagnostics.NexusLog.Warning($"Custom cursor interop failed: {ex.GetType().Name} - {ex.Message}");
-				CustomInputCursors[shape] = null;
+				_customInputCursors[shape] = null;
 				return false;
 			}
 		}
 	}
 
-	private static bool TryGetCustomCursorHandle(NexusCursorShape shape, out IntPtr cursorHandle)
+	private bool TryGetCustomCursorHandle(NexusCursorShape shape, out IntPtr cursorHandle)
 	{
 		cursorHandle = IntPtr.Zero;
 
@@ -459,9 +464,9 @@ public sealed class WindowsCursorService : IPlatformCursorService
 				return false;
 			}
 
-			lock (CursorGate)
+			lock (_cursorGate)
 			{
-				if (CustomCursorHandles.TryGetValue(shape, out cursorHandle) && cursorHandle != IntPtr.Zero)
+				if (_customCursorHandles.TryGetValue(shape, out cursorHandle) && cursorHandle != IntPtr.Zero)
 				{
 					return true;
 				}
@@ -478,7 +483,7 @@ public sealed class WindowsCursorService : IPlatformCursorService
 					return false;
 				}
 
-				CustomCursorHandles[shape] = cursorHandle;
+				_customCursorHandles[shape] = cursorHandle;
 				return true;
 			}
 		}
@@ -490,9 +495,9 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		}
 	}
 
-	private static void ActivateCustomCursor(IntPtr cursorHandle)
+	private void ActivateCustomCursor(IntPtr cursorHandle)
 	{
-		lock (CursorGate)
+		lock (_cursorGate)
 		{
 			_activeCustomCursorHandle = cursorHandle;
 		}
@@ -501,15 +506,15 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		Win32SetCursor(cursorHandle);
 	}
 
-	private static void ClearActiveCustomCursor()
+	private void ClearActiveCustomCursor()
 	{
-		lock (CursorGate)
+		lock (_cursorGate)
 		{
 			_activeCustomCursorHandle = IntPtr.Zero;
 		}
 	}
 
-	private static void EnsureCursorSubclass()
+	private void EnsureCursorSubclass()
 	{
 		try
 		{
@@ -519,14 +524,14 @@ public sealed class WindowsCursorService : IPlatformCursorService
 				return;
 			}
 
-			lock (CursorGate)
+		lock (_cursorGate)
 			{
 				if (_subclassedHwnd == hwnd)
 				{
 					return;
 				}
 
-				if (SetWindowSubclass(hwnd, CursorSubclassProc, CursorSubclassId, UIntPtr.Zero))
+				if (SetWindowSubclass(hwnd, _cursorSubclassProc, CursorSubclassId, UIntPtr.Zero))
 				{
 					_subclassedHwnd = hwnd;
 				}
@@ -537,7 +542,7 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		}
 	}
 
-	private static IntPtr HandleCursorSubclassMessage(
+	private IntPtr HandleCursorSubclassMessage(
 		IntPtr hWnd,
 		uint uMsg,
 		IntPtr wParam,
@@ -548,7 +553,7 @@ public sealed class WindowsCursorService : IPlatformCursorService
 		if (uMsg == WM_SETCURSOR)
 		{
 			IntPtr cursorHandle;
-			lock (CursorGate)
+			lock (_cursorGate)
 			{
 				cursorHandle = _activeCustomCursorHandle;
 			}

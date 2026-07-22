@@ -8,8 +8,15 @@ using System.Collections.Generic;
 using ComfyUI_Nexus.Localization;
 using ComfyUI_Nexus.Setup.Services;
 
-internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
+internal sealed class GitDiagnosticNode : IExecutableSelectionDiagnosticNode
 {
+	private readonly ComfyInstallService _comfyInstall;
+
+	internal GitDiagnosticNode(ComfyInstallService comfyInstall)
+	{
+		_comfyInstall = comfyInstall ?? throw new ArgumentNullException(nameof(comfyInstall));
+	}
+
 	public string NodeId => "git-core";
 	public string DisplayName => Text("setup.git.title");
 	public string Description => Text("setup.git.description");
@@ -31,12 +38,13 @@ internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
 		if (systemGitVer != null)
 		{
 			EnvironmentDetails = LocalizationManager.Format("setup.git.system_detected", systemGitVer);
-			options.Add(DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.SystemOption, Text("setup.git.option_system"), LocalizationManager.Format("setup.git.option_system_description", systemGitVer), isRecommended: true));
+			options.Add(DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.SystemOption, Text("setup.git.option_system"), LocalizationManager.Format("setup.git.option_system_description", systemGitVer), isRecommended: true, requiresRecovery: false));
 			options.Add(DiagnosticNodeHelpers.CreateOption(
 				DiagnosticNodeHelpers.BuiltInOption,
 				Text("setup.common.option_install_builtin"),
 				Text("setup.git.option_builtin_description"),
-				workingHint: Text("setup.git.work_hint_builtin")));
+				workingHint: Text("setup.git.work_hint_builtin"),
+				requiresToolingLease: true));
 		}
 		else
 		{
@@ -46,10 +54,11 @@ internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
 				Text("setup.common.option_install_builtin"),
 				Text("setup.git.option_builtin_description"),
 				isRecommended: true,
-				workingHint: Text("setup.git.work_hint_builtin")));
+				workingHint: Text("setup.git.work_hint_builtin"),
+				requiresToolingLease: true));
 		}
 
-		options.Add(DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.CustomOption, Text("setup.common.option_manual_selection"), Text("setup.git.option_manual_description")));
+		options.Add(DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.CustomOption, Text("setup.common.option_manual_selection"), Text("setup.git.option_manual_description"), requiresRecovery: false));
 
 		AvailableOptions = options;
 	}
@@ -57,7 +66,7 @@ internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
 	public void SelectOption(string optionId)
 	{
 		SelectedOptionId = optionId;
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _comfyInstall.SettingsService.Settings;
 		settings.GitSource = optionId;
 
 		if (optionId == DiagnosticNodeHelpers.SystemOption)
@@ -76,11 +85,29 @@ internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
 		}
 	}
 
+	public bool RequiresExecutableSelection(string optionId)
+		=> optionId == DiagnosticNodeHelpers.CustomOption;
+
+	public Task<RecoveryResult> ApplySelectedExecutableAsync(string optionId, string executablePath, CancellationToken cancellationToken)
+	{
+		if (!RequiresExecutableSelection(optionId))
+		{
+			return Task.FromResult(new RecoveryResult(false, "The selected option does not accept an executable path."));
+		}
+
+		var settings = _comfyInstall.SettingsService.Settings;
+		settings.GitPath = executablePath;
+		_comfyInstall.SettingsService.Save();
+		EnvironmentPath = executablePath;
+		EnvironmentDetails = Text("setup.git.custom_selected");
+		return Task.FromResult(new RecoveryResult(true, EnvironmentDetails));
+	}
+
 	public async Task<HealthState> CheckHealthAsync(CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(SelectedOptionId)) return HealthState.NeedsRecovery;
 
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _comfyInstall.SettingsService.Settings;
 		string pathToCheck = SelectedOptionId == DiagnosticNodeHelpers.SystemOption ? "git" : settings.GitPath;
 
 		if (string.IsNullOrEmpty(pathToCheck)) return HealthState.NeedsRecovery;
@@ -104,12 +131,8 @@ internal sealed class GitDiagnosticNode : IConfigurableDiagnosticNode
 
 		try
 		{
-			if (ComfyInstallService.Instance == null)
-			{
-				return new RecoveryResult(false, Text("setup.git.install_service_missing"));
-			}
 			progress?.Report(0.1);
-			await ComfyInstallService.Instance.ExtractGitPackageAsync(cancellationToken);
+			await _comfyInstall.ExtractGitPackageAsync(cancellationToken);
 			progress?.Report(1.0);
 			return new RecoveryResult(true, Text("setup.git.extract_success"));
 		}

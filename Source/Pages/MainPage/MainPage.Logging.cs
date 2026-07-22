@@ -111,7 +111,7 @@ public partial class MainPage
 		string logPath = NexusLog.CurrentLatestLogPath
 			?? ComfyInstallService.GetLocalRuntimePath($"Logs/{SessionLogPaths.NexusLatestFileName}");
 		CurrentControlDeck?.SetLogFileRelativePath(GetControlDeckLogRelativePath(logPath));
-		var result = await PlatformManager.Current.Shell.OpenPathAsync(logPath);
+		var result = await NexusAppManager.Instance.Platform.Shell.OpenPathAsync(logPath);
 		if (!result.IsSuccess)
 		{
 			NexusLog.Warning($"Failed to open persistent session log: {result.Message}");

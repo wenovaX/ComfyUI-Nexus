@@ -56,11 +56,8 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 	private static readonly Color FolderLinkHoverBackgroundColor = Color.FromArgb("#2a2d6b48");
 	private static readonly string[] FormattingTags = ["[h]", "[/h]", "[b]", "[/b]", "[accent]", "[/accent]", "[code]", "[/code]"];
 	// Keep article variables small and explicit; they are resolved before tag parsing.
-	private static readonly Dictionary<string, Func<string>> HelpVariables = new(StringComparer.OrdinalIgnoreCase)
-	{
-		["comfyui.path"] = () => ComfyPathResolver.ResolveConfiguredComfyPath(),
-	};
-
+	private readonly NexusAppManager _appManager;
+	private readonly Dictionary<string, Func<string>> _helpVariables;
 	private readonly List<HelpNavigationEntry> _entries = [];
 	private readonly Dictionary<HelpNavigationEntry, Button> _entryButtons = [];
 	private HelpNavigationEntry? _selectedEntry;
@@ -77,6 +74,11 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 
 	public HelpOverlayView()
 	{
+		_appManager = NexusAppManager.Instance;
+		_helpVariables = new Dictionary<string, Func<string>>(StringComparer.OrdinalIgnoreCase)
+		{
+			["comfyui.path"] = () => _appManager.Paths.ConfiguredComfyPath,
+		};
 		InitializeComponent();
 		SizeChanged += OnSizeChanged;
 		LocalizationManager.LanguageChanged += OnLanguageChanged;
@@ -432,9 +434,9 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 		}
 	}
 
-	private static string ResolveHelpVariables(string text)
+	private string ResolveHelpVariables(string text)
 	{
-		foreach ((string key, Func<string> resolveValue) in HelpVariables)
+		foreach ((string key, Func<string> resolveValue) in _helpVariables)
 		{
 			string value = resolveValue();
 			// {{name}} is safe inside tags such as [folder:{{comfyui.path}}|...].
@@ -1337,7 +1339,7 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 		}
 	}
 
-	private static async Task OpenFolderAsync(string folderPath)
+	private async Task OpenFolderAsync(string folderPath)
 	{
 		try
 		{
@@ -1362,7 +1364,7 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 		}
 	}
 
-	private static string ResolveFolderPath(string folderPath)
+	private string ResolveFolderPath(string folderPath)
 	{
 		// Help articles store ComfyUI-relative folders; resolve them at click time.
 		string normalizedPath = folderPath
@@ -1375,7 +1377,7 @@ public partial class HelpOverlayView : ContentView, INexusPopupSurface
 
 		return Path.GetFullPath(Path.IsPathRooted(normalizedPath)
 			? normalizedPath
-			: Path.Combine(ComfyPathResolver.ResolveConfiguredComfyPath(), normalizedPath));
+			: Path.Combine(_appManager.Paths.ConfiguredComfyPath, normalizedPath));
 	}
 
 	private sealed record HelpNavigationEntry(HelpSection Section, HelpItem Item);

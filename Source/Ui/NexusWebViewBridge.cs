@@ -15,6 +15,11 @@ internal sealed record BridgeBootProbeResult(
 	bool HasComfyApp,
 	string? Error)
 {
+	private static readonly JsonSerializerOptions CaseInsensitiveJsonOptions = new()
+	{
+		PropertyNameCaseInsensitive = true,
+	};
+
 	internal static BridgeBootProbeResult NativeUnavailable { get; } = new(
 		"NATIVE_UNAVAILABLE",
 		string.Empty,
@@ -47,7 +52,7 @@ internal sealed record BridgeBootProbeResult(
 			string payload = NexusWebViewScriptResult.UnwrapPayload(raw) ?? raw;
 			var result = JsonSerializer.Deserialize<BridgeBootProbeResult>(
 				payload,
-				new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+				CaseInsensitiveJsonOptions);
 			return result ?? NativeUnavailable;
 		}
 		catch
@@ -744,6 +749,49 @@ internal sealed class NexusWebViewBridge
 
 	internal Task CloseMainMenuAsync()
 		=> InvokeActionAsync(BridgeActions.CloseMainMenu);
+
+	internal async Task<bool> SwitchWorkflowAsync(int index)
+	{
+		var browserSurface = _browserSurfaceAccessor();
+		if (browserSurface == null)
+		{
+			return false;
+		}
+
+		string script =
+			"(async () => { " +
+			"try { " +
+			"if (!window.NexusAction) { return 'UNAVAILABLE'; } " +
+			$"const result = await window.NexusAction?.('{BridgeActions.SwitchWorkflow}', {{ index: {index} }}); " +
+			"return result === false ? 'FAILED' : 'OK'; " +
+			"} catch (error) { " +
+			"return 'ERROR:' + (error?.message || String(error)); " +
+			"} " +
+			"})()";
+
+		try
+		{
+			string? result = await EvaluateScriptAsync(browserSurface, script);
+			if (!string.IsNullOrWhiteSpace(result) &&
+				(result.Contains("UNAVAILABLE", StringComparison.Ordinal) ||
+				 result.Contains("FAILED", StringComparison.Ordinal) ||
+				 result.Contains("ERROR:", StringComparison.Ordinal)))
+			{
+				NexusLog.Warning($"Workflow switch bridge action failed: {result}");
+				return false;
+			}
+
+			return true;
+		}
+		catch (ObjectDisposedException)
+		{
+			return false;
+		}
+		catch (InvalidOperationException)
+		{
+			return false;
+		}
+	}
 
 	internal Task SetRailWidthAsync(double railWidth)
 		=> InvokeActionAsync(BridgeActions.SetRailWidth, JsonSerializer.Serialize(new { railWidth }));

@@ -55,9 +55,15 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	private string _environmentDetails = string.Empty;
 	private string _environmentPath = string.Empty;
 	private string _environmentDisplayPath = string.Empty;
+	private string _secondaryEnvironmentPath = string.Empty;
+	private string _secondaryEnvironmentDisplayPath = string.Empty;
 	private string _operationProgressText = string.Empty;
+	private string _operationContext = string.Empty;
 	private bool _isLoading;
 	private bool _canCancel;
+	private bool _isCanceling;
+	private string _cancellationWorkingHint = string.Empty;
+	private string _cancellationResultDetails = string.Empty;
 	private bool _showProgress;
 	private double _progressValue;
 	private string _workingHint = string.Empty;
@@ -70,6 +76,7 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	private HealthState _currentHealth = HealthState.Pending;
 	private IDispatcherTimer? _workingTextTimer;
 	private int _workingTextFrameIndex;
+	private readonly NexusComfyRuntimePaths _paths;
 
 	public IRuntimeDiagnosticNode Node { get; }
 	public HealthState CurrentHealth { get => _currentHealth; private set => SetProperty(ref _currentHealth, value); }
@@ -91,12 +98,20 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	public bool HasEnvironmentDetails => !string.IsNullOrWhiteSpace(EnvironmentDetails);
 	public int EnvironmentDetailsMaxLines => Node.NodeId switch
 	{
+		"base-resources" => 3,
 		"manager-extension" => 16,
 		"model-library" => 64,
 		_ => 2
 	};
-	public double EnvironmentDetailsMinHeight => Node.NodeId == "manager-extension" ? 150 : 46;
+	public double EnvironmentDetailsMinHeight => Node.NodeId switch
+	{
+		"base-resources" => 66,
+		"manager-extension" => 150,
+		_ => 46
+	};
 	public bool HasEnvironmentPath => !string.IsNullOrWhiteSpace(EnvironmentPath);
+	public bool HasSecondaryEnvironmentPath => !string.IsNullOrWhiteSpace(SecondaryEnvironmentPath)
+		&& !string.Equals(EnvironmentPath, SecondaryEnvironmentPath, StringComparison.OrdinalIgnoreCase);
 	public bool HasOperationProgressText => !string.IsNullOrWhiteSpace(OperationProgressText);
 	public string EnvironmentDisplayPath
 	{
@@ -109,32 +124,17 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	}
 
 	public ICommand OpenPathCommand { get; }
+	public ICommand OpenSecondaryPathCommand { get; }
 
-	public DiagnosticNodeViewModel(IRuntimeDiagnosticNode node)
+	public DiagnosticNodeViewModel(IRuntimeDiagnosticNode node, NexusComfyRuntimePaths paths)
 	{
 		Node = node;
+		_paths = paths ?? throw new ArgumentNullException(nameof(paths));
 		DisplayName = node.DisplayName;
 		Description = node.Description;
 
-		OpenPathCommand = new Command(() =>
-		{
-			if (!string.IsNullOrWhiteSpace(EnvironmentPath))
-			{
-#if WINDOWS
-				try
-				{
-					// Windows specific file explorer opening
-					System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-					{
-						FileName = EnvironmentPath,
-						UseShellExecute = true,
-						Verb = "open"
-					});
-				}
-				catch { }
-#endif
-			}
-		});
+		OpenPathCommand = new Command(() => OpenEnvironmentPath(EnvironmentPath));
+		OpenSecondaryPathCommand = new Command(() => OpenEnvironmentPath(SecondaryEnvironmentPath));
 	}
 
 	public string IconSource { get => _iconSource; set => SetProperty(ref _iconSource, value); }
@@ -230,6 +230,9 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 		}
 	}
 	public bool CanCancel { get => _canCancel; set => SetProperty(ref _canCancel, value); }
+	public bool IsCanceling { get => _isCanceling; set => SetProperty(ref _isCanceling, value); }
+	public string CancellationWorkingHint { get => _cancellationWorkingHint; set => SetProperty(ref _cancellationWorkingHint, value); }
+	public string CancellationResultDetails { get => _cancellationResultDetails; set => SetProperty(ref _cancellationResultDetails, value); }
 	public bool ShowProgress { get => _showProgress; set => SetProperty(ref _showProgress, value); }
 	public double ProgressValue { get => _progressValue; set => SetProperty(ref _progressValue, value); }
 	public string WorkingHint
@@ -261,8 +264,37 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 			SetProperty(ref _environmentPath, value);
 			EnvironmentDisplayPath = ToDisplayPath(value);
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasEnvironmentPath)));
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasSecondaryEnvironmentPath)));
 		}
 	}
+
+	public string SecondaryEnvironmentPath
+	{
+		get => _secondaryEnvironmentPath;
+		set
+		{
+			if (string.Equals(_secondaryEnvironmentPath, value, StringComparison.Ordinal))
+			{
+				return;
+			}
+
+			_secondaryEnvironmentPath = value;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SecondaryEnvironmentPath)));
+			SecondaryEnvironmentDisplayPath = ToDisplayPath(value);
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(SecondaryEnvironmentLinkText)));
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasSecondaryEnvironmentPath)));
+		}
+	}
+
+	public string SecondaryEnvironmentDisplayPath
+	{
+		get => _secondaryEnvironmentDisplayPath;
+		private set => SetProperty(ref _secondaryEnvironmentDisplayPath, value);
+	}
+
+	public string SecondaryEnvironmentLinkText => Node.NodeId == "base-resources"
+		? LocalizationManager.Text("setup.base_model.open_checkpoints")
+		: SecondaryEnvironmentDisplayPath;
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 	public event EventHandler? CompletionSignalChanged;
@@ -272,6 +304,29 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 		if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(backingStore, value)) return;
 		backingStore = value;
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private static void OpenEnvironmentPath(string path)
+	{
+		if (string.IsNullOrWhiteSpace(path))
+		{
+			return;
+		}
+
+#if WINDOWS
+		try
+		{
+			System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+			{
+				FileName = path,
+				UseShellExecute = true,
+				Verb = "open"
+			});
+		}
+		catch
+		{
+		}
+#endif
 	}
 
 	public void NotifyActionsChanged()
@@ -291,14 +346,18 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	{
 		ProgressValue = progress;
 
-		string operationProgressText = ExtractOperationProgressText(message);
-		if (!string.IsNullOrWhiteSpace(operationProgressText))
+		ExtensionProgress? extensionProgress = ParseExtensionProgress(message);
+		bool extensionContextChanged = false;
+		if (extensionProgress is not null)
 		{
-			OperationProgressText = operationProgressText;
+			OperationProgressText = extensionProgress.Value.Stage;
+			extensionContextChanged = !string.Equals(_operationContext, extensionProgress.Value.Package, StringComparison.Ordinal);
+			_operationContext = extensionProgress.Value.Package;
 		}
 
 		long nowTicks = DateTime.UtcNow.Ticks;
 		if (!force
+			&& !extensionContextChanged
 			&& progress > 0
 			&& progress < 1
 			&& nowTicks - _lastProgressDisplayTicks < TimeSpan.FromMilliseconds(250).Ticks)
@@ -307,7 +366,7 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 		}
 
 		_lastProgressDisplayTicks = nowTicks;
-		EnvironmentDetails = FormatProgressMessage(message);
+		EnvironmentDetails = FormatProgressMessage(message, extensionProgress, _operationContext);
 	}
 
 	public void UpdateState(HealthState state)
@@ -315,6 +374,7 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 		CurrentHealth = state;
 		IsLoading = false; // reset loading if state updates
 		OperationProgressText = string.Empty;
+		_operationContext = string.Empty;
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanEdit)));
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanHeaderEdit)));
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanStatusEdit)));
@@ -437,7 +497,10 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 	private static string Text(string key)
 		=> LocalizationManager.Text(key);
 
-	private static string FormatProgressMessage(string message)
+	private static string FormatProgressMessage(
+		string message,
+		ExtensionProgress? extensionProgress = null,
+		string operationContext = "")
 	{
 		const int MaxDisplayLength = 220;
 		if (string.IsNullOrWhiteSpace(message))
@@ -455,23 +518,36 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 			compact = compact.Replace("  ", " ", StringComparison.Ordinal);
 		}
 
+		if (extensionProgress is not null)
+		{
+			string detail = compact[(extensionProgress.Value.DetailStartIndex)..].Trim();
+			string packageHeader = $"[ {extensionProgress.Value.Package} ]";
+			compact = string.IsNullOrWhiteSpace(detail)
+				? packageHeader
+				: $"{packageHeader}\n{detail}";
+		}
+		else if (!string.IsNullOrWhiteSpace(operationContext))
+		{
+			compact = $"[ {operationContext} ]\n{compact}";
+		}
+
 		return compact.Length <= MaxDisplayLength
 			? compact
 			: string.Concat(compact.AsSpan(0, MaxDisplayLength - 3), "...");
 	}
 
-	private static string ExtractOperationProgressText(string message)
+	private static ExtensionProgress? ParseExtensionProgress(string message)
 	{
 		if (string.IsNullOrWhiteSpace(message)
 			|| !message.StartsWith("[Extensions ", StringComparison.Ordinal))
 		{
-			return string.Empty;
+			return null;
 		}
 
 		int firstClose = message.IndexOf(']', StringComparison.Ordinal);
 		if (firstClose <= 1)
 		{
-			return string.Empty;
+			return null;
 		}
 
 		string count = message.Substring(1, firstClose - 1);
@@ -481,23 +557,31 @@ internal sealed class DiagnosticNodeViewModel : INotifyPropertyChanged, IDiagnos
 			: -1;
 		if (labelStart < 0 || labelEnd <= labelStart)
 		{
-			return count;
+			return new ExtensionProgress(count, string.Empty, firstClose + 1);
 		}
 
 		string label = message.Substring(labelStart + 1, labelEnd - labelStart - 1);
-		return $"{count} · {label}";
+		return new ExtensionProgress(count, label, labelEnd + 1);
 	}
 
-	private static string ToDisplayPath(string path)
+	private readonly record struct ExtensionProgress(string Stage, string Package, int DetailStartIndex);
+
+	private string ToDisplayPath(string path)
 	{
 		if (string.IsNullOrWhiteSpace(path))
 		{
 			return string.Empty;
 		}
 
+		if (Uri.TryCreate(path, UriKind.Absolute, out Uri? uri) &&
+			(uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+		{
+			return LocalizationManager.Text("setup.common.open_link");
+		}
+
 		try
 		{
-			string activeComfyPath = ComfyPathResolver.ResolveActiveComfyPath();
+			string activeComfyPath = _paths.ActiveComfyPath;
 			if (!string.IsNullOrWhiteSpace(activeComfyPath)
 				&& Path.IsPathRooted(path)
 				&& Path.IsPathRooted(activeComfyPath))

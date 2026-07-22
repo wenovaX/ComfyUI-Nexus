@@ -356,7 +356,7 @@ internal sealed class NexusCompositionWebViewHost : ContentView, INexusBrowserSu
 
 	private void OnCursorChanged(object? sender, object args)
 	{
-		PlatformManager.Current.Cursor.SetCssCursor(this, "default");
+		NexusAppManager.Instance.Platform.Cursor.SetCssCursor(this, "default");
 	}
 }
 #endif

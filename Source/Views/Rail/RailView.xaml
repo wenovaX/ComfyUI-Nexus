@@ -104,6 +104,21 @@
 							<nodes:NodeLibraryView x:Name="NodeLibraryToolView" IsVisible="False" />
 						</Grid>
 
+						<Grid x:Name="RailTransitionOverlay"
+							  IsVisible="False"
+							  InputTransparent="False"
+							  AnchorX="0"
+							  ZIndex="2">
+							<Grid.Background>
+								<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+									<GradientStop Color="{StaticResource RailRevealStartColor}" Offset="0" />
+									<GradientStop Color="{StaticResource RailRevealMiddleColor}" Offset="0.58" />
+									<GradientStop Color="{StaticResource RailRevealNearAccentColor}" Offset="0.9" />
+									<GradientStop Color="{StaticResource RailRevealAccentColor}" Offset="1" />
+								</LinearGradientBrush>
+							</Grid.Background>
+						</Grid>
+
 						<Grid x:Name="RailCollapseFlagButton"
 							  WidthRequest="54"
 							  HeightRequest="58"
@@ -146,54 +161,6 @@
 						</Grid>
 					</Grid>
 				</Border>
-
-				<Grid x:Name="RailTransitionOverlay"
-					  Grid.Column="1"
-					  IsVisible="False"
-					  InputTransparent="False"
-					  AnchorX="0"
-					  ZIndex="2">
-					<Grid.Background>
-						<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-							<GradientStop Color="{StaticResource RailTransitionStartColor}" Offset="0" />
-							<GradientStop Color="{StaticResource RailTransitionMiddleColor}" Offset="0.58" />
-							<GradientStop Color="{StaticResource RailTransitionEndColor}" Offset="1" />
-						</LinearGradientBrush>
-					</Grid.Background>
-				</Grid>
-
-				<Grid x:Name="RailTransitionBrand"
-					  Grid.Column="1"
-					  IsVisible="False"
-					  InputTransparent="True"
-					  Opacity="0"
-					  Scale="0.96"
-					  ZIndex="3">
-					<VerticalStackLayout HorizontalOptions="Center"
-										 VerticalOptions="Center"
-										 Spacing="8">
-						<Grid WidthRequest="82"
-							  HeightRequest="68"
-							  HorizontalOptions="Center">
-							<shapes:Ellipse WidthRequest="58"
-											HeightRequest="10"
-											Fill="{StaticResource RailCollapseGlowColor}"
-											Opacity="0.18"
-											HorizontalOptions="Center"
-											VerticalOptions="End"
-											Margin="0,0,0,4"
-											AutomationProperties.IsInAccessibleTree="False" />
-							<Image Source="logo_neon_glass.png"
-								   WidthRequest="54"
-								   HeightRequest="54"
-								   Aspect="AspectFit"
-								   HorizontalOptions="Center"
-								   VerticalOptions="Start"
-								   AutomationProperties.IsInAccessibleTree="False">
-							</Image>
-						</Grid>
-					</VerticalStackLayout>
-				</Grid>
 			</Grid>
 		</Border>
 	</Grid>

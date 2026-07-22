@@ -1,4 +1,5 @@
 using ComfyUI_Nexus.Diagnostics;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Services;
 
@@ -81,7 +82,9 @@ internal sealed class NexusServerLifecycleCoordinator
 	private static readonly TimeSpan MinimumServerShutdownPollingInterval = TimeSpan.FromMilliseconds(250);
 
 	private readonly object _gate = new();
-	private readonly SetupSequenceOrchestrator _serverBootSequence = new();
+	private readonly GpuDiscoveryService _gpuDiscovery;
+	private readonly NexusServerProcessController _serverProcesses;
+	private readonly SetupSequenceOrchestrator _serverBootSequence;
 	private Task<ServerLifecycleResult>? _activeOperation;
 	private object? _shellOwner;
 	private ServerLifecycleShellHooks? _shellHooks;
@@ -95,8 +98,15 @@ internal sealed class NexusServerLifecycleCoordinator
 		Array.Empty<string>(),
 		false);
 
-	internal NexusServerLifecycleCoordinator()
+	internal NexusServerLifecycleCoordinator(
+		GpuDiscoveryService gpuDiscovery,
+		NexusToolingEnvironment tooling,
+		ComfyInstallService comfyInstall,
+		NexusServerProcessController serverProcesses)
 	{
+		_gpuDiscovery = gpuDiscovery ?? throw new ArgumentNullException(nameof(gpuDiscovery));
+		_serverProcesses = serverProcesses ?? throw new ArgumentNullException(nameof(serverProcesses));
+		_serverBootSequence = new SetupSequenceOrchestrator(tooling, comfyInstall, _serverProcesses);
 		_serverBootSequence.OnProgress += RelayServerBootProgress;
 	}
 
@@ -317,7 +327,7 @@ internal sealed class NexusServerLifecycleCoordinator
 	private async Task QuiesceShellAsync(ServerLifecycleMode mode, string reason, bool prepareForInterruption)
 	{
 		Publish(mode, ServerLifecycleState.QuiescingServices, reason);
-		GpuDiscoveryService.BeginQuiesce();
+		_gpuDiscovery.BeginQuiesce();
 		ServerLifecycleShellHooks? hooks = GetShellHooks();
 
 		try
@@ -335,7 +345,7 @@ internal sealed class NexusServerLifecycleCoordinator
 			}
 			else
 			{
-				GpuDiscoveryService.StopResult gpuStop = await GpuDiscoveryService.StopAsync();
+				GpuDiscoveryService.StopResult gpuStop = await _gpuDiscovery.StopAsync();
 				if (!gpuStop.IsSuccess)
 				{
 					PublishWarning($"GPU discovery service stop completed with an error: {gpuStop.FailureMessage}");
@@ -354,11 +364,11 @@ internal sealed class NexusServerLifecycleCoordinator
 	private async Task StopAndVerifyServerAsync(ServerLifecycleMode mode, CancellationToken cancellationToken)
 	{
 		Publish(mode, ServerLifecycleState.StoppingServer, "Stopping ComfyUI server process.");
-		ComfyServerProcessInfo? processInfo = ComfyServerProcessRegistry.FindServerProcess();
+		ComfyServerProcessInfo? processInfo = _serverProcesses.FindServerProcess();
 		if (processInfo != null)
 		{
 			EmitLog($"[LIFECYCLE] Terminating ComfyUI server: {processInfo.ProcessName} ({processInfo.ProcessId}).");
-			await ComfyServerProcessRegistry.ShutdownAsync(processInfo, ServerShutdownTimeout);
+			await _serverProcesses.ShutdownAsync(processInfo, ServerShutdownTimeout);
 		}
 		else
 		{
@@ -366,8 +376,8 @@ internal sealed class NexusServerLifecycleCoordinator
 		}
 
 		Publish(mode, ServerLifecycleState.VerifyingServerStopped, "Verifying server process and listener shutdown.");
-		var settings = SetupSettingsService.Instance.Settings;
-		await ComfyServerProcessRegistry.EnsureStoppedAsync(
+		var settings = _serverBootSequence.SettingsService.Settings;
+		await _serverProcesses.EnsureStoppedAsync(
 			processInfo,
 			settings.ServerPort,
 			ServerShutdownTimeout,

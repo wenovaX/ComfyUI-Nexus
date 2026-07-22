@@ -1,6 +1,7 @@
 namespace ComfyUI_Nexus.Setup.Services;
 
 using System.Text;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 
@@ -9,10 +10,22 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 	private const string DependencyCacheDirectory = "Cache/ManagedDependencies";
 
 	private readonly Action<string> _log;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly SetupSettingsService _settingsService;
+	private readonly PythonRuntimeInfoService _pythonRuntimeInfo;
+	private readonly NexusComfyRuntimePaths _paths;
 
-	internal ManagedCustomNodeDependencyInstaller(Action<string> log)
+	internal ManagedCustomNodeDependencyInstaller(
+		Action<string> log,
+		NexusToolingEnvironment tooling,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
+		_tooling = tooling;
+		_settingsService = settingsService;
+		_paths = paths;
+		_pythonRuntimeInfo = tooling.PythonRuntimeInfo;
 	}
 
 	internal async Task<SetupStepResult> InstallAsync(
@@ -32,12 +45,18 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 		onProgress?.Invoke(new ManagedCustomNodeDependencyProgress(
 			"Python Runtime",
 			ManagedCustomNodeDependencyStage.ResolvePythonRuntime));
-		PythonRuntimeInfo? runtimeInfo = await PythonRuntimeInfoService.Instance.GetCurrentAsync(cancellationToken);
+		string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable(_settingsService.Settings, _paths);
+		PythonRuntimeInfo? runtimeInfo = await _pythonRuntimeInfo.GetAsync(
+			pythonExecutable,
+			_tooling.CurrentLease,
+			cancellationToken);
 		if (runtimeInfo is null)
 		{
-			return new SetupStepResult(false, $"Python runtime is unavailable for managed custom node dependencies: {RuntimeRepairTarget.GetPythonExecutable()}", 0);
+			return new SetupStepResult(false, $"Python runtime is unavailable for managed custom node dependencies: {pythonExecutable}", 0);
 		}
 		_log($"[Node Dependencies] Python runtime: {runtimeInfo.Version} ({runtimeInfo.PythonAbi}/{runtimeInfo.Platform})");
+		NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+		string toolingPython = lease?.GetToolingPath(runtimeInfo.ExecutablePath) ?? runtimeInfo.ExecutablePath;
 
 		foreach (CustomNodeSetting node in targets)
 		{
@@ -56,7 +75,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 
 			if (string.Equals(installMode, CustomNodeInstallModes.Bootstrap, StringComparison.OrdinalIgnoreCase))
 			{
-				var dependencyResult = await InstallDependencyPlanAsync(node, nodePath, runtimeInfo, onProgress, cancellationToken);
+				var dependencyResult = await InstallDependencyPlanAsync(node, nodePath, runtimeInfo with { ExecutablePath = toolingPython }, onProgress, cancellationToken);
 				if (!dependencyResult.IsSuccess)
 				{
 					return dependencyResult;
@@ -66,7 +85,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 			if (string.Equals(installMode, CustomNodeInstallModes.Requirements, StringComparison.OrdinalIgnoreCase)
 				|| (string.Equals(installMode, CustomNodeInstallModes.Bootstrap, StringComparison.OrdinalIgnoreCase) && node.Dependencies?.Requirements == true))
 			{
-				var requirementsResult = await InstallRequirementsFileAsync(node, nodePath, runtimeInfo.ExecutablePath, onProgress, cancellationToken);
+				var requirementsResult = await InstallRequirementsFileAsync(node, nodePath, toolingPython, onProgress, cancellationToken);
 				if (!requirementsResult.IsSuccess)
 				{
 					return requirementsResult;
@@ -75,7 +94,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 
 			if (string.Equals(installMode, CustomNodeInstallModes.Bootstrap, StringComparison.OrdinalIgnoreCase))
 			{
-				var verifyResult = await VerifyImportsAsync(node, nodePath, runtimeInfo.ExecutablePath, onProgress, cancellationToken);
+				var verifyResult = await VerifyImportsAsync(node, nodePath, toolingPython, onProgress, cancellationToken);
 				if (!verifyResult.IsSuccess)
 				{
 					return verifyResult;
@@ -165,9 +184,10 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 			return new SetupStepResult(true, "No wheel dependencies.", 1);
 		}
 
-		string cacheRoot = Path.Combine(
+		string physicalCacheRoot = Path.Combine(
 			ComfyInstallService.GetLocalRuntimePath(DependencyCacheDirectory),
 			SanitizePathSegment(node.Folder));
+		string cacheRoot = _tooling.CurrentLease?.GetToolingPath(physicalCacheRoot) ?? physicalCacheRoot;
 		Directory.CreateDirectory(cacheRoot);
 
 		foreach (IGrouping<string, CustomNodeWheelSetting> packageWheels in wheels.GroupBy(wheel => wheel.Package, StringComparer.OrdinalIgnoreCase))
@@ -198,7 +218,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 					wheel.Url,
 					wheelPath,
 					onProgress: null,
-					Math.Max(1024, SetupSettingsService.Instance.Settings.DownloadBufferSize),
+					Math.Max(1024, _settingsService.Settings.DownloadBufferSize),
 					cancellationToken);
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
@@ -264,7 +284,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 					file.Url,
 					destinationPath!,
 					onProgress: null,
-					Math.Max(1024, SetupSettingsService.Instance.Settings.DownloadBufferSize),
+					Math.Max(1024, _settingsService.Settings.DownloadBufferSize),
 					cancellationToken);
 			}
 			catch (Exception ex) when (ex is not OperationCanceledException)
@@ -298,8 +318,8 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 		string tag = $"[Node Dependencies] [{node.Folder}]";
 		_log($"{tag} Installing requirements.txt...");
 		var pipEnvironment = CreatePipEnvironment();
-		_log(pipEnvironment.TryGetValue(PipCacheService.EnvironmentVariableName, out string? cachePath)
-			? $"{tag} pip cache: {cachePath}"
+		_log(pipEnvironment.ContainsKey(PipCacheService.EnvironmentVariableName)
+			? $"{tag} pip cache: {PipCacheService.GetEffectiveCachePath(_settingsService.Settings)}"
 			: $"{tag} pip cache: pip default");
 		var result = await ProcessRunner.RunAsync(
 			pythonExecutable,
@@ -390,7 +410,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 		return string.IsNullOrWhiteSpace(detail) ? $"ExitCode: {result.ExitCode}" : detail;
 	}
 
-	private static IReadOnlyDictionary<string, string> CreatePipEnvironment()
+	private IReadOnlyDictionary<string, string> CreatePipEnvironment()
 	{
 		var environment = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 		{
@@ -399,7 +419,7 @@ internal sealed class ManagedCustomNodeDependencyInstaller
 			["PYTHONIOENCODING"] = "utf-8"
 		};
 
-		if (PipCacheService.CreateEnvironment() is { } cacheEnvironment)
+		if (PipCacheService.CreateEnvironment(_tooling.CurrentLease, _settingsService.Settings) is { } cacheEnvironment)
 		{
 			foreach (var (key, value) in cacheEnvironment)
 			{

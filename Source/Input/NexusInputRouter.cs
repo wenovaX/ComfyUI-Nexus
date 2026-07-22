@@ -9,17 +9,19 @@ namespace ComfyUI_Nexus.Input;
 internal sealed class NexusInputRouter
 {
 	private readonly NexusUiSurfaceManager _surfaceManager;
+	private readonly NexusDialogService _dialogs;
 
-	internal NexusInputRouter(NexusUiSurfaceManager surfaceManager)
+	internal NexusInputRouter(NexusUiSurfaceManager surfaceManager, NexusDialogService dialogs)
 	{
 		_surfaceManager = surfaceManager;
+		_dialogs = dialogs;
 	}
 
 	/// <summary>
 	/// WebView2 accelerator events are synchronous, so capture only keys native routing can certainly consume.
 	/// </summary>
 	internal bool ShouldCaptureWebViewAccelerator(NexusKey key, NexusKeyModifiers modifiers, bool mediaViewerOpen)
-		=> NexusDialogService.IsOpen
+		=> _dialogs.IsOpen
 			|| mediaViewerOpen
 			|| _surfaceManager.BlocksWebViewKeyboard
 			|| NexusInputManager.IsGlobalAppShortcut(key, modifiers.Ctrl, modifiers.Shift, modifiers.Alt);
@@ -36,12 +38,12 @@ internal sealed class NexusInputRouter
 		bool mediaViewerOpen,
 		Func<NexusKey, bool, bool, bool, Task<bool>> tryHandleMediaViewerShortcutAsync)
 	{
-		if (await NexusDialogService.TryHandleShortcutAsync(key))
+		if (await _dialogs.TryHandleShortcutAsync(key))
 		{
 			return Handled("dialog-shortcut");
 		}
 
-		if (NexusDialogService.IsOpen)
+		if (_dialogs.IsOpen)
 		{
 			return Handled("dialog-block");
 		}

@@ -12,6 +12,7 @@ namespace ComfyUI_Nexus.Ui;
 internal sealed class NexusAnimatedWebpClip : IDisposable
 {
 	private readonly NexusMotionController _motion;
+	private readonly NexusAnimatedWebpFrameCache _frameCache;
 	private readonly Image _target;
 	private readonly string _motionName;
 	private readonly NexusAnimatedWebpDefinition _definition;
@@ -32,11 +33,13 @@ internal sealed class NexusAnimatedWebpClip : IDisposable
 
 	internal NexusAnimatedWebpClip(
 		NexusMotionController motion,
+		NexusAnimatedWebpFrameCache frameCache,
 		Image target,
 		string motionName,
 		NexusAnimatedWebpDefinition definition)
 	{
 		_motion = motion ?? throw new ArgumentNullException(nameof(motion));
+		_frameCache = frameCache ?? throw new ArgumentNullException(nameof(frameCache));
 		_target = target ?? throw new ArgumentNullException(nameof(target));
 		ArgumentException.ThrowIfNullOrWhiteSpace(motionName);
 		_motionName = motionName;
@@ -54,7 +57,7 @@ internal sealed class NexusAnimatedWebpClip : IDisposable
 		try
 		{
 			NexusLog.Trace($"[ANIMATED_WEBP] Prepare requested. asset='{_definition.PackageAssetName}', targetHandler={_target.Handler is not null}.");
-			_frames ??= await NexusAnimatedWebpFrameCache.GetAsync(_definition);
+			_frames ??= await _frameCache.GetAsync(_definition);
 			if (_isDisposed)
 			{
 				NexusLog.Warning($"[ANIMATED_WEBP] Prepare abandoned after decode because the clip was disposed. asset='{_definition.PackageAssetName}'.");

@@ -6,6 +6,30 @@ internal static class NexusConcurrencyDiagnostics
 	private static readonly Dictionary<string, Func<string>> Owners = new(StringComparer.Ordinal);
 	private static string _lastFault = "none";
 	private static string _lastLifecycleStop = "none";
+	private static Func<string>? _workerSnapshot;
+	private static Func<string>? _uiPostSnapshot;
+
+	internal static void ConfigureRuntimeSnapshots(
+		Func<string> workerSnapshot,
+		Func<string> uiPostSnapshot)
+	{
+		ArgumentNullException.ThrowIfNull(workerSnapshot);
+		ArgumentNullException.ThrowIfNull(uiPostSnapshot);
+		lock (Gate)
+		{
+			_workerSnapshot = workerSnapshot;
+			_uiPostSnapshot = uiPostSnapshot;
+		}
+	}
+
+	internal static void ClearRuntimeSnapshots()
+	{
+		lock (Gate)
+		{
+			_workerSnapshot = null;
+			_uiPostSnapshot = null;
+		}
+	}
 
 	internal static void RegisterOwner(string owner, Func<string> snapshot)
 	{
@@ -54,7 +78,9 @@ internal static class NexusConcurrencyDiagnostics
 			string owners = Owners.Count == 0
 				? "none"
 				: string.Join("; ", Owners.Select(pair => $"{pair.Key}=[{pair.Value()}]"));
-			return $"owners=[{owners}]; workers=[{Ui.NexusBackgroundWorkers.GetSnapshot()}]; uiPosts=[{Ui.UiThread.GetPostSnapshot()}]; lastFault={_lastFault}; lastStop={_lastLifecycleStop}";
+			string workerSnapshot = _workerSnapshot?.Invoke() ?? "unavailable";
+			string uiPostSnapshot = _uiPostSnapshot?.Invoke() ?? "unavailable";
+			return $"owners=[{owners}]; workers=[{workerSnapshot}]; uiPosts=[{uiPostSnapshot}]; lastFault={_lastFault}; lastStop={_lastLifecycleStop}";
 		}
 	}
 }

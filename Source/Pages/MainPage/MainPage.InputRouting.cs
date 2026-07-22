@@ -47,7 +47,7 @@ public partial class MainPage
 			return false;
 		}
 #endif
-		return PlatformManager.Current.Keyboard.IsNativeTextInputFocused(this);
+		return NexusAppManager.Instance.Platform.Keyboard.IsNativeTextInputFocused(this);
 	}
 
 	private void CloseActiveWorkflowTab()

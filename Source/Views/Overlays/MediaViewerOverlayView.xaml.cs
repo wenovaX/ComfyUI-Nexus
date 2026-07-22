@@ -1126,14 +1126,14 @@ public partial class MediaViewerOverlayView : ContentView
 			return;
 		}
 
-		PlatformManager.Current.Cursor.SetCursor(ViewerImageInteractionLayer, shape);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(ViewerImageInteractionLayer, shape);
 		_activeCursorShape = shape;
 	}
 
 	private void ResetImageCursor()
 	{
 		_activeCursorShape = null;
-		PlatformManager.Current.Cursor.SetCssCursor(ViewerImageInteractionLayer, DefaultCssCursor);
+		NexusAppManager.Instance.Platform.Cursor.SetCssCursor(ViewerImageInteractionLayer, DefaultCssCursor);
 	}
 
 	private NexusCursorShape GetImageCursorShape()

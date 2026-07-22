@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Runtime;
 #if WINDOWS
 using System.Diagnostics;
@@ -19,10 +20,14 @@ internal sealed class RuntimePackageService
 	private static readonly TimeSpan PortableGitExtractTimeout = TimeSpan.FromMinutes(3);
 
 	private readonly Action<string> _log;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly SetupSettingsService _settingsService;
 
-	internal RuntimePackageService(Action<string> log)
+	internal RuntimePackageService(Action<string> log, NexusToolingEnvironment tooling, SetupSettingsService settingsService)
 	{
 		_log = log;
+		_tooling = tooling;
+		_settingsService = settingsService;
 	}
 
 	internal async Task ExtractGitPackageAsync(CancellationToken cancellationToken)
@@ -35,7 +40,8 @@ internal sealed class RuntimePackageService
 			throw new FileNotFoundException("Git package missing in Packages folder.");
 		}
 
-		string destinationPath = Path.Combine(ComfyInstallService.InstalledPath, "Git");
+		string physicalDestinationPath = Path.Combine(ComfyInstallService.InstalledPath, "Git");
+		string destinationPath = _tooling.CurrentLease?.GetToolingPath(physicalDestinationPath) ?? physicalDestinationPath;
 		if (IsPortableGitPackage(gitPackage))
 		{
 			await ExtractPortableGitPackageAsync(gitPackage, destinationPath, cancellationToken);
@@ -46,28 +52,26 @@ internal sealed class RuntimePackageService
 		ValidateMinGitPackage(gitPackage, packageSpec.Git);
 		await ExtractZipAsync(gitPackage, destinationPath, cancellationToken);
 		await VerifyInstalledGitAsync(destinationPath, cancellationToken);
-		SetupSettingsService.Instance.Settings.GitPath = Path.Combine(destinationPath, "cmd", "git.exe");
-		SetupSettingsService.Instance.Save();
+		_settingsService.Settings.GitPath = Path.Combine(physicalDestinationPath, "cmd", "git.exe");
+		_settingsService.Save();
 	}
 
 	private static string ResolveGitPackagePath(RuntimePackageSpec packageSpec)
-	{
-		string packageRoot = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", packageSpec.Git.Folder);
-		string expectedPath = Path.Combine(packageRoot, packageSpec.Git.File);
-		return expectedPath;
-	}
+		=> ComfyInstallService.GetRuntimePackagePath(Path.Combine(packageSpec.Git.Folder, packageSpec.Git.File));
 
 	internal async Task ExtractPythonPackageAsync(CancellationToken cancellationToken)
 	{
 		var packageSpec = RuntimePackageSpecService.Load();
-		string pythonPackage = packageSpec.GetPythonPackagePath(ComfyInstallService.RootPath);
+		string pythonPackage = packageSpec.GetPythonPackagePath(ComfyInstallService.PackageRoot);
 		_log($"[Runtime] Python package: {pythonPackage}");
 		if (!File.Exists(pythonPackage))
 		{
 			throw new FileNotFoundException("Python package missing in Packages folder.");
 		}
 
-		await InstallPythonRuntimeArchiveAsync(ComfyInstallService.PythonPath, pythonPackage, packageSpec.Python, cancellationToken);
+		string physicalPythonPath = ComfyInstallService.PythonPath;
+		string toolingPythonPath = _tooling.CurrentLease?.GetToolingPath(physicalPythonPath) ?? physicalPythonPath;
+		await InstallPythonRuntimeArchiveAsync(toolingPythonPath, pythonPackage, packageSpec.Python, cancellationToken);
 	}
 
 	internal async Task ExtractComfyZipDirectlyAsync(
@@ -78,7 +82,8 @@ internal sealed class RuntimePackageService
 	{
 		ValidateComfyPackage(zipPath, packageSpec);
 
-		string tempDir = Path.Combine(Path.GetTempPath(), $"Nexus-Zip-{Guid.NewGuid():N}");
+		string tempRoot = _tooling.CurrentLease?.GetRuntimePath("Work") ?? Path.GetTempPath();
+		string tempDir = Path.Combine(tempRoot, $"Nexus-Zip-{Guid.NewGuid():N}");
 		try
 		{
 			Directory.CreateDirectory(tempDir);
@@ -148,7 +153,7 @@ internal sealed class RuntimePackageService
 
 	private static bool IsInstalledRuntimePath(string path)
 	{
-		string fullPath = Path.GetFullPath(path);
+		string fullPath = NexusToolingPathLeaseController.ResolvePhysicalPath(path);
 		string installedPath = Path.GetFullPath(ComfyInstallService.InstalledPath)
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
@@ -251,8 +256,8 @@ internal sealed class RuntimePackageService
 		}
 
 		await VerifyInstalledGitAsync(destinationPath, cancellationToken);
-		SetupSettingsService.Instance.Settings.GitPath = Path.Combine(destinationPath, "cmd", "git.exe");
-		SetupSettingsService.Instance.Save();
+		_settingsService.Settings.GitPath = NexusToolingPathLeaseController.ResolvePhysicalPath(Path.Combine(destinationPath, "cmd", "git.exe"));
+		_settingsService.Save();
 #endif
 	}
 
@@ -307,9 +312,15 @@ internal sealed class RuntimePackageService
 		var manifest = await LoadPythonRuntimeManifestAsync(packagePath, packageSpec, cancellationToken);
 		ValidatePythonRuntimePackage(packagePath, manifest, packageSpec);
 
-		string candidateRoot = Path.Combine(ComfyInstallService.InstalledPath, $"Python.candidate-{Guid.NewGuid():N}");
+		string? toolingInstalledRoot = Path.GetDirectoryName(destinationPath);
+		if (string.IsNullOrWhiteSpace(toolingInstalledRoot))
+		{
+			throw new InvalidOperationException("Python runtime destination does not have a parent directory.");
+		}
+
+		string candidateRoot = Path.Combine(toolingInstalledRoot, $"Python.candidate-{Guid.NewGuid():N}");
 		string candidatePythonPath = Path.Combine(candidateRoot, manifest.LayoutRoot);
-		string backupPath = Path.Combine(ComfyInstallService.InstalledPath, $"Python.backup-{Guid.NewGuid():N}");
+		string backupPath = Path.Combine(toolingInstalledRoot, $"Python.backup-{Guid.NewGuid():N}");
 		bool backupCreated = false;
 		bool candidatePromoted = false;
 
@@ -332,8 +343,8 @@ internal sealed class RuntimePackageService
 			candidatePromoted = true;
 			await VerifyPythonRuntimeAsync(destinationPath, verifyVenvCreation: false, cancellationToken);
 
-			SetupSettingsService.Instance.Settings.PythonPath = ComfyInstallService.PythonExe;
-			SetupSettingsService.Instance.Save();
+			_settingsService.Settings.PythonPath = NexusToolingPathLeaseController.ResolvePhysicalPath(ComfyInstallService.PythonExe);
+			_settingsService.Save();
 
 			if (backupCreated)
 			{
@@ -447,9 +458,11 @@ internal sealed class RuntimePackageService
 			return;
 		}
 
-		string venvPath = Path.Combine(Path.GetDirectoryName(pythonRoot) ?? pythonRoot, $"venv-probe-{Guid.NewGuid():N}");
+		string toolingRuntimeRoot = _tooling.CurrentLease?.RuntimeRoot ?? ComfyInstallService.LocalRuntimePath;
+		string venvPath = Path.Combine(toolingRuntimeRoot, $".venv-probe-{Guid.NewGuid():N}");
 		try
 		{
+			_log("[Runtime] Verifying Python virtual environment creation in the runtime workspace.");
 			await VerifyPythonCommandAsync(
 				pythonExe,
 				pythonRoot,
@@ -477,11 +490,11 @@ internal sealed class RuntimePackageService
 		CancellationToken cancellationToken)
 	{
 		IReadOnlyDictionary<string, string>? environmentVariables = UsesPipCache(arguments)
-			? PipCacheService.CreateEnvironment()
+			? PipCacheService.CreateEnvironment(_tooling.CurrentLease, _settingsService.Settings)
 			: null;
 		if (environmentVariables is not null)
 		{
-			_log($"[Runtime] pip cache: {environmentVariables[PipCacheService.EnvironmentVariableName]}");
+			_log($"[Runtime] pip cache: {PipCacheService.GetEffectiveCachePath(_settingsService.Settings)}");
 		}
 		else if (UsesPipCache(arguments))
 		{

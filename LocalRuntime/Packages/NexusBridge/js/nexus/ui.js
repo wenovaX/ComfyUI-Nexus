@@ -174,7 +174,7 @@ function ensureSplitterPolish() {
     style.id = "nexus-splitter-polish-style";
     style.textContent = `
         :root {
-            --nexus-rail-width: 48px;
+            --nexus-rail-width: 0px;
         }
 
         .p-splitterpanel.bottom-panel {

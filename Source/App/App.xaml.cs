@@ -4,6 +4,7 @@ using ComfyUI_Nexus.Localization;
 using ComfyUI_Nexus.Platform;
 using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Setup.Services;
+using Microsoft.Extensions.DependencyInjection;
 #if WINDOWS
 using Microsoft.UI.Windowing;
 using Windows.Graphics;
@@ -18,21 +19,22 @@ namespace ComfyUI_Nexus;
 #endif
 public partial class App : Application
 {
-	internal NexusServerLifecycleCoordinator ServerLifecycle { get; } = new();
+	internal NexusAppManager Runtime { get; }
 
 #if WINDOWS
 	private const int SafeShutdownMinimumVisibleMilliseconds = 1000;
 
 	private bool _isExitConfirmed;
+	private bool _isExitRequestPending;
 	private readonly HashSet<IntPtr> _hookedWindowHandles = [];
 	private readonly HashSet<IntPtr> _styledWindowHandles = [];
 	private bool _isInitialWindowPlacementApplied;
 #endif
 
-	public App()
+	public App(IServiceProvider services)
 	{
-#if WINDOWS
-#endif
+		ArgumentNullException.ThrowIfNull(services);
+		Runtime = services.GetRequiredService<NexusAppManager>();
 #if WINDOWS
 		string webViewDataPath = ComfyInstallService.GetLocalRuntimePath("Cache/WebView2");
 		Directory.CreateDirectory(webViewDataPath);
@@ -52,18 +54,18 @@ public partial class App : Application
 			NexusLog.Exception(ex, "[STARTUP] Portable package materialization failed");
 		}
 
-		DebugExceptionDiagnostics.Attach();
+		Runtime.ExceptionDiagnostics.Attach();
 #if DEBUG
-		NexusBindingDiagnostics.Attach();
+		Runtime.BindingDiagnostics.Attach();
 #endif
-		ProcessExitDiagnostics.Attach(ComfyInstallService.GetLocalRuntimePath("State"));
+		Runtime.SessionDiagnostics.Attach(ComfyInstallService.GetLocalRuntimePath("State"));
 #if WINDOWS
 		Microsoft.UI.Xaml.Application.Current.UnhandledException += OnUnhandledException;
 #endif
 		NexusLog.Info("[STARTUP] App constructor starting.");
 		try
 		{
-			SetupSettingsService settingsService = SetupSettingsService.Instance;
+			SetupSettingsService settingsService = Runtime.Settings;
 			string configuredLanguage = settingsService.Settings.LanguageCode;
 			LocalizationManager.Initialize(configuredLanguage);
 			if (!string.Equals(configuredLanguage, LocalizationManager.ActiveLanguage, StringComparison.Ordinal))
@@ -91,8 +93,8 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		NexusLog.Info("[STARTUP] CreateWindow starting.");
-		double savedWidth = PortablePreferences.Get(PreferenceKeys.WindowWidth, WindowOptions.DefaultWidth);
-		double savedHeight = PortablePreferences.Get(PreferenceKeys.WindowHeight, WindowOptions.DefaultHeight);
+		double savedWidth = Runtime.Preferences.Get(PreferenceKeys.WindowWidth, WindowOptions.DefaultWidth);
+		double savedHeight = Runtime.Preferences.Get(PreferenceKeys.WindowHeight, WindowOptions.DefaultHeight);
 		double launchWidth = Math.Max(WindowOptions.MinimumWidth, savedWidth);
 		double launchHeight = Math.Max(WindowOptions.MinimumHeight, savedHeight);
 
@@ -221,7 +223,18 @@ public partial class App : Application
 
 		var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
 		AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
-		appWindow.Closing += async (_, args) => await OnAppWindowClosingAsync(window, platformWindow, args);
+		appWindow.Closing += async (_, args) =>
+		{
+			try
+			{
+				await OnAppWindowClosingAsync(window, platformWindow, args);
+			}
+			catch (Exception ex)
+			{
+				args.Cancel = true;
+				NexusLog.Exception(ex, "[SHUTDOWN] Native window closing handler failed");
+			}
+		};
 	}
 
 	private void TryApplyInitialWindowPlacement(Window window)
@@ -282,30 +295,63 @@ public partial class App : Application
 
 	internal async Task RequestExitWithConfirmationAsync(Window? window)
 	{
-		window ??= Windows.FirstOrDefault();
-		if (window?.Handler?.PlatformView is Microsoft.UI.Xaml.Window platformWindow)
+		if (_isExitConfirmed || _isExitRequestPending)
 		{
-			await RequestExitWithConfirmationAsync(window, platformWindow);
 			return;
 		}
 
-		if (window != null)
+		_isExitRequestPending = true;
+		try
 		{
-			if (IsConfiguredServerPortActive())
+			window ??= Windows.FirstOrDefault();
+			if (window?.Handler?.PlatformView is Microsoft.UI.Xaml.Window platformWindow)
 			{
-				NexusLog.Warning("[SHUTDOWN] Exit request was blocked because the native confirmation surface is unavailable while the configured server port is active.");
+				await RequestExitWithConfirmationCoreAsync(window, platformWindow);
 				return;
 			}
 
-			CloseWindow(window);
+			if (window != null)
+			{
+				if (IsConfiguredServerPortActive())
+				{
+					NexusLog.Warning("[SHUTDOWN] Exit request was blocked because the native confirmation surface is unavailable while the configured server port is active.");
+					return;
+				}
+
+				Runtime.SessionDiagnostics.MarkExitIntent(
+					NexusExitIntent.KeepServerRunningAndExit,
+					"nativeConfirmationSurfaceUnavailable");
+				await ExitWithoutNativeConfirmationAsync(window);
+			}
+		}
+		finally
+		{
+			_isExitRequestPending = false;
 		}
 	}
 
 	private async Task RequestExitWithConfirmationAsync(Window window, Microsoft.UI.Xaml.Window platformWindow)
 	{
+		if (_isExitConfirmed || _isExitRequestPending)
+		{
+			return;
+		}
+
+		_isExitRequestPending = true;
+		try
+		{
+			await RequestExitWithConfirmationCoreAsync(window, platformWindow);
+		}
+		finally
+		{
+			_isExitRequestPending = false;
+		}
+	}
+
+	private async Task RequestExitWithConfirmationCoreAsync(Window window, Microsoft.UI.Xaml.Window platformWindow)
+	{
 		if (_isExitConfirmed)
 		{
-			platformWindow.Close();
 			return;
 		}
 
@@ -322,7 +368,7 @@ public partial class App : Application
 			return;
 		}
 
-		ComfyServerProcessInfo? serverProcess = ComfyServerProcessRegistry.FindServerProcess();
+		ComfyServerProcessInfo? serverProcess = Runtime.ServerProcesses.FindServerProcess();
 		if (serverProcess == null)
 		{
 			if (IsConfiguredServerPortActive())
@@ -341,7 +387,7 @@ public partial class App : Application
 		}
 
 		string action = await page.DisplayActionSheetAsync(
-			$"ComfyUI server is still running on port {SetupSettingsService.Instance.Settings.ServerPort}.\n{serverProcess.ProcessName} ({serverProcess.ProcessId}) // {serverProcess.Source}",
+			$"ComfyUI server is still running on port {Runtime.Settings.Settings.ServerPort}.\n{serverProcess.ProcessName} ({serverProcess.ProcessId}) // {serverProcess.Source}",
 			"Cancel",
 			null,
 			"Kill server and exit",
@@ -355,17 +401,31 @@ public partial class App : Application
 
 		if (string.Equals(action, "Kill server and exit", StringComparison.Ordinal))
 		{
-			ProcessExitDiagnostics.MarkExitIntent(
+			Runtime.SessionDiagnostics.MarkExitIntent(
 				NexusExitIntent.KillServerAndExit,
 				$"serverPid={serverProcess.ProcessId}, source={serverProcess.Source}");
 			await ShutdownServerAndExitAsync(platformWindow, page, serverProcess);
 			return;
 		}
 
-		ProcessExitDiagnostics.MarkExitIntent(
+		Runtime.SessionDiagnostics.MarkExitIntent(
 			NexusExitIntent.KeepServerRunningAndExit,
 			$"serverPid={serverProcess.ProcessId}, source={serverProcess.Source}");
 		await ExitSafelyAsync(platformWindow);
+	}
+
+	private async Task ExitWithoutNativeConfirmationAsync(Window window)
+	{
+		ServerLifecycleResult result = await Runtime.ServerLifecycle.RunAsync(
+			new ServerLifecycleRequest(ServerLifecycleMode.KeepServerRunningAndExit));
+		if (!result.IsSuccess)
+		{
+			NexusLog.Warning($"[SHUTDOWN] Exit was retained because shell service shutdown did not complete: {result.Message}");
+			return;
+		}
+
+		MarkExitConfirmed();
+		CloseWindow(window);
 	}
 
 	private async Task ShutdownServerAndExitAsync(
@@ -385,11 +445,12 @@ public partial class App : Application
 
 		try
 		{
-			ServerLifecycleResult result = await ServerLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.KillServerAndExit));
+			ServerLifecycleResult result = await Runtime.ServerLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.KillServerAndExit));
 			if (!result.IsSuccess)
 			{
 				throw new InvalidOperationException(result.Message);
 			}
+
 		}
 		catch (Exception ex)
 		{
@@ -422,10 +483,16 @@ public partial class App : Application
 			minimumVisibleTimer = System.Diagnostics.Stopwatch.StartNew();
 		}
 
-		ServerLifecycleResult result = await ServerLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.KeepServerRunningAndExit));
+		ServerLifecycleResult result = await Runtime.ServerLifecycle.RunAsync(new ServerLifecycleRequest(ServerLifecycleMode.KeepServerRunningAndExit));
 		if (!result.IsSuccess)
 		{
-			NexusLog.Warning($"[SHUTDOWN] Shell service shutdown completed with an error: {result.Message}");
+			NexusLog.Warning($"[SHUTDOWN] Exit was retained because shell service shutdown did not complete: {result.Message}");
+			if (mainPage != null)
+			{
+				await mainPage.SetShutdownBlockerVisibleAsync(false);
+			}
+
+			return;
 		}
 
 		if (minimumVisibleTimer != null)
@@ -442,20 +509,39 @@ public partial class App : Application
 
 	private Task CloseConfirmedAsync(Microsoft.UI.Xaml.Window platformWindow)
 	{
-		if (Shell.Current?.CurrentPage is MainPage mainPage)
+		if (_isExitConfirmed)
 		{
-			mainPage.CloseControlDeckWindow();
+			return Task.CompletedTask;
 		}
 
-		_isExitConfirmed = true;
+		MarkExitConfirmed();
 		platformWindow.Close();
 		return Task.CompletedTask;
 	}
 
-	private static bool IsConfiguredServerPortActive()
+	private void MarkExitConfirmed()
 	{
-		return LocalServerProbe.IsPortListening(SetupSettingsService.Instance.Settings.ServerPort);
+		if (_isExitConfirmed)
+		{
+			return;
+		}
+
+		_isExitConfirmed = true;
+		try
+		{
+			Runtime.ControlDeckWindow.Close();
+		}
+		catch (Exception ex)
+		{
+			NexusLog.Exception(ex, "[SHUTDOWN] Control Deck close failed");
+		}
 	}
+
+	private bool IsConfiguredServerPortActive()
+	{
+		return LocalServerProbe.IsPortListening(Runtime.Settings.Settings.ServerPort);
+	}
+
 #endif
 
 #if !WINDOWS
@@ -488,25 +574,38 @@ public partial class App : Application
 			return;
 		}
 
-		PersistWindowSize(window);
-		ProcessExitDiagnostics.MarkCleanShutdown("Window.Destroying");
-		NexusLog.ShutdownPersistentLog();
-		window.SizeChanged -= OnWindowSizeChanged;
-		window.Destroying -= OnWindowDestroying;
+		try
+		{
+			PersistWindowSize(window);
+			Runtime.SessionDiagnostics.MarkCleanShutdown("Window.Destroying");
+			// MAUI may raise control unload callbacks after Window.Destroying. Keep the
+			// app-runtime owner alive until process exit so those callbacks cannot observe
+			// disposed services or an unavailable NexusAppManager singleton.
+			NexusLog.Info("[SHUTDOWN] Native window teardown started. App runtime disposal is deferred to process exit.");
+		}
+		catch (Exception ex)
+		{
+			NexusLog.Exception(ex, "[SHUTDOWN] Window teardown cleanup failed");
+		}
+		finally
+		{
+			window.SizeChanged -= OnWindowSizeChanged;
+			window.Destroying -= OnWindowDestroying;
 #if WINDOWS
-		window.HandlerChanged -= OnWindowHandlerChanged;
-		window.Created -= OnWindowCreated;
+			window.HandlerChanged -= OnWindowHandlerChanged;
+			window.Created -= OnWindowCreated;
 #endif
+		}
 	}
 
-	private static void PersistWindowSize(Window window)
+	private void PersistWindowSize(Window window)
 	{
 		if (window.Width < WindowOptions.MinimumWidth || window.Height < WindowOptions.MinimumHeight)
 		{
 			return;
 		}
 
-		PortablePreferences.Set(PreferenceKeys.WindowWidth, window.Width);
-		PortablePreferences.Set(PreferenceKeys.WindowHeight, window.Height);
+		Runtime.Preferences.Set(PreferenceKeys.WindowWidth, window.Width);
+		Runtime.Preferences.Set(PreferenceKeys.WindowHeight, window.Height);
 	}
 }

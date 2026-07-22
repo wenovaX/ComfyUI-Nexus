@@ -15,7 +15,8 @@ internal sealed class ProcessRunner
 		out IDisposable logTail,
 		string? workingDirectory = null,
 		IReadOnlyDictionary<string, string>? environmentVariables = null,
-		string? latestLogFilePath = null)
+		string? latestLogFilePath = null,
+		Func<Process, bool>? isShuttingDown = null)
 	{
 #if !WINDOWS
 		logTail = EmptyDisposable.Instance;
@@ -69,7 +70,7 @@ internal sealed class ProcessRunner
 		}
 
 		process.Start();
-		logTail = StartLogTail(logFilePath, tailStartPosition, process, onLog, tailPollingDelay, latestLogFilePath);
+		logTail = StartLogTail(logFilePath, tailStartPosition, process, onLog, tailPollingDelay, latestLogFilePath, isShuttingDown);
 
 		return process;
 #endif
@@ -80,7 +81,8 @@ internal sealed class ProcessRunner
 		Process process,
 		Action<string> onLog,
 		TimeSpan tailPollingDelay,
-		string? latestLogFilePath = null)
+		string? latestLogFilePath = null,
+		Func<Process, bool>? isShuttingDown = null)
 	{
 		string? logDirectory = Path.GetDirectoryName(logFilePath);
 		if (!string.IsNullOrWhiteSpace(logDirectory))
@@ -91,7 +93,7 @@ internal sealed class ProcessRunner
 		long tailStartPosition = File.Exists(logFilePath)
 			? new FileInfo(logFilePath).Length
 			: 0;
-		return StartLogTail(logFilePath, tailStartPosition, process, onLog, tailPollingDelay, latestLogFilePath);
+		return StartLogTail(logFilePath, tailStartPosition, process, onLog, tailPollingDelay, latestLogFilePath, isShuttingDown);
 	}
 
 	internal static async Task WaitForServerLogAppendAccessAsync(
@@ -242,7 +244,7 @@ internal sealed class ProcessRunner
 	private static string BuildRedirectedCommand(string fileName, string arguments, string logFilePath)
 	{
 		string command = $"{QuoteForCmd(fileName)} {arguments} >> {QuoteForCmd(logFilePath)} 2>&1";
-		return $"/d /s /c \"{command}\"";
+		return $"/d /s /c \"chcp 65001>nul & {command}\"";
 	}
 
 	private static void AppendShared(string filePath, string text)
@@ -266,10 +268,11 @@ internal sealed class ProcessRunner
 		Process process,
 		Action<string> onLog,
 		TimeSpan pollingDelay,
-		string? latestLogFilePath)
+		string? latestLogFilePath,
+		Func<Process, bool>? isShuttingDown)
 	{
 		var lifetime = new LogTailLifetime();
-		_ = TailLogFileAsync(logFilePath, startPosition, process, onLog, pollingDelay, latestLogFilePath, lifetime);
+		_ = TailLogFileAsync(logFilePath, startPosition, process, onLog, pollingDelay, latestLogFilePath, lifetime, isShuttingDown);
 		return lifetime;
 	}
 
@@ -280,7 +283,8 @@ internal sealed class ProcessRunner
 		Action<string> onLog,
 		TimeSpan pollingDelay,
 		string? latestLogFilePath,
-		LogTailLifetime lifetime)
+		LogTailLifetime lifetime,
+		Func<Process, bool>? isShuttingDown)
 	{
 		StreamWriter? latestWriter = null;
 		try
@@ -338,7 +342,7 @@ internal sealed class ProcessRunner
 		}
 		catch (Exception ex)
 		{
-			if (ComfyServerProcessRegistry.IsShuttingDown(process))
+			if (isShuttingDown?.Invoke(process) == true)
 			{
 				return;
 			}

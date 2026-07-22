@@ -1,6 +1,7 @@
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Setup.Services;
+using ComfyUI_Nexus.Configuration;
 
 namespace ComfyUI_Nexus.Setup;
 
@@ -8,16 +9,23 @@ internal sealed class SetupSequenceOrchestrator
 {
 	private readonly List<SetupStep> _steps = new();
 	private readonly SetupStepContext _context;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly SetupSettingsService _settingsService;
 
 	internal event Action<string>? OnMessage;
 	internal event Action<double, string>? OnProgress;
 
-	internal SetupSequenceOrchestrator()
+	internal SetupSequenceOrchestrator(
+		NexusToolingEnvironment tooling,
+		ComfyInstallService installService,
+		NexusServerProcessController serverProcesses)
 	{
-		var detectorService = new Services.CoreLinkDetector();
-		var installService = new Services.ComfyInstallService();
-		var serverService = new Services.ComfyServerProcessService();
-		var launchService = new Services.NexusAppEntryService();
+		_tooling = tooling ?? throw new ArgumentNullException(nameof(tooling));
+		ArgumentNullException.ThrowIfNull(installService);
+		_settingsService = installService.SettingsService;
+		var detectorService = new Services.CoreLinkDetector(installService);
+		var serverService = new Services.ComfyServerProcessService(serverProcesses, _settingsService, installService.Paths);
+		var launchService = new Services.NexusAppEntryService(_settingsService);
 
 		// Relay events from all services to the UI
 		detectorService.OnMessage = msg => OnMessage?.Invoke(msg);
@@ -36,6 +44,7 @@ internal sealed class SetupSequenceOrchestrator
 
 	internal IReadOnlyList<SetupStep> Steps => _steps;
 	internal SetupStepContext Context => _context;
+	internal SetupSettingsService SettingsService => _settingsService;
 
 	internal void SetNexusAppEntry(INexusAppEntry appEntry)
 		=> _context.NexusAppEntryService.SetEntry(appEntry);
@@ -54,7 +63,9 @@ internal sealed class SetupSequenceOrchestrator
 			return new SetupStepResult(false, $"Unknown setup step: {stepId}", 0);
 		}
 
-		return await step.ExecuteAsync(_context, cancellationToken);
+		return RequiresToolingAccess(stepId)
+			? await _tooling.RunToolingAsync(_ => step.ExecuteAsync(_context, cancellationToken), cancellationToken)
+			: await step.ExecuteAsync(_context, cancellationToken);
 	}
 
 	internal async Task<SetupStepResult> RunServerBootAsync(
@@ -62,8 +73,7 @@ internal sealed class SetupSequenceOrchestrator
 		Action<string>? log = null,
 		CancellationToken cancellationToken = default)
 	{
-		await StaleRuntimeProcessCleaner.CleanupBeforeBootAsync(log, cancellationToken);
-		_context.ComfyInstallService.CleanupShortPipInstallPathsBeforeBoot();
+		await StaleRuntimeProcessCleaner.CleanupBeforeBootAsync(_context.ComfyInstallService.Paths, log, cancellationToken);
 
 		var pendingTasksResult = await RunPendingBootTasksAsync(log, cancellationToken);
 		if (!pendingTasksResult.IsSuccess || pendingTasksResult.RequiresSetupHandoff)
@@ -72,7 +82,9 @@ internal sealed class SetupSequenceOrchestrator
 		}
 
 		bool pendingVenvDeleteWillRun = IsPendingDirectVenvDelete();
-		var pendingVenvDeleteResult = await _context.ComfyInstallService.ApplyPendingComfyVenvDeleteAsync(cancellationToken);
+		var pendingVenvDeleteResult = await RunWithToolingAccessAsync(
+			() => _context.ComfyInstallService.ApplyPendingComfyVenvDeleteAsync(cancellationToken),
+			cancellationToken);
 		if (!pendingVenvDeleteResult.IsSuccess)
 		{
 			return pendingVenvDeleteResult;
@@ -80,7 +92,9 @@ internal sealed class SetupSequenceOrchestrator
 		if (pendingVenvDeleteWillRun)
 		{
 			log?.Invoke("[TASKS] Pending .venv delete applied. Repairing DIRECT Python dependencies before boot.");
-			var repairResult = await _context.ComfyInstallService.RepairRuntimeDependenciesAsync(cancellationToken);
+			var repairResult = await RunWithToolingAccessAsync(
+				() => _context.ComfyInstallService.RepairRuntimeDependenciesAsync(cancellationToken),
+				cancellationToken);
 			if (!repairResult.IsSuccess) return repairResult;
 			log?.Invoke("[TASKS] DIRECT Python dependencies repaired after .venv delete.");
 		}
@@ -110,8 +124,7 @@ internal sealed class SetupSequenceOrchestrator
 		Action<string>? log,
 		CancellationToken cancellationToken)
 	{
-		var settingsService = Services.SetupSettingsService.Instance;
-		var tasks = settingsService.GetRunnableBootTasks();
+		var tasks = _settingsService.GetRunnableBootTasks();
 		if (tasks.Count == 0)
 		{
 			return new SetupStepResult(true, "No pending boot tasks.", 1);
@@ -122,17 +135,21 @@ internal sealed class SetupSequenceOrchestrator
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			log?.Invoke($"[TASKS] Starting {task.Id}.");
-			settingsService.MarkBootTaskInProgress(task.Id);
+			_settingsService.MarkBootTaskInProgress(task.Id);
 
-			SetupStepResult result = await RunPendingBootTaskAsync(task, cancellationToken);
+			SetupStepResult result = RequiresToolingAccess(task.Id)
+				? await _tooling.RunToolingAsync(
+					_ => RunPendingBootTaskAsync(task, cancellationToken),
+					cancellationToken)
+				: await RunPendingBootTaskAsync(task, cancellationToken);
 			if (!result.IsSuccess)
 			{
-				settingsService.FailBootTask(task.Id, result.Message);
+				_settingsService.FailBootTask(task.Id, result.Message);
 				log?.Invoke($"[TASKS] Failed {task.Id}: {result.Message}");
 				return result;
 			}
 
-			settingsService.CompleteBootTask(task.Id);
+			_settingsService.CompleteBootTask(task.Id);
 			log?.Invoke($"[TASKS] Completed {task.Id}: {result.Message}");
 			if (result.RequiresSetupHandoff)
 			{
@@ -143,14 +160,14 @@ internal sealed class SetupSequenceOrchestrator
 		return new SetupStepResult(true, "Pending boot tasks completed.", 1);
 	}
 
-	private static async Task<SetupStepResult> SynchronizeExternalModelPathsIfNeededAsync(
+	private async Task<SetupStepResult> SynchronizeExternalModelPathsIfNeededAsync(
 		Action<string>? log,
 		CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		SetupSettings settings = Services.SetupSettingsService.Instance.Settings;
-		string comfyPath = Services.ComfyPathResolver.ResolveActiveComfyPath();
+		SetupSettings settings = _settingsService.Settings;
+		string comfyPath = _context.ComfyInstallService.Paths.ActiveComfyPath;
 		if (settings.ModelLibraryRoots.Count == 0)
 		{
 			log?.Invoke("[MODEL PATHS] No external model libraries configured.");
@@ -223,22 +240,22 @@ internal sealed class SetupSequenceOrchestrator
 		return new SetupStepResult(true, ".venv deleted and DIRECT Python dependencies are ready.", 1);
 	}
 
-	private static bool IsPendingDirectVenvDelete()
+	private bool IsPendingDirectVenvDelete()
 	{
-		SetupSettings settings = Services.SetupSettingsService.Instance.Settings;
+		SetupSettings settings = _settingsService.Settings;
 		return settings.PendingVenvDelete
 			&& string.Equals(settings.ServerPythonMode, PythonExecutionModes.ConfiguredPython, StringComparison.Ordinal);
 	}
 
-	private static SetupStepResult RunResetSetupTask()
+	private SetupStepResult RunResetSetupTask()
 	{
-		Services.SetupSettingsService.Instance.ResetSetupPath();
+		_settingsService.ResetSetupPath();
 		return new SetupStepResult(true, "Setup settings reset. Returning to setup.", 1, RequiresSetupHandoff: true);
 	}
 
-	private static SetupStepResult RunResetAllTask()
+	private SetupStepResult RunResetAllTask()
 	{
-		Services.SetupSettingsService.Instance.ResetAll();
+		_settingsService.ResetAll();
 		return new SetupStepResult(true, "All settings reset. Returning to setup.", 1, RequiresSetupHandoff: true);
 	}
 
@@ -262,10 +279,12 @@ internal sealed class SetupSequenceOrchestrator
 		}
 
 		log?.Invoke($"[RECOVER] Repairing managed extension(s): {string.Join(", ", missingTargets)}");
-		var extensionResult = await _context.ComfyInstallService.InstallManagedExtensionsAsync(
-			missingTargets,
-			forceSyncExisting: false,
-			reinstallExisting: false,
+		var extensionResult = await RunWithToolingAccessAsync(
+			() => _context.ComfyInstallService.InstallManagedExtensionsAsync(
+				missingTargets,
+				forceSyncExisting: false,
+				reinstallExisting: false,
+				cancellationToken),
 			cancellationToken);
 		if (!extensionResult.IsSuccess) return extensionResult;
 
@@ -284,7 +303,9 @@ internal sealed class SetupSequenceOrchestrator
 		}
 
 		log?.Invoke("[Bridge] Nexus bridge extension is missing, incomplete, or outdated. Syncing before server boot...");
-		SetupStepResult bridgeResult = await _context.ComfyInstallService.PatchNexusBridgeAsync(cancellationToken);
+		SetupStepResult bridgeResult = await RunWithToolingAccessAsync(
+			() => _context.ComfyInstallService.PatchNexusBridgeAsync(cancellationToken),
+			cancellationToken);
 		if (!bridgeResult.IsSuccess)
 		{
 			log?.Invoke($"[Bridge] Nexus bridge repair failed before server boot: {bridgeResult.Message}");
@@ -295,9 +316,9 @@ internal sealed class SetupSequenceOrchestrator
 		return bridgeResult;
 	}
 
-	private static List<string> GetMissingManagedExtensionTargets()
+	private List<string> GetMissingManagedExtensionTargets()
 	{
-		string customNodesPath = Services.ComfyPathResolver.ResolveActiveCustomNodesPath();
+		string customNodesPath = _context.ComfyInstallService.Paths.ActiveCustomNodesPath;
 		var missingTargets = new List<string>();
 
 		AddIfMissing(
@@ -313,7 +334,7 @@ internal sealed class SetupSequenceOrchestrator
 			HudBridgeInstaller.NexusBridgeExtensionFolderName,
 			Path.Combine(customNodesPath, HudBridgeInstaller.NexusBridgeExtensionFolderName, "__init__.py"));
 
-		foreach (var node in Services.SetupSettingsService.Instance.Settings.EssentialNodes)
+		foreach (var node in _settingsService.Settings.EssentialNodes)
 		{
 			if (IsBuiltInManagedExtension(node.Folder)) continue;
 
@@ -339,6 +360,26 @@ internal sealed class SetupSequenceOrchestrator
 	private static bool IsBuiltInManagedExtension(string folder)
 		=> string.Equals(folder, HudBridgeInstaller.ManagerExtensionFolderName, StringComparison.OrdinalIgnoreCase) ||
 			string.Equals(folder, HudBridgeInstaller.HudExtensionFolderName, StringComparison.OrdinalIgnoreCase);
+
+	private static bool RequiresToolingAccess(string stepOrTaskId)
+		=> stepOrTaskId is
+			SetupStepIds.CoreLink or
+			SetupStepIds.ComfyCore or
+			SetupStepIds.BaseResources or
+			SetupStepIds.Manager or
+			SetupStepIds.HudBridge or
+			SetupStepIds.Dependencies or
+			PendingBootTaskIds.ComfyUpdate or
+			PendingBootTaskIds.ExtensionRepair or
+			PendingBootTaskIds.VenvCreate or
+			PendingBootTaskIds.VenvRebuild or
+			PendingBootTaskIds.VenvDelete or
+			PendingBootTaskIds.RuntimeRepair;
+
+	private Task<SetupStepResult> RunWithToolingAccessAsync(
+		Func<Task<SetupStepResult>> operation,
+		CancellationToken cancellationToken)
+		=> _tooling.RunToolingAsync(_ => operation(), cancellationToken);
 
 	private async Task<SetupStepResult> RunExtensionRepairTaskAsync(
 		IReadOnlyList<string> targetFolders,

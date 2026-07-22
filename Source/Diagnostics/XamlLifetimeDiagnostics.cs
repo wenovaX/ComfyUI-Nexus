@@ -83,16 +83,16 @@ internal static class XamlLifetimeDiagnostics
 
 	internal static string GetSnapshot()
 	{
-		string surfaces = SurfaceStates.Count == 0
+		string surfaces = SurfaceStates.IsEmpty
 			? "none"
 			: string.Join(", ", SurfaceStates.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"));
-		string animations = ActiveAnimations.Count == 0
+		string animations = ActiveAnimations.IsEmpty
 			? "none"
 			: string.Join(", ", ActiveAnimations.Values.OrderBy(value => value));
-		string motions = MotionStates.Count == 0
+		string motions = MotionStates.IsEmpty
 			? "none"
 			: string.Join(", ", MotionStates.Values.OrderBy(value => value));
-		string browsers = BrowserStates.Count == 0
+		string browsers = BrowserStates.IsEmpty
 			? "none"
 			: string.Join(", ", BrowserStates.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"));
 		return $"transformsDisabled={AreTransformAnimationsDisabled}; headerGpuIndicatorMotionEnabled={AreHeaderGpuIndicatorMotionsEnabled}; surfaces=[{surfaces}]; animations=[{animations}]; motions=[{motions}]; browsers=[{browsers}]";

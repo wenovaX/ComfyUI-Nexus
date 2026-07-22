@@ -60,6 +60,10 @@
 	<Color x:Key="RailResizeGhostMiddleColor">#0f1a26</Color>
 	<Color x:Key="RailResizeGhostNearAccentColor">#1f6f8f</Color>
 	<Color x:Key="RailResizeAccentColor">#31d8ff</Color>
+	<Color x:Key="RailRevealStartColor">#00000000</Color>
+	<Color x:Key="RailRevealMiddleColor">#240F1A26</Color>
+	<Color x:Key="RailRevealNearAccentColor">#3D1F6F8F</Color>
+	<Color x:Key="RailRevealAccentColor">#6631D8FF</Color>
 	<Color x:Key="AssetDragGhostSurfaceColor">#E6111824</Color>
 	<Color x:Key="AssetDragGhostStrokeColor">#668de7ff</Color>
 	<Color x:Key="AssetDragGhostIconColor">#ffcc33</Color>
@@ -297,9 +301,6 @@
 	<Color x:Key="RailCollapseGlowColor">#2431D8FF</Color>
 	<Color x:Key="RailCollapseSurfaceColor">#7A31D8FF</Color>
 	<Color x:Key="RailCollapseChevronColor">#e4fbff</Color>
-	<Color x:Key="RailTransitionStartColor">#D80B1119</Color>
-	<Color x:Key="RailTransitionMiddleColor">#B00D1723</Color>
-	<Color x:Key="RailTransitionEndColor">#55122436</Color>
 	<Color x:Key="RailResizeHandleGripColor">#17324a</Color>
 
 	<Color x:Key="WorkflowActionsMenuStartColor">#d90a111c</Color>

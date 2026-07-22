@@ -11,6 +11,13 @@ using ComfyUI_Nexus.Setup.Services;
 
 internal sealed class ManagerExtensionDiagnosticNode : IConfigurableDiagnosticNode
 {
+	private readonly ComfyInstallService _comfyInstall;
+
+	internal ManagerExtensionDiagnosticNode(ComfyInstallService comfyInstall)
+	{
+		_comfyInstall = comfyInstall ?? throw new ArgumentNullException(nameof(comfyInstall));
+	}
+
 	public string NodeId => "manager-extension";
 	public string DisplayName => Text("setup.extensions.title");
 	public string Description => Text("setup.extensions.description");
@@ -25,11 +32,11 @@ internal sealed class ManagerExtensionDiagnosticNode : IConfigurableDiagnosticNo
 	{
 		try
 		{
-			string customNodesPath = ComfyPathResolver.ResolveActiveCustomNodesPath();
+			string customNodesPath = _comfyInstall.Paths.ActiveCustomNodesPath;
 			string managerPath = Path.Combine(customNodesPath, HudBridgeInstaller.ManagerExtensionFolderName);
 			string hudPath = Path.Combine(customNodesPath, HudBridgeInstaller.HudExtensionFolderName);
 
-			var essentialNodes = SetupSettingsService.Instance.Settings.EssentialNodes;
+			var essentialNodes = _comfyInstall.SettingsService.Settings.EssentialNodes;
 			var details = new System.Text.StringBuilder();
 
 			bool allHealthy = true;
@@ -99,7 +106,7 @@ internal sealed class ManagerExtensionDiagnosticNode : IConfigurableDiagnosticNo
 		{
 			NexusLog.Exception(ex, "[INIT:MANAGER] Check failed");
 			EnvironmentDetails = LocalizationManager.Format("setup.extensions.check_failed", ex.Message);
-			EnvironmentPath = ComfyPathResolver.ResolveActiveCustomNodesPath();
+			EnvironmentPath = _comfyInstall.Paths.ActiveCustomNodesPath;
 			return Task.FromResult(HealthState.CriticalError);
 		}
 	}
@@ -111,14 +118,22 @@ internal sealed class ManagerExtensionDiagnosticNode : IConfigurableDiagnosticNo
 		{
 			AvailableOptions = new[]
 			{
-				DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.KeepOption, Text("setup.common.option_keep_next"), isRecommended: true)
+				DiagnosticNodeHelpers.CreateOption(
+					DiagnosticNodeHelpers.KeepOption,
+					Text("setup.common.option_keep_next"),
+					isRecommended: true,
+					requiresRecovery: false)
 			};
 		}
 		else
 		{
 			AvailableOptions = new[]
 			{
-				DiagnosticNodeHelpers.CreateOption("install", Text("setup.extensions.option_install"), isRecommended: true)
+				DiagnosticNodeHelpers.CreateOption(
+					"install",
+					Text("setup.extensions.option_install"),
+					isRecommended: true,
+					requiresToolingLease: true)
 			};
 		}
 	}
@@ -133,14 +148,14 @@ internal sealed class ManagerExtensionDiagnosticNode : IConfigurableDiagnosticNo
 		try
 		{
 			progress?.Report(0.1);
-			var extensionResult = await ComfyInstallService.Instance.InstallManagedExtensionsAsync(
+			var extensionResult = await _comfyInstall.InstallManagedExtensionsAsync(
 				targetFolders: null,
 				forceSyncExisting: false,
 				reinstallExisting: false,
 				cancellationToken);
 			if (!extensionResult.IsSuccess) return new RecoveryResult(false, extensionResult.Message);
 
-			SetupSettingsService.Instance.EnqueueBootTask(
+			_comfyInstall.SettingsService.EnqueueBootTask(
 				PendingBootTaskIds.ExtensionRepair,
 				origin: "initiation-sequence",
 				action: PendingBootTaskActions.ExtensionSync);

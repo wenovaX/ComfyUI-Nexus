@@ -2,6 +2,7 @@ namespace ComfyUI_Nexus.Setup.Services;
 
 using System.Linq;
 using System.Threading.Tasks;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 
@@ -13,16 +14,28 @@ internal sealed class ExtensionInstaller
 	private readonly Action<double, string> _progress;
 	private readonly GitRepositoryService _gitRepositoryService;
 	private readonly ManagedCustomNodeDependencyInstaller _dependencyInstaller;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly ComfyInstallService _comfyInstall;
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusComfyRuntimePaths _paths;
 
 	internal ExtensionInstaller(
 		Action<string> log,
 		Action<double, string> progress,
-		GitRepositoryService gitRepositoryService)
+		GitRepositoryService gitRepositoryService,
+		NexusToolingEnvironment tooling,
+		ComfyInstallService comfyInstall,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
 		_progress = progress;
 		_gitRepositoryService = gitRepositoryService;
-		_dependencyInstaller = new ManagedCustomNodeDependencyInstaller(log);
+		_tooling = tooling;
+		_comfyInstall = comfyInstall;
+		_settingsService = settingsService;
+		_paths = paths;
+		_dependencyInstaller = new ManagedCustomNodeDependencyInstaller(log, tooling, settingsService, paths);
 	}
 
 	internal async Task<SetupStepResult> InstallManagerAsync(CancellationToken cancellationToken)
@@ -37,15 +50,17 @@ internal sealed class ExtensionInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			var settings = SetupSettingsService.Instance.Settings;
-			var (gitExe, _) = await _gitRepositoryService.ResolveConfiguredGitAsync(cancellationToken);
+			var settings = _settingsService.Settings;
+			var (gitExe, _) = await _gitRepositoryService.ResolveConfiguredGitAsync(settings.GitPath, cancellationToken);
 			if (gitExe == null) return new SetupStepResult(false, "Git is required for ComfyUI-Manager installation.", 0);
 
 			var targets = targetFolders?
 				.Where(target => !string.IsNullOrWhiteSpace(target))
 				.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			bool installAll = targets.Count == 0;
-			string customNodesPath = ComfyPathResolver.ResolveActiveCustomNodesPath();
+			NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+			string toolingComfyPath = lease?.GetComfyRoot() ?? _paths.ActiveComfyPath;
+			string customNodesPath = Path.Combine(toolingComfyPath, "custom_nodes");
 			string managerPath = Path.Combine(customNodesPath, HudBridgeInstaller.ManagerExtensionFolderName);
 			var selectedNodes = settings.EssentialNodes
 				.Where(node => installAll || targets.Contains(node.Folder))
@@ -117,7 +132,7 @@ internal sealed class ExtensionInstaller
 			{
 				string hudTag = CreateStepTag(++completedItems, totalItems, "HUD / Nexus Bridge");
 				_progress(ProgressBefore(completedItems, totalItems), $"{hudTag} Syncing HUD and Nexus Bridge...");
-				var bridgeResult = await ComfyInstallService.Instance.InstallHudBridgeAsync(recoveryMode, cancellationToken);
+				var bridgeResult = await _comfyInstall.InstallHudBridgeAsync(recoveryMode, cancellationToken);
 				if (!bridgeResult.IsSuccess) return bridgeResult;
 				_progress(ProgressAfter(completedItems, totalItems), $"{hudTag} Ready.");
 			}
@@ -125,7 +140,7 @@ internal sealed class ExtensionInstaller
 			{
 				string bridgeTag = CreateStepTag(++completedItems, totalItems, "Nexus Bridge");
 				_progress(ProgressBefore(completedItems, totalItems), $"{bridgeTag} Patching Nexus Bridge...");
-				var bridgeResult = await ComfyInstallService.Instance.PatchNexusBridgeAsync(cancellationToken);
+				var bridgeResult = await _comfyInstall.PatchNexusBridgeAsync(cancellationToken);
 				if (!bridgeResult.IsSuccess) return bridgeResult;
 				_progress(ProgressAfter(completedItems, totalItems), $"{bridgeTag} Ready.");
 			}

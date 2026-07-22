@@ -208,13 +208,22 @@
 									</Grid>
 								</Border>
 
-								<!-- Clickable Environment Path -->
-								<Label Text="{Binding EnvironmentDisplayPath}" TextColor="{StaticResource SetupAccentColor}" TextDecorations="Underline" FontSize="12" IsVisible="{Binding HasEnvironmentPath}" Margin="0,2,0,0" LineBreakMode="TailTruncation">
-									<Label.GestureRecognizers>
-										<PointerGestureRecognizer PointerEntered="OnPathHovered" PointerExited="OnPathUnhovered" />
-										<TapGestureRecognizer Command="{Binding OpenPathCommand}" />
-									</Label.GestureRecognizers>
-								</Label>
+								<!-- Clickable environment path and optional secondary link. -->
+								<HorizontalStackLayout Spacing="8" Margin="0,2,0,0">
+									<Label Text="{Binding EnvironmentDisplayPath}" TextColor="{StaticResource SetupAccentColor}" TextDecorations="Underline" FontSize="12" IsVisible="{Binding HasEnvironmentPath}" LineBreakMode="TailTruncation">
+										<Label.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnPathHovered" PointerExited="OnPathUnhovered" />
+											<TapGestureRecognizer Command="{Binding OpenPathCommand}" />
+										</Label.GestureRecognizers>
+									</Label>
+									<Label Text="|" TextColor="{StaticResource SetupTextMutedColor}" FontSize="12" IsVisible="{Binding HasSecondaryEnvironmentPath}" />
+									<Label Text="{Binding SecondaryEnvironmentLinkText}" TextColor="{StaticResource SetupAccentColor}" TextDecorations="Underline" FontSize="12" IsVisible="{Binding HasSecondaryEnvironmentPath}" LineBreakMode="TailTruncation">
+										<Label.GestureRecognizers>
+											<PointerGestureRecognizer PointerEntered="OnPathHovered" PointerExited="OnPathUnhovered" />
+											<TapGestureRecognizer Command="{Binding OpenSecondaryPathCommand}" />
+										</Label.GestureRecognizers>
+									</Label>
+								</HorizontalStackLayout>
 
 							</StackLayout>
 
@@ -292,17 +301,38 @@
 											<TapGestureRecognizer Tapped="OnDiagnosticCancelTapped" />
 										</Border.GestureRecognizers>
 										<Label Text="{loc:Loc common.cancel}"
+											   InputTransparent="True"
 											   TextColor="{StaticResource SetupAccentColor}"
 											   FontSize="10"
 											   FontAttributes="Bold"
 											   CharacterSpacing="1"
 											   HorizontalTextAlignment="Center"
 											   VerticalTextAlignment="Center"
-											   HorizontalOptions="Center"
-											   VerticalOptions="Center" />
-									</Border>
+																				HorizontalOptions="Center"
+																				VerticalOptions="Center" />
+															</Border>
+															<Border StrokeThickness="1"
+																	Stroke="{StaticResource SetupTextMutedColor}"
+																	BackgroundColor="#1210141F"
+																	StrokeShape="RoundRectangle 8"
+																	Padding="12,0"
+																	WidthRequest="190"
+																	HeightRequest="32"
+																	HorizontalOptions="Fill"
+																	IsVisible="{Binding IsCanceling}">
+																<Label Text="{Binding WorkingHint}"
+																		   InputTransparent="True"
+																		   TextColor="{StaticResource SetupTextMutedColor}"
+																		   FontSize="10"
+																		   FontAttributes="Bold"
+																		   CharacterSpacing="1"
+																		   HorizontalTextAlignment="Center"
+																		   VerticalTextAlignment="Center"
+																		   HorizontalOptions="Center"
+																		   VerticalOptions="Center" />
+															</Border>
 
-									<Border StrokeThickness="1"
+															<Border StrokeThickness="1"
 											Stroke="{Binding StatusBrush}"
 											BackgroundColor="#1210141F"
 											StrokeShape="RoundRectangle 8"

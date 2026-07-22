@@ -16,7 +16,7 @@ public partial class MainPage
 		}
 
 		_shellRuntimeServicesActive = true;
-		GpuDiscoveryService.StartResult gpuStart = await GpuDiscoveryService.StartAsync();
+		GpuDiscoveryService.StartResult gpuStart = await _appManager.GpuDiscovery.StartAsync();
 		if (!gpuStart.IsSuccess)
 		{
 			NexusLog.Warning($"[RUNTIME] GPU discovery service completed without device data: {gpuStart.FailureMessage}");
@@ -50,14 +50,14 @@ public partial class MainPage
 			Log($"[RUNTIME] Shell telemetry and indicators stopped: {reason}");
 		}
 
-		GpuDiscoveryService.StopResult gpuStop = await GpuDiscoveryService.StopAsync();
+		GpuDiscoveryService.StopResult gpuStop = await _appManager.GpuDiscovery.StopAsync();
 		if (!gpuStop.IsSuccess)
 		{
 			Log($"[RUNTIME] GPU discovery service stop completed with an error: {gpuStop.FailureMessage}");
 		}
 	}
 
-	private void StopShellRuntimeServicesForUnload()
+	private void StopShellVisualsForUnload()
 	{
 		_shellRuntimeServicesActive = false;
 		StopNativeSystemTelemetry();

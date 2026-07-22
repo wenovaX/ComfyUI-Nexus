@@ -1,19 +1,16 @@
 namespace ComfyUI_Nexus.Setup.Services;
 
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 
 internal sealed class GitRepositoryService
 {
-	private readonly Action<string> _log;
-	private readonly Action<string>? _progressLog;
-	private readonly Action? _runtimeCleanup;
+	private readonly GitRepositoryOperationContext _context;
 
-	internal GitRepositoryService(Action<string> log, Action<string>? progressLog = null, Action? runtimeCleanup = null)
+	internal GitRepositoryService(GitRepositoryOperationContext context)
 	{
-		_log = log;
-		_progressLog = progressLog;
-		_runtimeCleanup = runtimeCleanup;
+		_context = context ?? throw new ArgumentNullException(nameof(context));
 	}
 
 	private async Task<SetupStepResult> RemoveRepositoryForFreshCloneAsync(
@@ -26,7 +23,7 @@ internal sealed class GitRepositoryService
 			return new SetupStepResult(true, $"{tag} Repository folder is already missing.", 1);
 		}
 
-		_log($"{tag} Removing existing repository before fresh clone: {path}");
+		_context.Log($"{tag} Removing existing repository before fresh clone: {DisplayPath(path)}");
 		string? deleteError = await TryDeleteDirectoryRobustAsync(path, tag, allowRuntimeCleanup: true, cancellationToken);
 		if (deleteError != null)
 		{
@@ -56,7 +53,7 @@ internal sealed class GitRepositoryService
 
 		if (Directory.Exists(path) && IsIncompleteCheckoutShell(path))
 		{
-			_log($"{tag} Incomplete git checkout detected. Recovering with fresh clone: {path}");
+			_context.Log($"{tag} Incomplete git checkout detected. Recovering with fresh clone: {DisplayPath(path)}");
 			var removeResult = await RemoveRepositoryForFreshCloneAsync(path, tag, cancellationToken);
 			if (!removeResult.IsSuccess) return removeResult;
 
@@ -71,7 +68,7 @@ internal sealed class GitRepositoryService
 
 		if (!inspection.IsValid)
 		{
-			_log($"{tag} Existing folder is not the expected repository. Recovering with fresh clone: {inspection.Reason}");
+			_context.Log($"{tag} Existing folder is not the expected repository. Recovering with fresh clone: {inspection.Reason}");
 			var removeResult = await RemoveRepositoryForFreshCloneAsync(path, tag, cancellationToken);
 			if (!removeResult.IsSuccess) return removeResult;
 
@@ -83,7 +80,7 @@ internal sealed class GitRepositoryService
 			return await SyncValidRepositoryAsync(gitExe, path, tag, cancellationToken);
 		}
 
-		_log($"{tag} Existing repository detected. Keeping current copy: {path}");
+		_context.Log($"{tag} Existing repository detected. Keeping current copy: {DisplayPath(path)}");
 		return new SetupStepResult(true, $"{tag} Existing repository detected.", 1);
 	}
 
@@ -139,14 +136,14 @@ internal sealed class GitRepositoryService
 				lastException = ex;
 			}
 
-			if (allowRuntimeCleanup && !runtimeCleanupAttempted && _runtimeCleanup != null)
+			if (allowRuntimeCleanup && !runtimeCleanupAttempted && _context.RuntimeCleanup != null)
 			{
 				runtimeCleanupAttempted = true;
-				_log($"{tag} Repository delete was blocked. Terminating local runtime processes before retry.");
-				_runtimeCleanup();
+				_context.Log($"{tag} Repository delete was blocked. Terminating local runtime processes before retry.");
+				_context.RuntimeCleanup();
 			}
 
-			await Task.Delay(120 * attempt, cancellationToken);
+			await WaitForRetryAsync(TimeSpan.FromMilliseconds(120 * attempt), cancellationToken);
 		}
 
 		return lastException?.Message ?? "delete failed";
@@ -235,7 +232,7 @@ internal sealed class GitRepositoryService
 
 		string expectedRoot = NormalizePath(path);
 		string actualRoot = NormalizePath(topOutput.Trim());
-		if (!string.Equals(expectedRoot, actualRoot, StringComparison.OrdinalIgnoreCase))
+		if (!NexusStorageLayout.AreEquivalentRuntimePaths(expectedRoot, actualRoot))
 		{
 			return GitRepositoryInspection.Invalid(
 				path,
@@ -271,13 +268,14 @@ internal sealed class GitRepositoryService
 		return (null, string.Empty);
 	}
 
-	internal async Task<(string? Exe, string Version)> ResolveConfiguredGitAsync(CancellationToken cancellationToken)
+	internal async Task<(string? Exe, string Version)> ResolveConfiguredGitAsync(
+		string configuredGitPath,
+		CancellationToken cancellationToken)
 	{
-		string configured = SetupSettingsService.Instance.Settings.GitPath;
-		if (!string.IsNullOrWhiteSpace(configured))
+		if (!string.IsNullOrWhiteSpace(configuredGitPath))
 		{
-			var (hasConfiguredGit, configuredVersion) = await CheckGitAsync(configured, cancellationToken);
-			if (hasConfiguredGit) return (configured, configuredVersion);
+			var (hasConfiguredGit, configuredVersion) = await CheckGitAsync(configuredGitPath, cancellationToken);
+			if (hasConfiguredGit) return (configuredGitPath, configuredVersion);
 		}
 
 		return await ResolvePortableGitAsync(cancellationToken);
@@ -285,12 +283,12 @@ internal sealed class GitRepositoryService
 
 	private async Task<SetupStepResult> SyncValidRepositoryAsync(string gitExe, string path, string tag, CancellationToken cancellationToken)
 	{
-		_log($"{tag} Updating existing repository...");
+		_context.Log($"{tag} Updating existing repository...");
 		var fetchResult = await RunGitWithProgressAsync(gitExe, "fetch --progress origin", path, cancellationToken);
 		if (fetchResult.ExitCode != 0)
 		{
 			string detail = GetGitErrorDetail(fetchResult.Output, fetchResult.Error);
-			_log($"{tag} Fetch failed: {detail}");
+			_context.Log($"{tag} Fetch failed: {detail}");
 			return new SetupStepResult(false, $"Sync failed: {detail}", 0);
 		}
 
@@ -303,7 +301,7 @@ internal sealed class GitRepositoryService
 		var (code, output, error) = await RunGitWithProgressAsync(gitExe, $"reset --hard {upstreamRef}", path, cancellationToken);
 		if (code != 0)
 		{
-			_log($"{tag} Reset failed: {GetGitErrorDetail(output, error)}");
+			_context.Log($"{tag} Reset failed: {GetGitErrorDetail(output, error)}");
 		}
 
 		return new SetupStepResult(
@@ -321,10 +319,10 @@ internal sealed class GitRepositoryService
 	{
 		if (Directory.Exists(path) && Directory.EnumerateFileSystemEntries(path).Any())
 		{
-			return new SetupStepResult(false, $"{tag} Clone target already exists: {path}", 0);
+			return new SetupStepResult(false, $"{tag} Clone target already exists: {DisplayPath(path)}", 0);
 		}
 
-		_log($"{tag} Cloning from {url}");
+		_context.Log($"{tag} Cloning from {url}");
 		var (cloneCode, _, cloneError) = await RunGitWithProgressAsync(gitExe, $"clone --progress {url} \"{path}\"", null, cancellationToken);
 		return new SetupStepResult(
 			cloneCode == 0,
@@ -339,8 +337,8 @@ internal sealed class GitRepositoryService
 		CancellationToken cancellationToken)
 		=> RunGitAsync(gitExe, arguments, workingDirectory, cancellationToken, line =>
 		{
-			_log(line);
-			_progressLog?.Invoke(line);
+			_context.Log(line);
+			_context.ProgressLog?.Invoke(line);
 		});
 
 	private static async Task<(int ExitCode, string Output, string Error)> RunGitAsync(
@@ -349,7 +347,18 @@ internal sealed class GitRepositoryService
 		string? workingDirectory,
 		CancellationToken cancellationToken,
 		Action<string>? onLog = null)
-		=> await ProcessRunner.RunAsync(gitExe, arguments, workingDirectory, onLog, cancellationToken);
+		=> await ProcessRunner.RunAsync(
+			gitExe,
+			$"-c core.longpaths=true {arguments}",
+			workingDirectory,
+			onLog,
+			cancellationToken);
+
+	private static async Task WaitForRetryAsync(TimeSpan interval, CancellationToken cancellationToken)
+	{
+		using var timer = new PeriodicTimer(interval);
+		await timer.WaitForNextTickAsync(cancellationToken);
+	}
 
 	private static string GetGitErrorDetail(string output, string error)
 	{
@@ -435,7 +444,11 @@ internal sealed class GitRepositoryService
 	}
 
 	private static string NormalizePath(string path)
-		=> Path.GetFullPath(path.Trim()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		=> NexusToolingPathLeaseController.ResolvePhysicalPath(path)
+			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+	private static string DisplayPath(string path)
+		=> NexusToolingPathLeaseController.ResolvePhysicalPath(path);
 
 	private static bool RepositoryUrlsMatch(string expected, string actual)
 		=> string.Equals(NormalizeRepositoryUrl(expected), NormalizeRepositoryUrl(actual), StringComparison.OrdinalIgnoreCase);
@@ -448,6 +461,14 @@ internal sealed class GitRepositoryService
 			: normalized;
 	}
 }
+
+/// <summary>
+/// Supplies operation-owned callbacks to a repository worker without coupling it to app settings or views.
+/// </summary>
+internal sealed record GitRepositoryOperationContext(
+	Action<string> Log,
+	Action<string>? ProgressLog = null,
+	Action? RuntimeCleanup = null);
 
 internal enum GitRecoveryMode
 {

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+script_path="$script_dir/dev-test-store-package.ps1"
+
+to_windows_path() {
+	if command -v cygpath >/dev/null 2>&1; then
+		cygpath -w "$1"
+	elif command -v wslpath >/dev/null 2>&1; then
+		wslpath -w "$1"
+	else
+		printf '%s\n' "$1"
+	fi
+}
+
+if [[ ! -f "$script_path" ]]; then
+	echo "[Nexus] ERROR: Store test implementation was not found: $script_path" >&2
+	exit 1
+fi
+
+script_path="$(to_windows_path "$script_path")"
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$script_path" "$@"

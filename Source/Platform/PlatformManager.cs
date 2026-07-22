@@ -2,10 +2,6 @@ namespace ComfyUI_Nexus.Platform;
 
 public abstract class PlatformManager
 {
-	private static readonly Lazy<PlatformManager> CurrentValue = new(CreateCurrent);
-
-	public static PlatformManager Current => CurrentValue.Value;
-
 	public abstract NexusPlatformKind Kind { get; }
 
 	public abstract IPlatformFilePicker FilePicker { get; }
@@ -26,7 +22,7 @@ public abstract class PlatformManager
 
 	public abstract IPlatformDirectoryWatcherService DirectoryWatcher { get; }
 
-	private static PlatformManager CreateCurrent()
+	internal static PlatformManager CreateForAppRuntime()
 	{
 #if WINDOWS
 		return new Windows.WindowsPlatformManager();

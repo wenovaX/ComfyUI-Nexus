@@ -14,14 +14,26 @@ internal static class DiagnosticNodeHelpers
 		string displayName,
 		string description = "",
 		bool isRecommended = false,
-		string workingHint = "")
+		string workingHint = "",
+		bool requiresRecovery = true,
+		bool requiresToolingLease = false,
+		bool canCancel = false,
+		string cancellationWorkingHint = "",
+		string cancellationResultDetails = "",
+		DiagnosticActionCompletionPolicy completionPolicy = DiagnosticActionCompletionPolicy.VerifyHealth)
 		=> new()
 		{
 			Id = id,
 			DisplayName = displayName,
 			Description = description,
 			WorkingHint = workingHint,
-			IsRecommended = isRecommended
+			IsRecommended = isRecommended,
+			RequiresRecovery = requiresRecovery,
+			RequiresToolingLease = requiresToolingLease,
+			CanCancel = canCancel,
+			CancellationWorkingHint = cancellationWorkingHint,
+			CancellationResultDetails = cancellationResultDetails,
+			CompletionPolicy = completionPolicy
 		};
 
 	internal static string ParsePackageVersion(string packageName)

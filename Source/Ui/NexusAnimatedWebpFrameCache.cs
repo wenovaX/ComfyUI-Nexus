@@ -10,7 +10,7 @@ namespace ComfyUI_Nexus.Ui;
 /// App-wide single-flight decode cache. Frame buffers are immutable and can be reused by
 /// multiple clips; each clip still owns its own native WriteableBitmap surface.
 /// </summary>
-internal static class NexusAnimatedWebpFrameCache
+internal sealed class NexusAnimatedWebpFrameCache : IDisposable
 {
 	private const long MaxCachedBytes = 160L * 1024 * 1024;
 	private sealed class CacheEntry
@@ -24,21 +24,23 @@ internal static class NexusAnimatedWebpFrameCache
 		internal long LastAccess { get; set; }
 	}
 
-	private static readonly ConcurrentDictionary<string, CacheEntry> Entries = new(StringComparer.Ordinal);
-	private static readonly Dictionary<string, int> RetainedKeys = new(StringComparer.Ordinal);
-	private static readonly object TrimGate = new();
-	private static long _accessSequence;
+	private readonly ConcurrentDictionary<string, CacheEntry> _entries = new(StringComparer.Ordinal);
+	private readonly Dictionary<string, int> _retainedKeys = new(StringComparer.Ordinal);
+	private readonly object _trimGate = new();
+	private long _accessSequence;
+	private bool _disposed;
 
-	internal static async Task<NexusAnimatedWebpCacheLease> AcquireAsync(NexusAnimatedWebpCacheGroup group)
+	internal async Task<NexusAnimatedWebpCacheLease> AcquireAsync(NexusAnimatedWebpCacheGroup group)
 	{
 		IReadOnlyList<NexusAnimatedWebpDefinition> definitions = NexusAnimatedWebpCacheCatalog.GetDefinitions(group);
 		return await AcquireAsync(group.ToString(), definitions).ConfigureAwait(false);
 	}
 
-	internal static async Task<NexusAnimatedWebpCacheLease> AcquireAsync(
+	internal async Task<NexusAnimatedWebpCacheLease> AcquireAsync(
 		string scope,
 		IReadOnlyList<NexusAnimatedWebpDefinition> definitions)
 	{
+		ObjectDisposedException.ThrowIf(_disposed, this);
 		ArgumentException.ThrowIfNullOrWhiteSpace(scope);
 		ArgumentNullException.ThrowIfNull(definitions);
 		IReadOnlyList<NexusAnimatedWebpDefinition> distinctDefinitions = definitions
@@ -62,13 +64,14 @@ internal static class NexusAnimatedWebpFrameCache
 		}
 
 		NexusLog.Trace($"[ANIMATED_WEBP] Cache scope prepared. scope={scope}, ready={isReady}, assets={distinctDefinitions.Count}.");
-		return new NexusAnimatedWebpCacheLease(scope, distinctDefinitions);
+		return new NexusAnimatedWebpCacheLease(this, scope, distinctDefinitions);
 	}
 
-	internal static async Task<NexusAnimatedWebpFrameSet> GetAsync(NexusAnimatedWebpDefinition definition)
+	internal async Task<NexusAnimatedWebpFrameSet> GetAsync(NexusAnimatedWebpDefinition definition)
 	{
+		ObjectDisposedException.ThrowIf(_disposed, this);
 		ArgumentNullException.ThrowIfNull(definition);
-		CacheEntry entry = Entries.GetOrAdd(
+		CacheEntry entry = _entries.GetOrAdd(
 			definition.CacheKey,
 			_ => new CacheEntry(() => DecodeAsync(definition)));
 
@@ -81,58 +84,73 @@ internal static class NexusAnimatedWebpFrameCache
 		}
 		catch
 		{
-			if (Entries.TryGetValue(definition.CacheKey, out CacheEntry? current)
+			if (_entries.TryGetValue(definition.CacheKey, out CacheEntry? current)
 				&& ReferenceEquals(current, entry))
 			{
-				Entries.TryRemove(definition.CacheKey, out _);
+				_entries.TryRemove(definition.CacheKey, out _);
 			}
 			throw;
 		}
 	}
 
-	private static void Retain(IReadOnlyList<NexusAnimatedWebpDefinition> definitions)
+	private void Retain(IReadOnlyList<NexusAnimatedWebpDefinition> definitions)
 	{
-		lock (TrimGate)
+		lock (_trimGate)
 		{
 			foreach (NexusAnimatedWebpDefinition definition in definitions)
 			{
-				RetainedKeys.TryGetValue(definition.CacheKey, out int count);
-				RetainedKeys[definition.CacheKey] = count + 1;
+				_retainedKeys.TryGetValue(definition.CacheKey, out int count);
+				_retainedKeys[definition.CacheKey] = count + 1;
 			}
 		}
 	}
 
-	internal static void Release(NexusAnimatedWebpCacheLease lease)
+	internal void Release(NexusAnimatedWebpCacheLease lease)
 	{
 		ArgumentNullException.ThrowIfNull(lease);
-		lock (TrimGate)
+		lock (_trimGate)
 		{
 			foreach (NexusAnimatedWebpDefinition definition in lease.Definitions)
 			{
-				if (!RetainedKeys.TryGetValue(definition.CacheKey, out int count))
+				if (!_retainedKeys.TryGetValue(definition.CacheKey, out int count))
 				{
 					continue;
 				}
 
 				if (count > 1)
 				{
-					RetainedKeys[definition.CacheKey] = count - 1;
+					_retainedKeys[definition.CacheKey] = count - 1;
 					continue;
 				}
 
-				RetainedKeys.Remove(definition.CacheKey);
-				Entries.TryRemove(definition.CacheKey, out _);
+				_retainedKeys.Remove(definition.CacheKey);
+				_entries.TryRemove(definition.CacheKey, out _);
 			}
 		}
 
 		NexusLog.Trace($"[ANIMATED_WEBP] Cache scope released. scope={lease.Scope}, assets={lease.Definitions.Count}.");
 	}
 
-	private static void Trim(string protectedKey)
+	public void Dispose()
 	{
-		lock (TrimGate)
+		if (_disposed)
 		{
-			var completed = Entries
+			return;
+		}
+
+		_disposed = true;
+		lock (_trimGate)
+		{
+			_retainedKeys.Clear();
+			_entries.Clear();
+		}
+	}
+
+	private void Trim(string protectedKey)
+	{
+		lock (_trimGate)
+		{
+			var completed = _entries
 				.Where(pair => pair.Value.Frames.IsValueCreated && pair.Value.Frames.Value.IsCompletedSuccessfully)
 				.Select(pair => (pair.Key, Entry: pair.Value, Frames: pair.Value.Frames.Value.Result))
 				.ToList();
@@ -150,14 +168,14 @@ internal static class NexusAnimatedWebpFrameCache
 					continue;
 				}
 
-				if (RetainedKeys.ContainsKey(item.Key))
+				if (_retainedKeys.ContainsKey(item.Key))
 				{
 					continue;
 				}
 
-				if (Entries.TryGetValue(item.Key, out CacheEntry? current) && ReferenceEquals(current, item.Entry))
+				if (_entries.TryGetValue(item.Key, out CacheEntry? current) && ReferenceEquals(current, item.Entry))
 				{
-					Entries.TryRemove(item.Key, out _);
+					_entries.TryRemove(item.Key, out _);
 					totalBytes -= item.Frames.ByteSize;
 					NexusLog.Trace($"[ANIMATED_WEBP] Frames evicted. asset='{item.Key}', cachedBytes={totalBytes}.");
 				}
@@ -268,10 +286,12 @@ internal static class NexusAnimatedWebpFrameCache
 
 internal sealed class NexusAnimatedWebpCacheLease : IDisposable
 {
+	private readonly NexusAnimatedWebpFrameCache _owner;
 	private int _isReleased;
 
-	internal NexusAnimatedWebpCacheLease(string scope, IReadOnlyList<NexusAnimatedWebpDefinition> definitions)
+	internal NexusAnimatedWebpCacheLease(NexusAnimatedWebpFrameCache owner, string scope, IReadOnlyList<NexusAnimatedWebpDefinition> definitions)
 	{
+		_owner = owner;
 		Scope = scope;
 		Definitions = definitions;
 	}
@@ -283,7 +303,7 @@ internal sealed class NexusAnimatedWebpCacheLease : IDisposable
 	{
 		if (Interlocked.Exchange(ref _isReleased, 1) == 0)
 		{
-			NexusAnimatedWebpFrameCache.Release(this);
+			_owner.Release(this);
 		}
 	}
 }

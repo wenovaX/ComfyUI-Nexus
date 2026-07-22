@@ -71,7 +71,7 @@ public partial class NexusDialogOverlayView : ContentView
 		WireHoverState(DialogThumbnailPrevButton, ThumbnailPageButtonBackgroundColor, ThumbnailPageButtonHoverColor);
 		WireHoverState(DialogThumbnailNextButton, ThumbnailPageButtonBackgroundColor, ThumbnailPageButtonHoverColor);
 		_promptEntryTextController = new NexusEntryTextController(DialogPromptEntry, DialogPromptFrame);
-		new RailSearchClearButtonController(DialogPromptClearButton, DialogPromptClearLabel);
+		RailSearchClearButtonVisuals.Attach(DialogPromptClearButton, DialogPromptClearLabel);
 	}
 
 	internal bool IsDialogOpen => _completion != null;

@@ -14,10 +14,12 @@ internal sealed class SettingsEditorService
 
 	private SetupSettings _saved;
 	private SetupSettings _draft;
+	private readonly SetupSettingsService _settingsService;
 
-	internal SettingsEditorService()
+	internal SettingsEditorService(SetupSettingsService settingsService)
 	{
-		_saved = CloneSettings(SetupSettingsService.Instance.Settings);
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+		_saved = CloneSettings(_settingsService.Settings);
 		_draft = CloneSettings(_saved);
 	}
 
@@ -25,8 +27,8 @@ internal sealed class SettingsEditorService
 
 	internal void Reload()
 	{
-		SetupSettingsService.Instance.Reload();
-		_saved = CloneSettings(SetupSettingsService.Instance.Settings);
+		_settingsService.Reload();
+		_saved = CloneSettings(_settingsService.Settings);
 		_draft = CloneSettings(_saved);
 	}
 
@@ -37,14 +39,14 @@ internal sealed class SettingsEditorService
 
 	internal bool Save()
 	{
-		CopySettings(_draft, SetupSettingsService.Instance.Settings);
-		if (!SetupSettingsService.Instance.TrySave())
+		CopySettings(_draft, _settingsService.Settings);
+		if (!_settingsService.TrySave())
 		{
-			CopySettings(_saved, SetupSettingsService.Instance.Settings);
+			CopySettings(_saved, _settingsService.Settings);
 			return false;
 		}
 
-		_saved = CloneSettings(SetupSettingsService.Instance.Settings);
+		_saved = CloneSettings(_settingsService.Settings);
 		_draft = CloneSettings(_saved);
 		return true;
 	}
@@ -67,12 +69,12 @@ internal sealed class SettingsEditorService
 		string normalizedFormat = RuntimeBackupFormats.IsKnown(format)
 			? format
 			: RuntimeBackupFormats.Folder;
-		SetupSettings live = SetupSettingsService.Instance.Settings;
+		SetupSettings live = _settingsService.Settings;
 		string previousPath = live.RuntimeBackupPath;
 		string previousFormat = live.RuntimeBackupFormat;
 		live.RuntimeBackupPath = normalizedPath;
 		live.RuntimeBackupFormat = normalizedFormat;
-		if (!SetupSettingsService.Instance.TrySave())
+		if (!_settingsService.TrySave())
 		{
 			live.RuntimeBackupPath = previousPath;
 			live.RuntimeBackupFormat = previousFormat;
@@ -105,12 +107,12 @@ internal sealed class SettingsEditorService
 			return false;
 		}
 
-		SetupSettings live = SetupSettingsService.Instance.Settings;
+		SetupSettings live = _settingsService.Settings;
 		string previousMode = live.PipCacheMode;
 		string previousPath = live.PipCachePath;
 		live.PipCacheMode = normalizedMode;
 		live.PipCachePath = normalizedPath;
-		if (!SetupSettingsService.Instance.TrySave())
+		if (!_settingsService.TrySave())
 		{
 			live.PipCacheMode = previousMode;
 			live.PipCachePath = previousPath;

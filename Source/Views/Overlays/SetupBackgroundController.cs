@@ -56,6 +56,7 @@ internal sealed class SetupBackgroundController
 
 	internal SetupBackgroundController(
 		NexusMotionController motion,
+		NexusAnimatedWebpFrameCache frameCache,
 		VisualElement baseLayer,
 		Image crossroadsAmbient,
 		Image vanguardGlow,
@@ -66,6 +67,7 @@ internal sealed class SetupBackgroundController
 		NexusAnimatedWebpClip architectIconClip)
 	{
 		ArgumentNullException.ThrowIfNull(motion);
+		ArgumentNullException.ThrowIfNull(frameCache);
 		_baseLayer = baseLayer ?? throw new ArgumentNullException(nameof(baseLayer));
 		_crossroadsAmbient = crossroadsAmbient ?? throw new ArgumentNullException(nameof(crossroadsAmbient));
 		_vanguardGlow = vanguardGlow ?? throw new ArgumentNullException(nameof(vanguardGlow));
@@ -74,8 +76,8 @@ internal sealed class SetupBackgroundController
 		_architectSelectionBurst = architectSelectionBurst ?? throw new ArgumentNullException(nameof(architectSelectionBurst));
 		_vanguardIconClip = vanguardIconClip ?? throw new ArgumentNullException(nameof(vanguardIconClip));
 		_architectIconClip = architectIconClip ?? throw new ArgumentNullException(nameof(architectIconClip));
-		_vanguardSelectionBurstClip = new NexusAnimatedWebpClip(motion, _vanguardSelectionBurst, "Setup.VanguardSelectionBurst", NexusAnimatedWebpCacheCatalog.SetupVanguardSelectionBurst);
-		_architectSelectionBurstClip = new NexusAnimatedWebpClip(motion, _architectSelectionBurst, "Setup.ArchitectSelectionBurst", NexusAnimatedWebpCacheCatalog.SetupArchitectSelectionBurst);
+		_vanguardSelectionBurstClip = new NexusAnimatedWebpClip(motion, frameCache, _vanguardSelectionBurst, "Setup.VanguardSelectionBurst", NexusAnimatedWebpCacheCatalog.SetupVanguardSelectionBurst);
+		_architectSelectionBurstClip = new NexusAnimatedWebpClip(motion, frameCache, _architectSelectionBurst, "Setup.ArchitectSelectionBurst", NexusAnimatedWebpCacheCatalog.SetupArchitectSelectionBurst);
 	}
 
 	internal void SetBaseOpacity(double opacity)

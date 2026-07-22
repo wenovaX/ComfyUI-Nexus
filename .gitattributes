@@ -5,3 +5,4 @@
 /dev-build-as-binary text eol=lf
 /dev-reset-runtime text eol=lf
 /dev-set-version text eol=lf
+/dev-test-store-package text eol=lf

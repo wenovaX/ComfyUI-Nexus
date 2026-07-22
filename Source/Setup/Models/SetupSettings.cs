@@ -58,8 +58,10 @@ internal sealed record CustomNodeFileSetting(
 
 internal sealed class SetupSettings
 {
-	[JsonPropertyName("root_path")]
-	public string RootPath { get; set; } = string.Empty;
+	private static readonly JsonSerializerOptions WriteIndentedJsonOptions = new()
+	{
+		WriteIndented = true,
+	};
 
 	[JsonPropertyName("last_active_port")]
 	public int? LastActivePort { get; set; }
@@ -271,7 +273,7 @@ internal sealed class SetupSettings
 	{
 		try
 		{
-			string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+			string json = JsonSerializer.Serialize(this, WriteIndentedJsonOptions);
 			File.WriteAllText(path, json);
 			return true;
 		}

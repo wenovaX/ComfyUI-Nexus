@@ -9,6 +9,7 @@ using ComfyUI_Nexus.Ui;
 using ComfyUI_Nexus.Ui.Popups;
 using ComfyUI_Nexus.Views.Overlays;
 
+using ComfyUI_Nexus.Views.Overlays.Controllers;
 namespace ComfyUI_Nexus;
 
 public partial class MainPage
@@ -297,11 +298,11 @@ public partial class MainPage
 	private async Task ExecuteCommandMenuAboutAsync()
 	{
 		await SetCommandMenuVisible(false);
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _appManager.Settings.Settings;
 		string serverUrl = GetBrowsableServerUrl(settings.ListenAddress, settings.ServerPort);
 		AboutOverlayControl.SetDetails(
 		SafeAppInfo.VersionString,
-		ComfyPathResolver.ResolveConfiguredComfyPath(),
+		_appManager.Paths.ConfiguredComfyPath,
 		serverUrl,
 		settings.ServerPythonMode);
 		await SetAboutOverlayVisible(true);
@@ -317,12 +318,7 @@ public partial class MainPage
 			return;
 		}
 
-		var app = Application.Current;
-		var window = Window ?? app?.Windows.FirstOrDefault();
-		if (app != null && window != null)
-		{
-			app.CloseWindow(window);
-		}
+		NexusLog.Warning("[SHUTDOWN] Exit request was retained because the Nexus application lifecycle is unavailable.");
 	}
 
 	private static string GetBrowsableServerUrl(string listenAddress, int port)
@@ -360,7 +356,7 @@ public partial class MainPage
 
 	private async void OnSettingsOverlayRuntimeRestoreRequested(object? sender, RuntimeRestoreRequestedEventArgs e)
 	{
-		var service = ComfyInstallService.Instance;
+		var service = _appManager.ComfyInstall;
 		Action<string>? previousLogHandler = service.OnMessage;
 		Action<double, string>? previousProgressHandler = service.OnProgress;
 		try
@@ -372,7 +368,7 @@ public partial class MainPage
 			await SetCommandMenuVisible(false);
 			await SetSettingsOverlayVisible(false);
 
-			ComfyServerProcessInfo? processInfo = ComfyServerProcessRegistry.FindServerProcess();
+			ComfyServerProcessInfo? processInfo = _appManager.ServerProcesses.FindServerProcess();
 			bool serverWasRunning = e.Request.ServerWasRunning || processInfo != null;
 
 			service.OnMessage = message => Log(message);

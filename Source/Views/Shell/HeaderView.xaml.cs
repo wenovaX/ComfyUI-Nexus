@@ -293,6 +293,16 @@ public partial class HeaderView : ContentView
 		PrimaryTabsGrid.Opacity = opacity;
 	}
 
+	internal void SetTabSurfaceInputTransparent(bool inputTransparent)
+	{
+		TabRowsGrid.InputTransparent = inputTransparent;
+	}
+
+	internal void CompleteTabSurfaceUpdate(Action completed)
+	{
+		Dispatcher.Dispatch(() => Dispatcher.Dispatch(completed));
+	}
+
 	internal void ResetTabSurface()
 	{
 		using var operation = XamlUnhandledExceptionDiagnostics.EnterUiOperation("Header.Tabs.Reset");

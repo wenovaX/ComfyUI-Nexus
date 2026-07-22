@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ComfyUI_Nexus.Configuration;
+using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Setup.Models;
 
 internal sealed class HudBridgeInstaller
@@ -33,11 +34,22 @@ internal sealed class HudBridgeInstaller
 
 	private readonly Action<string> _log;
 	private readonly GitRepositoryService _gitRepositoryService;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusComfyRuntimePaths _paths;
 
-	internal HudBridgeInstaller(Action<string> log, GitRepositoryService gitRepositoryService)
+	internal HudBridgeInstaller(
+		Action<string> log,
+		GitRepositoryService gitRepositoryService,
+		NexusToolingEnvironment tooling,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
 		_gitRepositoryService = gitRepositoryService;
+		_tooling = tooling;
+		_settingsService = settingsService;
+		_paths = paths;
 	}
 
 	internal Task<SetupStepResult> InstallHudBridgeAsync(CancellationToken cancellationToken)
@@ -47,8 +59,8 @@ internal sealed class HudBridgeInstaller
 		bool overwriteExisting,
 		CancellationToken cancellationToken)
 	{
-		string sourcePath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), HudExtensionFolderName, "hud_sample");
-		string targetPath = Path.Combine(ComfyPathResolver.ResolveActiveWorkflowsPath(), "hud_sample");
+		string sourcePath = Path.Combine(_paths.ActiveCustomNodesPath, HudExtensionFolderName, "hud_sample");
+		string targetPath = Path.Combine(_paths.ActiveWorkflowsPath, "hud_sample");
 		try
 		{
 			int copied = await Task.Run(
@@ -119,7 +131,7 @@ internal sealed class HudBridgeInstaller
 				return Task.FromResult(new SetupStepResult(false, validationError, 0));
 			}
 
-			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), HudExtensionFolderName);
+			string hudPath = Path.Combine(_paths.ActiveCustomNodesPath, HudExtensionFolderName);
 			Directory.CreateDirectory(hudPath);
 
 			int copied = CopyWorktreeFiles(localHudPath, hudPath, cancellationToken);
@@ -144,7 +156,7 @@ internal sealed class HudBridgeInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), HudExtensionFolderName);
+			string hudPath = Path.Combine(_paths.ActiveCustomNodesPath, HudExtensionFolderName);
 			return Task.FromResult(PatchNexusBridgePayload(hudPath, cancellationToken));
 		}
 		catch (Exception ex)
@@ -154,20 +166,20 @@ internal sealed class HudBridgeInstaller
 	}
 
 	internal bool IsNexusBridgeExtensionHealthy()
-		=> IsNexusBridgeExtensionHealthy(ComfyPathResolver.ResolveActiveCustomNodesPath());
+		=> IsNexusBridgeExtensionHealthy(_paths.ActiveCustomNodesPath);
 
 	internal static bool IsNexusBridgeExtensionHealthy(string customNodesPath)
 	{
 		if (string.IsNullOrWhiteSpace(customNodesPath)) return false;
 
-		string sourceBridgeDir = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", NexusBridgePackageFolderName);
+		string sourceBridgeDir = Path.Combine(ComfyInstallService.RuntimePackagesPath, NexusBridgePackageFolderName);
 		string bridgePath = Path.Combine(customNodesPath, NexusBridgeExtensionFolderName);
 		return IsNexusBridgePayloadCurrent(sourceBridgeDir, bridgePath);
 	}
 
 	internal bool IsPackagedNexusBridgeAvailable()
 	{
-		string sourceBridgeDir = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", NexusBridgePackageFolderName);
+		string sourceBridgeDir = Path.Combine(ComfyInstallService.RuntimePackagesPath, NexusBridgePackageFolderName);
 		return HasRequiredNexusBridgeFiles(sourceBridgeDir);
 	}
 
@@ -181,14 +193,16 @@ internal sealed class HudBridgeInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			string hudPath = Path.Combine(ComfyPathResolver.ResolveActiveCustomNodesPath(), HudExtensionFolderName);
+			NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+			string toolingComfyPath = lease?.GetComfyRoot() ?? _paths.ActiveComfyPath;
+			string hudPath = Path.Combine(toolingComfyPath, "custom_nodes", HudExtensionFolderName);
 			string hudInitPath = Path.Combine(hudPath, "__init__.py");
 			_log($"{HudTag} Deploying ComfyUI-HUD...");
 
-			var (gitExe, _) = await _gitRepositoryService.ResolveConfiguredGitAsync(cancellationToken);
+			var (gitExe, _) = await _gitRepositoryService.ResolveConfiguredGitAsync(_settingsService.Settings.GitPath, cancellationToken);
 			if (gitExe == null) return new SetupStepResult(false, "Git is required for ComfyUI-HUD installation.", 0);
 
-			string hudRepoUrl = SetupSettingsService.Instance.Settings.HudRepoUrl;
+			string hudRepoUrl = _settingsService.Settings.HudRepoUrl;
 			var syncResult = await _gitRepositoryService.EnsureRepositoryAsync(
 				gitExe,
 				hudRepoUrl,
@@ -215,8 +229,8 @@ internal sealed class HudBridgeInstaller
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		string sourceBridgeDir = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages", NexusBridgePackageFolderName);
-		string customNodesPath = ComfyPathResolver.ResolveActiveCustomNodesPath();
+		string sourceBridgeDir = Path.Combine(ComfyInstallService.RuntimePackagesPath, NexusBridgePackageFolderName);
+		string customNodesPath = _paths.ActiveCustomNodesPath;
 		ComfyFrontendCompatibilityService.DeleteLegacyHudBackups(customNodesPath, _log);
 
 		string targetBridgeDir = Path.Combine(customNodesPath, NexusBridgeExtensionFolderName);

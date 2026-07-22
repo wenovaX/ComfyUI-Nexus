@@ -206,7 +206,7 @@ internal sealed class RailDirectoryWatchController : IDisposable
 			options = _options;
 		}
 
-		var result = PlatformManager.Current.DirectoryWatcher.TryWatch(
+		var result = NexusAppManager.Instance.Platform.DirectoryWatcher.TryWatch(
 			rootPath,
 			options,
 			change => OnDirectoryChanged(generation, change),

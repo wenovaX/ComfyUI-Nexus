@@ -497,7 +497,7 @@ public partial class AssetsBrowserView
 
 		bool isDirectory = await Task.Run(() => Directory.Exists(match.FullPath));
 		string folderPath = isDirectory ? match.FullPath : Path.GetDirectoryName(match.FullPath) ?? match.RootPath;
-		var result = await PlatformManager.Current.Shell.OpenPathAsync(folderPath);
+		var result = await NexusAppManager.Instance.Platform.Shell.OpenPathAsync(folderPath);
 		if (!result.IsSuccess && !string.IsNullOrWhiteSpace(result.Message))
 		{
 			NexusLog.Warning($"Model folder open failed: {result.Message}");
@@ -518,21 +518,21 @@ public partial class AssetsBrowserView
 		string? modelPath = ResolveActualModelPath(syntheticPath);
 		if (modelPath is null)
 		{
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.model_not_found_title"),
 				LocalizationManager.Text("model_thumbnail.model_not_found_message"),
 				LocalizationManager.Text("common.ok"));
 			return;
 		}
 
-		var picked = await PlatformManager.Current.FilePicker.PickFileAsync(
+		var picked = await NexusAppManager.Instance.Platform.FilePicker.PickFileAsync(
 			LocalizationManager.Text("model_thumbnail.pick_image_title"),
 			[".png", ".jpg", ".jpeg", ".webp"]);
 		if (!picked.IsSuccess || string.IsNullOrWhiteSpace(picked.Value))
 		{
 			if (!string.IsNullOrWhiteSpace(picked.Message))
 			{
-				await NexusDialogService.AlertAsync(
+				await _appManager.Dialogs.AlertAsync(
 					LocalizationManager.Text("model_thumbnail.pick_failed_title"),
 					picked.Message,
 					LocalizationManager.Text("common.ok"));
@@ -542,7 +542,7 @@ public partial class AssetsBrowserView
 
 		if (!ModelAssetThumbnailResolver.IsSupportedImageFile(picked.Value))
 		{
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.unsupported_title"),
 				LocalizationManager.Text("model_thumbnail.unsupported_message"),
 				LocalizationManager.Text("common.ok"));
@@ -554,7 +554,7 @@ public partial class AssetsBrowserView
 			var result = ModelAssetThumbnailResolver.AddThumbnail(modelPath, picked.Value);
 			if (!result.Success)
 			{
-				await NexusDialogService.AlertAsync(
+				await _appManager.Dialogs.AlertAsync(
 					LocalizationManager.Text("model_thumbnail.add_failed_title"),
 					result.Error,
 					LocalizationManager.Text("common.ok"));
@@ -562,14 +562,14 @@ public partial class AssetsBrowserView
 			}
 
 			InvalidateModelThumbnailPreview(syntheticPath);
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.add_complete_title"),
 				LocalizationManager.Format("model_thumbnail.add_complete_message", result.FileName),
 				LocalizationManager.Text("common.ok"));
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 		{
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.add_failed_title"),
 				ex.Message,
 				LocalizationManager.Text("common.ok"));
@@ -590,7 +590,7 @@ public partial class AssetsBrowserView
 			return;
 		}
 
-		var result = await NexusDialogService.ThumbnailChoiceAsync(
+		var result = await _appManager.Dialogs.ThumbnailChoiceAsync(
 			LocalizationManager.Text("model_thumbnail.set_primary_title"),
 			LocalizationManager.Text("model_thumbnail.set_primary_message"),
 			images.Select(image => new NexusDialogThumbnailChoice(image.FileName, image.Path, image.IsPrimary)).ToList(),
@@ -607,7 +607,7 @@ public partial class AssetsBrowserView
 				string.Equals(image.FileName, result.Choice, StringComparison.OrdinalIgnoreCase));
 			if (selectedImage is null || !File.Exists(selectedImage.Path))
 			{
-				await NexusDialogService.AlertAsync(
+				await _appManager.Dialogs.AlertAsync(
 					LocalizationManager.Text("model_thumbnail.image_missing_title"),
 					LocalizationManager.Text("model_thumbnail.image_missing_message"),
 					LocalizationManager.Text("common.ok"));
@@ -617,7 +617,7 @@ public partial class AssetsBrowserView
 
 			if (!ModelAssetThumbnailResolver.SetPrimaryThumbnail(modelPath, result.Choice))
 			{
-				await NexusDialogService.AlertAsync(
+				await _appManager.Dialogs.AlertAsync(
 					LocalizationManager.Text("model_thumbnail.set_primary_failed_title"),
 					LocalizationManager.Text("model_thumbnail.set_primary_failed_message"),
 					LocalizationManager.Text("common.ok"));
@@ -625,14 +625,14 @@ public partial class AssetsBrowserView
 			}
 
 			InvalidateModelThumbnailPreview(syntheticPath);
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.set_primary_complete_title"),
 				LocalizationManager.Format("model_thumbnail.set_primary_complete_message", result.Choice),
 				LocalizationManager.Text("common.ok"));
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 		{
-			await NexusDialogService.AlertAsync(
+			await _appManager.Dialogs.AlertAsync(
 				LocalizationManager.Text("model_thumbnail.set_primary_failed_title"),
 				ex.Message,
 				LocalizationManager.Text("common.ok"));
@@ -682,7 +682,7 @@ public partial class AssetsBrowserView
 		return ModelAssetPathResolver.ResolveMatches(
 			syntheticPath,
 			modelsRoot,
-			SetupSettingsService.Instance.Settings.ModelLibraryRoots);
+			SettingsService.Settings.ModelLibraryRoots);
 	}
 
 	private bool IsModelApiFileContext(AssetContextMenuContext context)

@@ -6,12 +6,22 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Diagnostics;
+using ComfyUI_Nexus.Setup.Services;
 
 namespace ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary;
 
 internal sealed class NodeLibraryService
 {
 	private const string PartnerPrefix = "api node/";
+	private static readonly char[] CategoryPathSeparators = ['/', '\\'];
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusPreferenceStore _preferences;
+
+	internal NodeLibraryService(SetupSettingsService settingsService, NexusPreferenceStore preferences)
+	{
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+		_preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+	}
 
 	internal async Task<NodeLibraryRoot> FetchNodesAsync()
 	{
@@ -19,14 +29,14 @@ internal sealed class NodeLibraryService
 
 		try
 		{
-			string json = PortablePreferences.Get(PreferenceKeys.BookmarkedNodes, "[]");
+			string json = _preferences.Get(PreferenceKeys.BookmarkedNodes, "[]");
 			var saved = JsonSerializer.Deserialize<List<string>>(json);
 			if (saved != null)
 			{
 				foreach (var s in saved) root.BookmarkedTypes.Add(s);
 			}
 
-			string catJson = PortablePreferences.Get(PreferenceKeys.BookmarkedCategories, "[]");
+			string catJson = _preferences.Get(PreferenceKeys.BookmarkedCategories, "[]");
 			var savedCats = JsonSerializer.Deserialize<List<string>>(catJson);
 			if (savedCats != null)
 			{
@@ -40,7 +50,8 @@ internal sealed class NodeLibraryService
 			using var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Comfy-User", string.Empty);
 
-			var response = await httpClient.GetAsync(ComfyApiOptions.ObjectInfoUrl).ConfigureAwait(false);
+			var response = await httpClient.GetAsync(
+				ComfyApiOptions.GetObjectInfoUrl(_settingsService.Settings)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode) return root;
 
 			using var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
@@ -108,10 +119,10 @@ internal sealed class NodeLibraryService
 		try
 		{
 			string json = JsonSerializer.Serialize(root.BookmarkedTypes.ToList());
-			PortablePreferences.Set(PreferenceKeys.BookmarkedNodes, json);
+			_preferences.Set(PreferenceKeys.BookmarkedNodes, json);
 
 			string catJson = JsonSerializer.Serialize(root.BookmarkedCategoryPaths.ToList());
-			PortablePreferences.Set(PreferenceKeys.BookmarkedCategories, catJson);
+			_preferences.Set(PreferenceKeys.BookmarkedCategories, catJson);
 		}
 		catch { }
 	}
@@ -168,7 +179,7 @@ internal sealed class NodeLibraryService
 				// Partner tree: strip "api node/" prefix and use mediaType/vendor path.
 				// e.g. "api node/image/BFL" becomes ["image", "BFL"].
 				string partnerPath = entry.Category.Substring(PartnerPrefix.Length);
-				var partnerParts = partnerPath.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+				var partnerParts = partnerPath.Split(CategoryPathSeparators, StringSplitOptions.RemoveEmptyEntries);
 				InjectIntoTree(root.PartnerRoot, entry, partnerParts);
 				break;
 			case NodeGroupKind.Comfy:
@@ -180,7 +191,7 @@ internal sealed class NodeLibraryService
 
 				// 2. Put into ExtensionRoot grouped by [Extension Name] -> [Category]
 				string extName = FormatExtensionName(entry.PythonModule);
-				var catParts = entry.Category.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+				var catParts = entry.Category.Split(CategoryPathSeparators, StringSplitOptions.RemoveEmptyEntries);
 				var extPath = new List<string> { extName };
 				extPath.AddRange(catParts);
 
@@ -224,7 +235,7 @@ internal sealed class NodeLibraryService
 
 	private void InjectIntoTree(NodeCategoryNode rootNode, NodeLibraryEntry entry, IEnumerable<string>? overridePath = null)
 	{
-		var parts = overridePath ?? entry.Category.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+		var parts = overridePath ?? entry.Category.Split(CategoryPathSeparators, StringSplitOptions.RemoveEmptyEntries);
 		if (!parts.Any()) parts = new[] { "uncategorized" };
 
 		var current = rootNode;

@@ -80,7 +80,7 @@ public partial class AssetsBrowserView
 		=> Microsoft.Maui.Controls.DataPackageOperation.Copy;
 
 	private bool IsDuplicateDragRequested()
-		=> PlatformManager.Current.Keyboard.IsAltPressed();
+		=> NexusAppManager.Instance.Platform.Keyboard.IsAltPressed();
 
 	private void SetActiveNativeDrag(IReadOnlyList<string> selectedPaths)
 	{
@@ -273,7 +273,7 @@ public partial class AssetsBrowserView
 			return _currentProfile.Id;
 		}
 
-		string comfyRoot = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRoot = _appManager.Paths.ConfiguredComfyPath;
 		if (string.IsNullOrWhiteSpace(comfyRoot))
 		{
 			return "assets";

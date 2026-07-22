@@ -11,6 +11,10 @@ namespace ComfyUI_Nexus.Ui;
 internal static class WorkflowBookmarkService
 {
 	private const string IndexFileName = ".index.json";
+	private static readonly JsonSerializerOptions WriteIndentedJsonOptions = new()
+	{
+		WriteIndented = true,
+	};
 
 	internal static string GetIndexPath(string workflowsPath)
 	{
@@ -89,7 +93,7 @@ internal static class WorkflowBookmarkService
 				.ToArray();
 
 			var payload = new { favorites = denormalized };
-			string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
+			string json = JsonSerializer.Serialize(payload, WriteIndentedJsonOptions);
 
 			await File.WriteAllTextAsync(indexPath, json);
 		}

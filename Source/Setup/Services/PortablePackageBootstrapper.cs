@@ -2,6 +2,7 @@ namespace ComfyUI_Nexus.Setup.Services;
 
 using System.IO.Compression;
 using System.Text;
+using ComfyUI_Nexus.Configuration;
 
 internal static class PortablePackageBootstrapper
 {
@@ -10,7 +11,13 @@ internal static class PortablePackageBootstrapper
 
 	internal static void Materialize()
 	{
-		string rootPath = ComfyInstallService.RootPath;
+		if (NexusStorageLayout.IsStoreDistribution)
+		{
+			ValidatePackagedRuntimePackages();
+			return;
+		}
+
+		string rootPath = ComfyInstallService.PackageRoot;
 		if (File.Exists(Path.Combine(rootPath, "ComfyUI-Nexus.csproj")))
 		{
 			return;
@@ -67,10 +74,18 @@ internal static class PortablePackageBootstrapper
 
 	private static bool HasMaterializedPackageSet()
 	{
-		string packageRoot = Path.Combine(ComfyInstallService.LocalRuntimePath, "Packages");
-		var packageSpec = RuntimePackageSpecService.LoadFromRoot(ComfyInstallService.RootPath);
+		string packageRoot = ComfyInstallService.RuntimePackagesPath;
+		var packageSpec = RuntimePackageSpecService.LoadFromPackageRoot(ComfyInstallService.PackageRoot);
 		return packageSpec.GetRequiredPackageRelativePaths()
 			.All(relativePath => File.Exists(Path.Combine(packageRoot, relativePath)));
+	}
+
+	private static void ValidatePackagedRuntimePackages()
+	{
+		if (!HasMaterializedPackageSet())
+		{
+			throw new InvalidOperationException("Store runtime packages are missing from the app package.");
+		}
 	}
 
 	private static bool TryReadPayloadLocation(Stream executable, out long payloadOffset, out long payloadLength)

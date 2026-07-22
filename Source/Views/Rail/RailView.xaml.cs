@@ -19,6 +19,8 @@ public partial class RailView : ContentView
 	private const double RailRevealStartOpacity = 0.36;
 	private const double RailRevealEndOpacity = 0.82;
 	private const string RailRevealAnimationName = "RailRevealAnim";
+	private const uint RailContentRevealLength = 120;
+	private const string RailContentRevealAnimationName = "RailContentRevealAnim";
 	private static readonly Brush CollapseFlagIdleFill = new SolidColorBrush(Color.FromArgb("#7A31D8FF"));
 	private static readonly Brush CollapseFlagHoverFill = new SolidColorBrush(Color.FromArgb("#D031D8FF"));
 	private static readonly Brush CollapseFlagIdleGlowFill = new SolidColorBrush(Color.FromArgb("#2431D8FF"));
@@ -43,6 +45,7 @@ public partial class RailView : ContentView
 	}
 
 	private bool _isToolPanelOpen;
+	private readonly NexusAppManager _appManager;
 	private RailToolKind _activeTool = RailToolKind.Assets;
 	private RailAuxiliarySurface _activeAuxiliarySurface = RailAuxiliarySurface.None;
 	// Native clicks can beat the web-side state observer; keep the button active until web confirms the opened surface.
@@ -50,12 +53,14 @@ public partial class RailView : ContentView
 	private RailState _railState = RailState.Ready;
 	private readonly List<RailToolRegistration> _toolRegistrations = [];
 	private CancellationTokenSource? _prewarmCts;
-	private readonly NexusOperationController _latestOperations = new("rail-view");
+	private readonly NexusOperationController _latestOperations;
+	private readonly Color _contentCardSurfaceColor;
 	private bool _prewarmStoppedForShutdown;
 	private Task? _activeTransitionTask;
 	private string? _activeTransitionKey;
 	private int _transitionVersion;
 	private int _railRequestVersion;
+	private bool _isUserTransitionLocked;
 
 	internal event Func<CancellationToken, Task<bool>>? RailOpenRequestedAsync;
 	internal event Action? RailCloseRequested;
@@ -72,7 +77,10 @@ public partial class RailView : ContentView
 
 	public RailView()
 	{
+		_appManager = NexusAppManager.Instance;
+		_latestOperations = new NexusOperationController("rail-view", _appManager.BackgroundWorkers);
 		InitializeComponent();
+		_contentCardSurfaceColor = RailContentCard.BackgroundColor ?? Color.FromArgb("#0b1119");
 		Unloaded += OnRailUnloaded;
 
 		RegisterTools();
@@ -87,12 +95,17 @@ public partial class RailView : ContentView
 
 	// Tool panel
 	internal Task RequestToggleAsync()
-	{
-		MainMenuDismissRequested?.Invoke(this, EventArgs.Empty);
-		return _isToolPanelOpen
-			? CloseAsync()
-			: OpenToolAsync(_activeTool);
-	}
+		=> RunUserTransitionAsync(async () =>
+		{
+			MainMenuDismissRequested?.Invoke(this, EventArgs.Empty);
+			if (_isToolPanelOpen)
+			{
+				await CloseAsync();
+				return;
+			}
+
+			await OpenToolAsync(_activeTool);
+		});
 
 	private Task CloseAsync()
 	{
@@ -111,7 +124,7 @@ public partial class RailView : ContentView
 	}
 
 	private void OnCollapseFlagTapped(object? sender, TappedEventArgs e)
-		=> _ = CloseAsync();
+		=> _ = RunUserTransitionAsync(CloseAsync);
 
 	private void OnCollapseFlagPointerEntered(object? sender, PointerEventArgs e)
 		=> SetCollapseFlagHover(true);
@@ -173,10 +186,11 @@ public partial class RailView : ContentView
 	}
 
 	private async void HandleToolButtonClick(RailToolKind toolKind)
-	{
-		MainMenuDismissRequested?.Invoke(this, EventArgs.Empty);
-		await OpenToolAsync(toolKind);
-	}
+		=> await RunUserTransitionAsync(async () =>
+		{
+			MainMenuDismissRequested?.Invoke(this, EventArgs.Empty);
+			await OpenToolAsync(toolKind);
+		});
 
 	private async Task OpenToolAsync(RailToolKind toolKind)
 	{
@@ -232,13 +246,16 @@ public partial class RailView : ContentView
 
 		_isToolPanelOpen = false;
 		SetContentCardVisible(false);
+		ClearTransitionOverlay();
 		ApplyToolButtonSelectionState();
 		RailCloseRequested?.Invoke();
-		ClearTransitionOverlay();
 	}
 
 	// Web surfaces
 	private async void ToggleAuxiliarySurface(RailAuxiliarySurface targetSurface)
+		=> await RunUserTransitionAsync(() => ToggleAuxiliarySurfaceCoreAsync(targetSurface));
+
+	private async Task ToggleAuxiliarySurfaceCoreAsync(RailAuxiliarySurface targetSurface)
 	{
 		bool isAlreadyActive = _activeAuxiliarySurface == targetSurface;
 		await CloseAsync();
@@ -252,6 +269,30 @@ public partial class RailView : ContentView
 		_awaitingWebConfirmedAuxiliarySurface = targetSurface;
 		SyncAuxiliaryButtons();
 		RaiseAuxiliarySurfaceEvent(targetSurface);
+	}
+
+	private async Task RunUserTransitionAsync(Func<Task> transition)
+	{
+		if (_isUserTransitionLocked)
+		{
+			return;
+		}
+
+		_isUserTransitionLocked = true;
+		InputTransparent = true;
+		try
+		{
+			await transition();
+		}
+		catch (Exception ex)
+		{
+			NexusLog.Exception(ex, "[RAIL_VIEW] User transition failed");
+		}
+		finally
+		{
+			InputTransparent = false;
+			_isUserTransitionLocked = false;
+		}
 	}
 
 	private void ClearAuxiliarySurface()
@@ -378,7 +419,12 @@ public partial class RailView : ContentView
 			return;
 		}
 
+		bool hasTransitionOverlay = RailTransitionOverlay.IsVisible;
 		SetContentCardVisible(true);
+		if (!hasTransitionOverlay)
+		{
+			RestoreContentCardSurface();
+		}
 		_isToolPanelOpen = true;
 		XamlLifetimeDiagnostics.RecordSurface("rail", toolKind.ToString());
 		if (GetToolView(toolKind) is not IRailToolView activeTool)
@@ -387,11 +433,18 @@ public partial class RailView : ContentView
 		}
 
 		activeTool.PrepareOpenShell();
+		// The tool shell, including its loading blocker, is ready behind the rail sweep.
+		// Only the sweep fades away so the blocker cannot flash in after content is revealed.
 		ActivateToolLayer(activeTool.View, isActive: true);
 		ApplyToolButtonSelectionState();
-		ClearTransitionOverlay();
 		RailPerformanceDiagnostics.Mark("ContentHostActivated", perf, $"tool={toolKind}");
-		// Content opens after the rail reveal, with its own loading shell already visible.
+		if (hasTransitionOverlay &&
+			!await RevealContentAsync(activeTool.View, cancellationToken))
+		{
+			return;
+		}
+
+		// Content opens after the rail layout is committed, with its own loading shell already visible.
 		await OpenToolContentAsync(toolKind, activeTool, requestVersion, cancellationToken, perf);
 	}
 
@@ -416,14 +469,6 @@ public partial class RailView : ContentView
 		catch (Exception ex)
 		{
 			NexusLog.Exception(ex, "[RAIL_VIEW] Rail tool open failed");
-		}
-		finally
-		{
-			if (requestVersion == _railRequestVersion)
-			{
-				ClearTransitionOverlay();
-				RailPerformanceDiagnostics.Mark("TransitionOverlayCleared", perf, $"tool={toolKind}");
-			}
 		}
 	}
 
@@ -493,7 +538,7 @@ public partial class RailView : ContentView
 	{
 		AssetsToolView?.SetRootPath(path);
 
-		string comfyRootPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRootPath = _appManager.Paths.ConfiguredComfyPath;
 		MediaAssetsToolView?.SetComfyRootPath(
 			!string.IsNullOrWhiteSpace(comfyRootPath) && Directory.Exists(comfyRootPath)
 				? comfyRootPath
@@ -502,7 +547,7 @@ public partial class RailView : ContentView
 
 	internal void RefreshConfiguredComfyRoots()
 	{
-		string comfyRootPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRootPath = _appManager.Paths.ConfiguredComfyPath;
 		AssetsToolView?.RefreshConfiguredRoots();
 		MediaAssetsToolView?.SetComfyRootPath(comfyRootPath);
 	}
@@ -655,7 +700,7 @@ public partial class RailView : ContentView
 		ApplyToolButtonSelectionState();
 	}
 
-	internal void PrepareForReveal(bool isExpanded = false)
+	internal void PrepareForDisplay(bool isExpanded)
 	{
 		_isToolPanelOpen = isExpanded;
 		RailToolsBorder.Opacity = 1;
@@ -674,9 +719,6 @@ public partial class RailView : ContentView
 		RailTransitionOverlay.InputTransparent = false;
 		RailTransitionOverlay.ScaleX = 0;
 		RailTransitionOverlay.TranslationX = -revealOffset;
-		RailTransitionBrand.IsVisible = true;
-		RailTransitionBrand.Opacity = 0;
-		RailTransitionBrand.Scale = 0.96;
 	}
 
 	internal async Task<bool> AnimateRevealAsync(uint length, Easing easing, CancellationToken cancellationToken)
@@ -687,9 +729,15 @@ public partial class RailView : ContentView
 			return false;
 		}
 
+		await NexusUiFrame.AwaitShellReadyAsync(RailContentCard, "RAIL:RevealShell");
+		if (cancellationToken.IsCancellationRequested)
+		{
+			return false;
+		}
+
 		double startOffset = RailTransitionOverlay.TranslationX;
 		using var cancelRegistration = cancellationToken.Register(() => UiThread.TryBeginInvoke(AbortRevealAnimation, "Rail.Reveal.Cancel"));
-		bool completed = (await SafeAnimation.TweenAsync(
+		return (await SafeAnimation.TweenAsync(
 			this,
 			RailRevealAnimationName,
 			progress =>
@@ -697,8 +745,6 @@ public partial class RailView : ContentView
 				RailTransitionOverlay.ScaleX = progress;
 				RailTransitionOverlay.TranslationX = startOffset * (1 - progress);
 				RailTransitionOverlay.Opacity = RailRevealStartOpacity + ((RailRevealEndOpacity - RailRevealStartOpacity) * progress);
-				RailTransitionBrand.Opacity = Math.Min(0.78, progress * 1.45);
-				RailTransitionBrand.Scale = 0.96 + (0.04 * progress);
 			},
 			0,
 			1,
@@ -707,8 +753,6 @@ public partial class RailView : ContentView
 			easing,
 			source: "Rail.Reveal"))
 			&& !cancellationToken.IsCancellationRequested;
-
-		return completed;
 	}
 
 	internal void CompleteRevealAnimation()
@@ -716,15 +760,58 @@ public partial class RailView : ContentView
 		RailTransitionOverlay.Opacity = RailRevealEndOpacity;
 		RailTransitionOverlay.ScaleX = 1;
 		RailTransitionOverlay.TranslationX = 0;
-		RailTransitionBrand.Opacity = 0.78;
-		RailTransitionBrand.Scale = 1;
 	}
 
 	internal void AbortRevealAnimation()
 	{
 		using var operation = XamlUnhandledExceptionDiagnostics.EnterUiOperation("Rail.Reveal.Abort");
 		SafeAnimation.AbortAnimation(this, RailRevealAnimationName, "Rail.Reveal");
+		SafeAnimation.AbortAnimation(this, RailContentRevealAnimationName, "Rail.ContentReveal");
 		SafeAnimation.CancelAnimations(RailTransitionOverlay, "Rail.Reveal");
+		SafeAnimation.CancelAnimations(RailContentCard, "Rail.ContentReveal");
+	}
+
+	private async Task<bool> RevealContentAsync(View content, CancellationToken cancellationToken)
+	{
+		using var operation = XamlUnhandledExceptionDiagnostics.EnterUiOperation("Rail.ContentReveal.Animate");
+		if (cancellationToken.IsCancellationRequested)
+		{
+			return false;
+		}
+
+		await NexusUiFrame.AwaitShellReadyAsync(content, "RAIL:ContentReveal");
+		if (cancellationToken.IsCancellationRequested)
+		{
+			return false;
+		}
+
+		double overlayOpacity = RailTransitionOverlay.Opacity;
+		RestoreContentCardSurface();
+		using var cancelRegistration = cancellationToken.Register(() => UiThread.TryBeginInvoke(AbortRevealAnimation, "Rail.ContentReveal.Cancel"));
+		bool completed = (await SafeAnimation.TweenAsync(
+			this,
+			RailContentRevealAnimationName,
+			progress =>
+			{
+				RailTransitionOverlay.Opacity = overlayOpacity * (1 - progress);
+			},
+			0,
+			1,
+			RailRevealFrameRate,
+			RailContentRevealLength,
+			Easing.CubicOut,
+			source: "Rail.ContentReveal"))
+			&& !cancellationToken.IsCancellationRequested;
+
+		if (!completed)
+		{
+			return false;
+		}
+
+		content.Opacity = 1;
+		content.InputTransparent = false;
+		ClearTransitionOverlay();
+		return true;
 	}
 
 	internal async Task PrewarmContentAsync()
@@ -834,12 +921,13 @@ public partial class RailView : ContentView
 		RailContentCard.TranslationX = 0;
 		RailContentHostGrid.TranslationX = 0;
 		WidthRequest = snapshot.WidthRequest;
+		RestoreContentCardSurface();
+		ClearTransitionOverlay();
 		if (GetToolView(snapshot.ActiveTool) is View activeView)
 		{
 			ActivateToolLayer(activeView, snapshot.IsToolPanelOpen);
 		}
 		ApplyToolButtonSelectionState();
-		ClearTransitionOverlay();
 	}
 
 	private sealed record PrewarmVisualState(
@@ -925,25 +1013,17 @@ public partial class RailView : ContentView
 	{
 		if (_railState == RailState.Ready)
 		{
-			SetTransitionOverlay(false);
+			ClearTransitionOverlay();
 		}
 	}
 
 	private void ClearTransitionOverlay()
 	{
-		SetTransitionOverlay(false);
-	}
-
-	private void SetTransitionOverlay(bool isVisible)
-	{
-		RailTransitionOverlay.IsVisible = isVisible;
-		RailTransitionOverlay.Opacity = isVisible ? RailRevealEndOpacity : 0;
-		RailTransitionOverlay.ScaleX = isVisible ? 1 : 0;
+		RailTransitionOverlay.IsVisible = false;
+		RailTransitionOverlay.Opacity = 0;
+		RailTransitionOverlay.InputTransparent = true;
+		RailTransitionOverlay.ScaleX = 0;
 		RailTransitionOverlay.TranslationX = 0;
-		RailTransitionOverlay.InputTransparent = !isVisible;
-		RailTransitionBrand.IsVisible = isVisible;
-		RailTransitionBrand.Opacity = isVisible ? 0.78 : 0;
-		RailTransitionBrand.Scale = isVisible ? 1 : 0.96;
 	}
 
 	private static double GetRevealOffset(double targetWidth)
@@ -965,15 +1045,20 @@ public partial class RailView : ContentView
 		}
 	}
 
-	// Keep the card shell alive for reveal while deferring heavy tool content until animation completes.
+	// Keep the card shell alive for the gradient reveal while deferring heavy tool content until it completes.
 	private void HideContentCardKeepingLayout()
 	{
 		RailContentCard.IsVisible = true;
-		RailContentCard.Opacity = 0;
+		RailContentCard.Opacity = 1;
 		RailContentCard.InputTransparent = true;
 		RailContentCard.TranslationX = 0;
 		RailContentHostGrid.TranslationX = 0;
+		RailContentCard.BackgroundColor = Colors.Transparent;
+		HideToolLayers();
 	}
+
+	private void RestoreContentCardSurface()
+		=> RailContentCard.BackgroundColor = _contentCardSurfaceColor;
 
 	// Keyboard
 	internal bool TryHandleKeyboardShortcut(NexusKey key, bool ctrl, bool shift)

@@ -113,7 +113,7 @@ public partial class MainPage
 			WriteServerBootSetupRouteTiming($"Splash bounce {bounceCount} starting.");
 			await PlayStartupSplashBounceAsync();
 		}
-		while (!readinessTask.IsCompleted);
+		while (bounceCount < StartupSplashBounceCount || !readinessTask.IsCompleted);
 
 		WriteServerBootSetupRouteTiming($"Splash bounce {bounceCount} completed after route readiness.");
 	}

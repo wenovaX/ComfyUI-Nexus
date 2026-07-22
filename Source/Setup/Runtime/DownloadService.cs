@@ -7,6 +7,8 @@ using System.Net.Http.Headers;
 
 internal sealed class DownloadService
 {
+	private const string PartialFileSuffix = ".partial";
+
 	internal static async Task DownloadFileAsync(
 		string url,
 		string destinationPath,
@@ -21,24 +23,23 @@ internal sealed class DownloadService
 		}
 
 		using var httpClient = new HttpClient();
+		using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(
+			static state => ((HttpClient)state!).CancelPendingRequests(),
+			httpClient);
 
 		long? totalBytes = await TryGetRemoteLengthAsync(httpClient, url, cancellationToken);
-		long existingLength = 0;
-
-		if (File.Exists(destinationPath))
+		string partialPath = destinationPath + PartialFileSuffix;
+		DownloadStagingState staging = PrepareStagingFile(destinationPath, partialPath, totalBytes);
+		if (staging.IsComplete)
 		{
-			existingLength = new FileInfo(destinationPath).Length;
-			if (totalBytes.HasValue && existingLength == totalBytes.Value)
-			{
-				onProgress?.Invoke(1.0, existingLength, totalBytes);
-				return;
-			}
+			onProgress?.Invoke(1.0, staging.ExistingLength, totalBytes);
+			return;
+		}
 
-			if (!totalBytes.HasValue || existingLength > totalBytes.Value)
-			{
-				File.Delete(destinationPath);
-				existingLength = 0;
-			}
+		long existingLength = staging.ExistingLength;
+		if (totalBytes.HasValue && totalBytes.Value > 0 && existingLength > 0)
+		{
+			onProgress?.Invoke((double)existingLength / totalBytes.Value, existingLength, totalBytes);
 		}
 
 		using var response = await SendDownloadRequestAsync(httpClient, url, existingLength, cancellationToken);
@@ -46,35 +47,85 @@ internal sealed class DownloadService
 
 		if (existingLength > 0 && response.StatusCode != HttpStatusCode.PartialContent)
 		{
-			File.Delete(destinationPath);
 			existingLength = 0;
 		}
 
+		long? expectedLength = response.Content.Headers.ContentRange?.Length
+			?? totalBytes
+			?? response.Content.Headers.ContentLength;
 		using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-		using var fileStream = new FileStream(destinationPath, existingLength > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true);
-
-		var buffer = new byte[bufferSize];
 		long totalRead = existingLength;
-		int read;
-
-		var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-
-		while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+		using (var fileStream = new FileStream(partialPath, existingLength > 0 ? FileMode.Append : FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true))
 		{
-			await fileStream.WriteAsync(buffer, 0, read, cancellationToken);
-			totalRead += read;
-
-			if (stopwatch.ElapsedMilliseconds > 100 || (totalBytes.HasValue && totalRead == totalBytes.Value))
+			var buffer = new byte[bufferSize];
+			var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+			int read;
+			while ((read = await contentStream.ReadAsync(buffer.AsMemory(), cancellationToken)) > 0)
 			{
-				stopwatch.Restart();
-				double progress = (totalBytes.HasValue && totalBytes.Value > 0) ? (double)totalRead / totalBytes.Value : 0;
-				onProgress?.Invoke(progress, totalRead, totalBytes);
+				await fileStream.WriteAsync(buffer.AsMemory(0, read), cancellationToken);
+				totalRead += read;
+
+				if (stopwatch.ElapsedMilliseconds > 100 || (expectedLength.HasValue && totalRead == expectedLength.Value))
+				{
+					stopwatch.Restart();
+					double progress = (expectedLength.HasValue && expectedLength.Value > 0) ? (double)totalRead / expectedLength.Value : 0;
+					onProgress?.Invoke(progress, totalRead, expectedLength);
+				}
 			}
 		}
 
-		// Ensure final update
-		double finalProgress = (totalBytes.HasValue && totalBytes.Value > 0) ? (double)totalRead / totalBytes.Value : 0;
-		onProgress?.Invoke(finalProgress, totalRead, totalBytes);
+		if (expectedLength.HasValue && totalRead != expectedLength.Value)
+		{
+			throw new IOException($"Download ended before the expected length was reached. Expected {expectedLength.Value} bytes, received {totalRead} bytes.");
+		}
+
+		File.Move(partialPath, destinationPath, true);
+		onProgress?.Invoke(1.0, totalRead, expectedLength);
+	}
+
+	private static DownloadStagingState PrepareStagingFile(string destinationPath, string partialPath, long? totalBytes)
+	{
+		if (File.Exists(destinationPath))
+		{
+			long finalLength = new FileInfo(destinationPath).Length;
+			if (totalBytes.HasValue && finalLength == totalBytes.Value)
+			{
+				return new DownloadStagingState(true, finalLength);
+			}
+
+			if (!totalBytes.HasValue)
+			{
+				File.Delete(destinationPath);
+			}
+			else if (!File.Exists(partialPath) || finalLength > new FileInfo(partialPath).Length)
+			{
+				File.Move(destinationPath, partialPath, true);
+			}
+			else
+			{
+				File.Delete(destinationPath);
+			}
+		}
+
+		if (!File.Exists(partialPath))
+		{
+			return new DownloadStagingState(false, 0);
+		}
+
+		long partialLength = new FileInfo(partialPath).Length;
+		if (!totalBytes.HasValue || partialLength > totalBytes.Value)
+		{
+			File.Delete(partialPath);
+			return new DownloadStagingState(false, 0);
+		}
+
+		if (partialLength == totalBytes.Value)
+		{
+			File.Move(partialPath, destinationPath, true);
+			return new DownloadStagingState(true, partialLength);
+		}
+
+		return new DownloadStagingState(false, partialLength);
 	}
 
 	internal static async Task<long?> TryGetRemoteLengthAsync(HttpClient httpClient, string url, CancellationToken cancellationToken)
@@ -101,4 +152,6 @@ internal sealed class DownloadService
 
 		return await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
 	}
+
+	private readonly record struct DownloadStagingState(bool IsComplete, long ExistingLength);
 }

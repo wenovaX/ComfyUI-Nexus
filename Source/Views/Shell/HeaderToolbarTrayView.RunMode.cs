@@ -12,6 +12,7 @@ public partial class HeaderToolbarTrayView
 	private bool _isInstantQueueButtonStop;
 	private bool _isMainActionPulseRunning;
 	private readonly NexusMotionController _mainActionMotion;
+	private readonly NexusAnimatedWebpFrameCache _frameCache;
 	private readonly NexusAnimatedWebpClip _mainActionStopSignalClip;
 	private NexusAnimatedWebpCacheLease? _mainActionStopSignalCacheLease;
 	private Task<NexusAnimatedWebpCacheLease>? _mainActionStopSignalCacheAcquireTask;

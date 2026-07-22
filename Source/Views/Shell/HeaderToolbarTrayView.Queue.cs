@@ -102,7 +102,7 @@ public partial class HeaderToolbarTrayView
 		if (_isUnloaded) return;
 
 		_isDraggingQueueCount = true;
-		PlatformManager.Current.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.SizeWestEast);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.SizeWestEast);
 	}
 
 	private void OnQueueCountPointerReleased(object? sender, PointerEventArgs e)
@@ -117,7 +117,7 @@ public partial class HeaderToolbarTrayView
 		if (_isUnloaded) return;
 
 		_ = SafeAnimation.FadeToAsync(QueueCountHoverGlow, 1, QueueHoverLength, Easing.CubicOut, "HeaderToolbar.QueueCount");
-		PlatformManager.Current.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.SizeWestEast);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.SizeWestEast);
 	}
 
 	private void OnQueueCountPointerExited(object? sender, PointerEventArgs e)
@@ -127,13 +127,13 @@ public partial class HeaderToolbarTrayView
 		if (_isDraggingQueueCount) return;
 
 		_ = SafeAnimation.FadeToAsync(QueueCountHoverGlow, 0, ViewQueueHoverOutLength, Easing.CubicIn, "HeaderToolbar.QueueCount");
-		PlatformManager.Current.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.Arrow);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(sender as VisualElement, NexusCursorShape.Arrow);
 	}
 
 	private void ResetQueueCountDragState(VisualElement? target, bool hideGlow = true)
 	{
 		_isDraggingQueueCount = false;
-		PlatformManager.Current.Cursor.SetCursor(target, NexusCursorShape.Arrow);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(target, NexusCursorShape.Arrow);
 
 		if (hideGlow)
 		{

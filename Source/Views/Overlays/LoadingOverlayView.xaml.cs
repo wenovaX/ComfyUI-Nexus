@@ -1,4 +1,5 @@
 using ComfyUI_Nexus.Ui;
+using ComfyUI_Nexus.Views.Overlays.Controllers;
 using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Localization;
 using ComfyUI_Nexus.Platform;
@@ -63,6 +64,7 @@ public partial class LoadingOverlayView : ContentView
 		string PrimaryText);
 
 	private INexusAppEntry? _nexusAppEntry;
+	private readonly NexusAppManager _appManager;
 	private bool _isProductSetupFinalizing;
 	private bool _isOverlayUnloading;
 	private bool _isMaintenanceRecoveryMode;
@@ -87,10 +89,12 @@ public partial class LoadingOverlayView : ContentView
 	public LoadingOverlayView()
 	{
 		InitializeComponent();
+		_appManager = NexusAppManager.Instance;
 		_serverBootMotion = new NexusMotionController("loading-server-boot", "Loading.ServerBoot", Dispatcher);
 		_serverBootAnimator = new NexusVisualStateAnimator<ServerBootAnimationState>(
 			"loading-server-boot",
 			_serverBootMotion,
+			_appManager.AnimatedWebpFrames,
 			CanRepeatServerBootAnimation,
 			[
 				new NexusVisualStateAnimation("idle", ServerBootAnimationSurface, NexusAnimatedWebpCacheCatalog.ServerBootIdle, NexusVisualPlaybackKind.Loop, Preload: true),
@@ -491,7 +495,7 @@ public partial class LoadingOverlayView : ContentView
 		var page = GetPromptPage();
 		if (page != null)
 		{
-			string repairTarget = RuntimeRepairTarget.GetDisplay();
+			string repairTarget = RuntimeRepairTarget.GetDisplay(_appManager.Settings.Settings, _appManager.Paths);
 			bool confirmed = await page.DisplayAlertAsync(
 				Text("recover_runtime_and_boot_title"),
 				string.Format(Text("recover_runtime_and_boot_message"), repairTarget),
@@ -508,7 +512,7 @@ public partial class LoadingOverlayView : ContentView
 		string logsPath = ComfyInstallService.GetLocalRuntimePath("Logs");
 		string logPath = System.IO.Path.Combine(logsPath, SessionLogPaths.NexusLatestFileName);
 		string targetPath = File.Exists(logPath) ? logPath : logsPath;
-		var result = await PlatformManager.Current.Shell.OpenPathAsync(targetPath);
+		var result = await NexusAppManager.Instance.Platform.Shell.OpenPathAsync(targetPath);
 		if (!result.IsSuccess)
 		{
 			NexusLog.Warning($"[BOOT] Failed to open Nexus boot log path: {result.Message}");
@@ -798,7 +802,7 @@ public partial class LoadingOverlayView : ContentView
 		}
 
 		return state == ServerBootVisualState.Idle
-			&& SetupSettingsService.Instance.Settings.LastLaunchSuccessful;
+			&& _appManager.Settings.Settings.LastLaunchSuccessful;
 	}
 
 	private void OnServerBootButtonHovered(object? sender, PointerEventArgs e)
@@ -826,7 +830,7 @@ public partial class LoadingOverlayView : ContentView
 		var page = GetPromptPage();
 		if (page == null) return;
 
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _appManager.Settings.Settings;
 		string? result = await page.DisplayPromptAsync(
 			Text("comfyui_host"),
 			Text("set_host_used_when_nexus_starts_comfyui"),
@@ -849,7 +853,7 @@ public partial class LoadingOverlayView : ContentView
 		settings.ListenAddress = host;
 		settings.LastLaunchSuccessful = false;
 		settings.LastActivePort = null;
-		SetupSettingsService.Instance.Save();
+		_appManager.Settings.Save();
 		UpdateServerBootEndpoint();
 		AddServerBootLog($"[CONFIG] ComfyUI host set to {host}.");
 	}
@@ -861,7 +865,7 @@ public partial class LoadingOverlayView : ContentView
 		var page = GetPromptPage();
 		if (page == null) return;
 
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _appManager.Settings.Settings;
 		string? result = await page.DisplayPromptAsync(
 			Text("comfyui_port"),
 			Text("set_port_used_when_nexus_starts_comfyui"),
@@ -883,7 +887,7 @@ public partial class LoadingOverlayView : ContentView
 		settings.ServerPort = port;
 		settings.LastLaunchSuccessful = false;
 		settings.LastActivePort = null;
-		SetupSettingsService.Instance.Save();
+		_appManager.Settings.Save();
 		UpdateServerBootEndpoint();
 		AddServerBootLog($"[CONFIG] ComfyUI port set to {port}.");
 	}
@@ -964,7 +968,7 @@ public partial class LoadingOverlayView : ContentView
 
 	private void UpdateServerBootEndpoint()
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _appManager.Settings.Settings;
 		ServerBootHostLabel.Text = settings.ListenAddress;
 		ServerBootPortLabel.Text = settings.ServerPort.ToString();
 		UpdateServerBootPythonMode();
@@ -972,7 +976,7 @@ public partial class LoadingOverlayView : ContentView
 
 	private void UpdateServerBootPythonMode()
 	{
-		bool useVenv = RuntimePythonModePresenter.ShouldDisplayVenvMode(SetupSettingsService.Instance.Settings);
+		bool useVenv = RuntimePythonModePresenter.ShouldDisplayVenvMode(_appManager.Settings.Settings);
 		ServerBootPythonModeLabel.Text = useVenv ? "VENV" : "DIRECT";
 		ServerBootPythonModeLabel.TextColor = useVenv ? NexusAccentColor : ServerBootWarningColor;
 		ServerBootPythonModePill.BackgroundColor = useVenv ? NexusColors.AccentWash : NexusColors.WarningSoft;

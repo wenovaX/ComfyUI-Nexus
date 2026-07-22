@@ -5,6 +5,13 @@ using ComfyUI_Nexus.Setup.Models;
 
 internal sealed class CoreLinkDetector
 {
+	private readonly ComfyInstallService _comfyInstall;
+
+	internal CoreLinkDetector(ComfyInstallService comfyInstall)
+	{
+		_comfyInstall = comfyInstall ?? throw new ArgumentNullException(nameof(comfyInstall));
+	}
+
 	internal Action<string>? OnMessage { get; set; }
 
 	private void Log(string message) => OnMessage?.Invoke(message);
@@ -29,7 +36,7 @@ internal sealed class CoreLinkDetector
 			if (gitExe == null)
 			{
 				Log("[CoreCheck] Git missing. Extracting portable Git...");
-				await ComfyInstallService.Instance.ExtractGitPackageAsync(cancellationToken);
+				await _comfyInstall.ExtractGitPackageAsync(cancellationToken);
 				gitExe = await ResolveGitAsync(cancellationToken);
 			}
 
@@ -42,7 +49,7 @@ internal sealed class CoreLinkDetector
 			if (pythonExe == null)
 			{
 				Log("[CoreCheck] Python missing. Installing local Python runtime...");
-				await ComfyInstallService.Instance.ExtractPythonPackageAsync(cancellationToken);
+				await _comfyInstall.ExtractPythonPackageAsync(cancellationToken);
 				pythonExe = await ResolvePythonAsync(cancellationToken);
 			}
 
@@ -63,7 +70,7 @@ internal sealed class CoreLinkDetector
 		string portable = Path.Combine(ComfyInstallService.InstalledPath, "Git", "cmd", "git.exe");
 		if (File.Exists(portable)) return portable;
 
-		if (!ComfyInstallService.PortableOnly)
+		if (!_comfyInstall.PortableOnly)
 		{
 			try
 			{

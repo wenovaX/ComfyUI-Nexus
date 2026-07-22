@@ -1,0 +1,10 @@
+<Project>
+	<!-- Copy this file to Store.Build.props. Keep the real Partner Center identity out of source control. -->
+	<PropertyGroup>
+		<NexusStoreIdentityName>PartnerCenterAssignedIdentity</NexusStoreIdentityName>
+		<NexusStorePublisher>CN=PartnerCenterAssignedPublisher</NexusStorePublisher>
+		<NexusStorePublisherDisplayName>Partner Center Publisher Name</NexusStorePublisherDisplayName>
+		<!-- Optional: use only when automatic Visual Studio tool discovery is unavailable. -->
+		<!-- <NexusStoreSymbolToolPath>C:\BuildTools\MSVC\bin\Hostx64\x64\mspdbcmf.exe</NexusStoreSymbolToolPath> -->
+	</PropertyGroup>
+</Project>

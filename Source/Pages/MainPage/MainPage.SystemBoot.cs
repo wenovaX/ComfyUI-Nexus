@@ -10,6 +10,7 @@ using ComfyUI_Nexus.Setup.Runtime;
 using ComfyUI_Nexus.Ui;
 using ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary;
 
+using ComfyUI_Nexus.Views.Overlays.Controllers;
 namespace ComfyUI_Nexus;
 
 public partial class MainPage
@@ -146,7 +147,7 @@ public partial class MainPage
 			progress: 0.96);
 		await MainThread.InvokeOnMainThreadAsync(() =>
 		{
-			RailControl?.PrepareForReveal(_isFileRailExpanded);
+			RailControl?.PrepareForDisplay(_isFileRailExpanded);
 			ApplyLeftChromeVisibilityState();
 		});
 		_loginSequence.Phase(BootPhase.RailPrepared, $"expanded={_isFileRailExpanded}");
@@ -341,7 +342,7 @@ public partial class MainPage
 			return;
 		}
 
-		if (ComfyServerProcessRegistry.FindServerProcess() != null)
+		if (_appManager.ServerProcesses.FindServerProcess() != null)
 		{
 			Log("[LIFECYCLE] Server boot ignored because ComfyUI is already running.");
 			return;
@@ -421,7 +422,7 @@ public partial class MainPage
 			return;
 		}
 
-		Uri readinessEndpoint = new(new Uri(ComfyApiOptions.LocalBaseUrl), "api/object_info");
+		Uri readinessEndpoint = new(new Uri(ComfyApiOptions.GetLocalBaseUrl(_appManager.Settings.Settings)), "api/object_info");
 		_loadingOverlayController.Hold(
 			"Checking ComfyUI",
 			"Confirming the local ComfyUI API before reconnecting Nexus.",
@@ -553,7 +554,7 @@ public partial class MainPage
 			Log("SYSTEM: Requesting explicit ComfyUI navigation...");
 			_loginSequence.Phase(BootPhase.ReloadRequested);
 			await UpdateSystemLoadingStateAsync(true);
-			await WorkspaceControl.BrowserSurface.NavigateAsync(ComfyApiOptions.LocalBaseUrl);
+			await WorkspaceControl.BrowserSurface.NavigateAsync(ComfyApiOptions.GetLocalBaseUrl(_appManager.Settings.Settings));
 		}
 		catch (Exception ex)
 		{

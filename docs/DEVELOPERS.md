@@ -4,6 +4,19 @@ Language: [English](DEVELOPERS.md) | [한국어](DEVELOPERS.ko.md)
 
 This is the working contract for Nexus. Keep it short, explicit, and current.
 
+## Documentation Map
+
+- Root `README.md`: user-facing product overview, install, requirements, and build entry points.
+- `DEVELOPERS.md`: engineering rules and active implementation contracts.
+- `APP_MANAGER_SPEC.md`: app-runtime ownership and static-versus-instance boundary.
+- `PROJECTINFO.md`: product identity and public naming rules.
+- `CHANGELOG.md`: released user-visible changes.
+- `NEXUS_TODO.md`: intentionally deferred work.
+- `PRIVACY.md`: user-facing privacy policy.
+
+Keep feature-specific specifications only when they describe a durable external contract.<br>
+Historical plans belong in `docs/archive/`, not beside active documentation.
+
 ## Product Boundary
 
 Nexus is the native Windows companion for ComfyUI.
@@ -25,6 +38,11 @@ Use **Nexus for ComfyUI** in public copy. See [PROJECTINFO.md](PROJECTINFO.md) f
 
 ## Ownership Map
 
+`NexusAppManager` is the one app-lifetime composition root.<br>
+It owns settings, tooling leases, server process state, managed installation, GPU discovery,<br>
+server lifecycle, the optional Control Deck, bounded background workers, the WebP frame cache, and the coalesced UI-post queue.<br>
+Do not add a new app-wide `Instance`; receive the named component from the manager instead.
+
 | Area | Owner | Keep it responsible for |
 | --- | --- | --- |
 | Startup route | `StartupRouteDecider` | Setup, boot, reattach, or direct load decision |
@@ -43,6 +61,46 @@ Use **Nexus for ComfyUI** in public copy. See [PROJECTINFO.md](PROJECTINFO.md) f
 
 If a new feature cannot name its owner, stop before adding code.
 
+## Setup Action Contract
+
+Every configurable diagnostic action follows one setup-owned flow:<br>
+immediate working feedback, option selection, domain recovery, an explicit outcome, then one final UI settlement.
+
+`ProductSetupView.Diagnostics` owns the UI flow.<br>
+Diagnostic nodes own only their option selection, health probe, and recovery work.<br>
+Each option declares whether it runs recovery, requires a scoped tooling-path lease, can be cancelled, and whether completion verifies local health or records an explicit user choice.<br>
+For example, external browser downloads launch recovery but complete as an accepted external choice and never wait for local file verification.
+
+| Outcome | Setup result |
+| --- | --- |
+| `Completed` | Probe health, update the step, then refresh readiness. |
+| `AwaitingUserChoice` | Restore the action choices and keep the step waiting. |
+| `Cancelled` | Show the cancellation result, restore choices, and keep the step waiting. |
+| `Failed` | Show the failure result and mark the step failed. |
+
+Only the outer action flow opens or clears the action gate, cancellation token, progress UI, and inline actions.<br>
+The UI must not infer these behaviors from a node ID or action ID; folder and executable selection are node capabilities, not view-specific branches.<br>
+Do not add button-specific cleanup branches that bypass this settlement.
+
+## View Code Organization
+
+Keep a large XAML surface as one partial type, but divide its code by durable feature ownership.<br>
+Do not split a view merely to reduce line count.
+
+| Surface | Primary file | Feature partials |
+| --- | --- | --- |
+| Settings | SettingsOverlayView.xaml.cs | RuntimeConfiguration, RuntimeTools, ComfyAndExtensions, Maintenance, RuntimeBackup, ModelLibraries |
+| Product Setup | ProductSetupView.xaml.cs | Console, Diagnostics, NativeInitiationScroll |
+| Media Assets | MediaAssetsView.xaml.cs | Rendering, FileInspection, ScopeAndWatching, Interaction |
+| Asset Browser | AssetsBrowserView.xaml.cs | Existing search, chrome, context-menu, and asset-kind partials |
+
+A controller that directly owns a concrete XAML surface belongs below that surface:<br>
+Views/Overlays/Controllers for loading overlays and Views/Shell/Controllers for shell surfaces.<br>
+Keep reusable primitives such as NexusMotionController, NexusOperationController,
+NexusAnimatedWebpClip, and NexusUiPostCoordinator under Ui.
+
+MainPage partial names must state the flow they contain.<br>
+For example, startup route, Core Link selection, and bridge repair share MainPage.StartupAndCoreLink.cs.
 ## Runtime Modes
 
 | Mode | Runtime ownership | Required setup |
@@ -178,7 +236,32 @@ Keep their repair policies separate.
 Runtime repair preserves user data: models, workflows, inputs, outputs, custom nodes, and external model paths.<br>
 Core source recovery may replace managed source, but it must not erase runtime data.
 
+## Tooling Path Lease
+
+Git, pip, archive extraction, and virtual-environment creation run inside `NexusRuntimeEnvironment.RunToolingAsync`.<br>
+Each outer call is one tooling request: it acquires a short Windows drive alias only for that request and returns it before the call completes.<br>
+Server launch and normal runtime/UI work never enter this scope and always use physical paths.
+
+- Persisted settings, server launch, logs, backups, diagnostics, and file tools use physical paths only.
+- A nested tooling call reuses the current lease. Release happens after its last child process exits.
+- Each Nexus process records an instance ID, process ID, and process start time in one per-user registry.<br>
+  Multiple running Nexus instances can share the same alias; only the last live owner releases it.
+- Startup maintenance removes only stale Nexus owners after validating the process identity, including PID reuse.
+- Nexus records only aliases it creates. Existing user mappings may be reused but are never removed.
+- If no supported drive letter is available, tooling fails clearly. Do not fall back to a junction or a long tooling path.
+- `pip_cache_mode` and `pip_cache_path` remain a user-facing cache storage policy; the alias is passed only to the pip child process.
+
 ## Build And Check
+
+### Developer Tool Entry Points
+
+The repository root intentionally contains only `dev-help` in Batch, PowerShell, and Git Bash forms.<br>
+Use `dev-help.bat`, `./dev-help`, or `.\dev-help.ps1` to print the common commands and their exact locations.
+
+- Command Prompt: `tools\windows\dev-*.bat`.
+- PowerShell: `tools\windows\dev-*.ps1`.
+- Git Bash: `./tools/windows/dev-*`.
+- `tools/windows`: all Windows-only developer tooling.
 
 ```powershell
 dotnet build ComfyUI-Nexus.csproj -f net10.0-windows10.0.19041.0 -p:UseAppHost=false -p:OutputPath=artifacts\verify-build\ --no-restore
@@ -190,14 +273,51 @@ Delete `artifacts/verify-*` after a successful verification build.
 Release packaging:
 
 ```bat
-dev-build-as-binary.bat Release folder archive
+tools\windows\dev-build-as-binary.bat Release folder archive
 ```
 
 For a signed Windows release, `--cert` validates a usable local Authenticode certificate before clean, restore, or publish:
 
 ```bat
-dev-build-as-binary.bat Release folder clean archive --cert Release
+tools\windows\dev-build-as-binary.bat Release folder clean archive --cert Release
 ```
+
+For Microsoft Store submission, keep the Partner Center identity in the ignored `Store.Build.props` file and run:
+
+```bat
+tools\windows\dev-build-as-binary.bat Release app-store clean
+```
+
+To test the resulting Store-profile MSIX locally, use a signed copy rather than modifying the upload bundle:
+
+```powershell
+.\tools\windows\dev-test-store-package.ps1 help
+.\tools\windows\dev-test-store-package.ps1 install -ResetData -Launch
+```
+
+Git Bash can call the same helper without an extension:
+
+```bash
+./tools/windows/dev-test-store-package help
+./tools/windows/dev-test-store-package install -ResetData -Launch
+```
+
+The test helper creates a certificate whose subject matches the local Partner Center Publisher value,<br>
+signs only a copy under `build\Store_*\local-test`, and installs that copy.<br>
+The first install requests elevation once to trust the public test certificate in local-machine stores, which MSIX installation requires.<br>
+It never changes the `.msixupload` file prepared for Partner Center.<br>
+The local test tool installs Windows SDK Signing Tools through `winget` when `signtool.exe` is unavailable.<br>
+Store settings and runtime data stay in LocalState.<br>
+During setup tooling only, Nexus leases short drive aliases for managed or external ComfyUI roots and an optional custom pip cache.<br>
+The user-facing settings, server process, logs, backups, and file tools always retain their physical paths.<br>
+Each alias uses a per-process ownership record, so concurrent Nexus builds keep a shared alias until its final live owner exits.<br>
+Startup cleanup validates process identity before removing stale Nexus mappings and never touches user-created mappings.<br>
+Use `remove -ResetData -RemoveCertificate` after local QA to remove local app data, generated local-test MSIX copies,<br>
+Nexus-owned temporary tooling drive mappings, and the test certificate from current-user and local-machine stores.<br>
+
+This creates `build/Store_Release_<timestamp>/*.msixupload` containing the MSIX and `.appxsym` symbols.<br>
+The Store flow rejects portable-only `archive`, `zip`, and `--cert` options.<br>
+Store MSIX packages reserve their fourth version part as `0`; portable builds keep the full `NexusVersion` value.
 
 ## Smoke Checklist
 
@@ -218,5 +338,5 @@ dev-build-as-binary.bat Release folder clean archive --cert Release
 
 Do not use a managed log absence as proof that the native UI was healthy.
 
-For a blocked UI, compare `[UI_TRACE]` with `[CONCURRENCY]` before changing timers or adding cancellation.
+For a blocked UI, compare `[UI_TRACE]` with `[CONCURRENCY]` before changing timers or adding cancellation.<br>
 The renderer can remain visible while the UI dispatcher is delayed.

@@ -34,6 +34,7 @@ internal sealed class AssetFileOperationService
 
 	private readonly AssetSelectionController _selection;
 	private readonly AssetClipboardController _clipboard;
+	private readonly NexusDialogService _dialogs;
 	private readonly Func<string> _getRootPath;
 	private readonly Func<string, Task> _openInOsAsync;
 	private readonly Action<string?[]> _refreshDirectoriesImmediately;
@@ -58,6 +59,7 @@ internal sealed class AssetFileOperationService
 	/// <param name="notifyFolderCreated">Optional callback receiving parent path and created folder path.</param>
 	/// <param name="notifyDirectoryContentAdded">Optional callback receiving a directory that should be expanded before refresh.</param>
 	internal AssetFileOperationService(
+		NexusDialogService dialogs,
 		AssetSelectionController selection,
 		AssetClipboardController clipboard,
 		Func<string> getRootPath,
@@ -72,6 +74,7 @@ internal sealed class AssetFileOperationService
 		Func<Task>? endBatchOperationAsync = null,
 		Func<string, bool>? shouldRegenerateCopiedWorkflowMetadata = null)
 	{
+		_dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
 		_selection = selection;
 		_clipboard = clipboard;
 		_getRootPath = getRootPath;
@@ -253,7 +256,7 @@ internal sealed class AssetFileOperationService
 
 		string message = BuildMoveConfirmationMessage(operations, targetName);
 
-		await NexusDialogService.ConfirmAsync(
+		await _dialogs.ConfirmAsync(
 			LocalizationManager.Text("views.rail.tools.assets.file_operations.move_title"),
 			message,
 			LocalizationManager.Text("views.rail.tools.assets.file_operations.move_button"),
@@ -456,7 +459,7 @@ internal sealed class AssetFileOperationService
 			return;
 		}
 
-		await NexusDialogService.PromptAsync(
+		await _dialogs.PromptAsync(
 			LocalizationManager.Text("views.rail.tools.assets.file_operations.add_folder_title"),
 			LocalizationManager.Format("views.rail.tools.assets.file_operations.add_folder_prompt_message", destinationDirectory),
 			LocalizationManager.Text("common.ok"),
@@ -720,10 +723,10 @@ internal sealed class AssetFileOperationService
 		return operations;
 	}
 
-	private static async Task<bool> ConfirmPasteConflictAsync()
+	private async Task<bool> ConfirmPasteConflictAsync()
 	{
 		bool confirmed = false;
-		await NexusDialogService.ConfirmAsync(
+		await _dialogs.ConfirmAsync(
 			LocalizationManager.Text("views.rail.tools.assets.file_operations.paste_conflict_title"),
 			LocalizationManager.Text("views.rail.tools.assets.file_operations.paste_conflict_message"),
 			LocalizationManager.Text("common.ok"),
@@ -751,7 +754,7 @@ internal sealed class AssetFileOperationService
 		{
 			IReadOnlyList<string>? renamedTargets = null;
 			IReadOnlyCollection<string>? touchedDirectories = null;
-			await NexusDialogService.PromptAsync(
+			await _dialogs.PromptAsync(
 				LocalizationManager.Text("views.rail.tools.assets.file_operations.batch_rename_title"),
 				LocalizationManager.Text("views.rail.tools.assets.file_operations.batch_rename_message"),
 				LocalizationManager.Text("common.rename"),
@@ -784,7 +787,7 @@ internal sealed class AssetFileOperationService
 
 		string? renamedTarget = null;
 		string? touchedDirectory = null;
-		await NexusDialogService.PromptAsync(
+		await _dialogs.PromptAsync(
 			LocalizationManager.Text("common.rename"),
 			promptMessage,
 			LocalizationManager.Text("common.rename"),
@@ -896,7 +899,7 @@ internal sealed class AssetFileOperationService
 			? Path.GetFileName(selectedPaths[0].TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
 			: $"{selectedPaths.Count} item(s)";
 
-		await NexusDialogService.ConfirmAsync(
+		await _dialogs.ConfirmAsync(
 			LocalizationManager.Text("common.delete"),
 			LocalizationManager.Format("views.rail.tools.assets.file_operations.delete_message", currentName),
 			LocalizationManager.Text("common.delete"),
@@ -996,7 +999,7 @@ internal sealed class AssetFileOperationService
 			return;
 		}
 
-		var result = await PlatformManager.Current.Shell.RevealInFileManagerAsync(path);
+		var result = await NexusAppManager.Instance.Platform.Shell.RevealInFileManagerAsync(path);
 		if (result.IsSuccess)
 		{
 			return;

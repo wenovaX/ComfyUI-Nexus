@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ComfyUI_Nexus;
 
@@ -18,6 +19,8 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 				fonts.AddFont("JetBrainsMono-Regular.ttf", "JetBrainsMono");
 			});
+
+		builder.Services.AddSingleton(_ => NexusAppManager.CreateForApplication());
 
 #if DEBUG
 		builder.Logging.AddDebug();

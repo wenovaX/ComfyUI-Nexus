@@ -108,7 +108,7 @@ public partial class MainPage
 			return Task.CompletedTask;
 		}
 
-		UiThread.PostLatest("main-page-bridge", "media-assets", lease.Generation, () =>
+		_appManager.UiPosts.PostLatest("main-page-bridge", "media-assets", lease.Generation, () =>
 		{
 			RailControl?.SyncMediaAssetsFromJobs(jobs);
 		});
@@ -213,7 +213,7 @@ public partial class MainPage
 
 			NexusLog.Trace($"[BLUEPRINT] Parsed {blueprints.Count} blueprint items.");
 			_latestBlueprints = blueprints;
-			UiThread.PostLatest("main-page-bridge", "blueprints", lease.Generation, () =>
+			_appManager.UiPosts.PostLatest("main-page-bridge", "blueprints", lease.Generation, () =>
 			{
 				if (_nodeLibrary == null)
 				{
@@ -473,7 +473,7 @@ public partial class MainPage
 			return Task.CompletedTask;
 		}
 
-		UiThread.PostLatest("main-page-bridge", "workflow-sync", lease.Generation, () =>
+		_appManager.UiPosts.PostLatest("main-page-bridge", "workflow-sync", lease.Generation, () =>
 		{
 			bool applied = _tabController.TryApplyWorkflowSync(data);
 			RecordWorkflowSync(applied);
@@ -504,7 +504,7 @@ public partial class MainPage
 
 		MainThread.BeginInvokeOnMainThread(() =>
 		{
-			PlatformManager.Current.Cursor.SetCssCursor(WorkspaceControl.BrowserSurface.InputElement, cssCursor);
+			NexusAppManager.Instance.Platform.Cursor.SetCssCursor(WorkspaceControl.BrowserSurface.InputElement, cssCursor);
 		});
 
 		return Task.CompletedTask;

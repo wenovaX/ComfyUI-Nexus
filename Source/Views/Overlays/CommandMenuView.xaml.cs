@@ -62,7 +62,7 @@ public partial class CommandMenuView : ContentView, INexusPopupSurface
 	public VisualElement PopupRoot => this;
 
 	internal bool IsPointerOverMenuBody()
-		=> PlatformManager.Current.Cursor.IsPointerOver(CommandMenuBorder);
+		=> NexusAppManager.Instance.Platform.Cursor.IsPointerOver(CommandMenuBorder);
 
 	public bool IsShown(bool isVisible)
 		=> IsVisible == isVisible && Math.Abs(Opacity - (isVisible ? 1 : 0)) < 0.01;

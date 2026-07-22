@@ -10,6 +10,13 @@ using ComfyUI_Nexus.Setup.Services;
 
 internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 {
+	private readonly ComfyInstallService _comfyInstall;
+
+	internal ComfyCoreDiagnosticNode(ComfyInstallService comfyInstall)
+	{
+		_comfyInstall = comfyInstall ?? throw new ArgumentNullException(nameof(comfyInstall));
+	}
+
 	public string NodeId => "comfy-core";
 	public string DisplayName => Text("setup.comfy_core.title");
 	public string Description => Text("setup.comfy_core.description");
@@ -22,8 +29,8 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 
 	public Task<HealthState> CheckHealthAsync(CancellationToken cancellationToken)
 	{
-		string mainPy = Path.Combine(ComfyInstallService.ComfyPath, "main.py");
-		string venvPython = ComfyInstallService.ComfyVenvPythonExe;
+		string mainPy = Path.Combine(_comfyInstall.Paths.ActiveComfyPath, "main.py");
+		string venvPython = _comfyInstall.Paths.ActiveVenvPythonExe;
 
 		if (File.Exists(mainPy) && File.Exists(venvPython))
 		{
@@ -39,11 +46,15 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 		if (health == HealthState.Healthy)
 		{
 			var (ver, rev) = await GetComfyVersionInfoAsync();
-			EnvironmentPath = ComfyInstallService.ComfyPath;
+			EnvironmentPath = _comfyInstall.Paths.ActiveComfyPath;
 			EnvironmentDetails = $"ComfyUI {ver} ({rev})";
 			AvailableOptions = new[]
 			{
-				DiagnosticNodeHelpers.CreateOption(DiagnosticNodeHelpers.KeepOption, Text("setup.common.option_keep_next"), isRecommended: true)
+				DiagnosticNodeHelpers.CreateOption(
+					DiagnosticNodeHelpers.KeepOption,
+					Text("setup.common.option_keep_next"),
+					isRecommended: true,
+					requiresRecovery: false)
 			};
 		}
 		else
@@ -56,12 +67,14 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 					Text("setup.comfy_core.option_remote_latest"),
 					Text("setup.comfy_core.option_remote_latest_description"),
 					isRecommended: true,
-					workingHint: Text("setup.comfy_core.work_hint_remote_latest")),
+					workingHint: Text("setup.comfy_core.work_hint_remote_latest"),
+					requiresToolingLease: true),
 				DiagnosticNodeHelpers.CreateOption(
 					ComfyCoreSources.BuiltIn,
 					Text("setup.comfy_core.option_builtin_source"),
 					Text("setup.comfy_core.option_builtin_source_description"),
-					workingHint: Text("setup.comfy_core.work_hint_builtin_source"))
+					workingHint: Text("setup.comfy_core.work_hint_builtin_source"),
+					requiresToolingLease: true)
 			};
 		}
 	}
@@ -69,7 +82,7 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 	public void SelectOption(string optionId)
 	{
 		SelectedOptionId = optionId;
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _comfyInstall.SettingsService.Settings;
 
 		if (optionId == ComfyCoreSources.RemoteLatest)
 		{
@@ -87,7 +100,8 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 
 	private async Task<(string Version, string Revision)> GetComfyVersionInfoAsync()
 	{
-		string versionFile = Path.Combine(ComfyInstallService.ComfyPath, "comfyui_version.py");
+		string comfyPath = _comfyInstall.Paths.ActiveComfyPath;
+		string versionFile = Path.Combine(comfyPath, "comfyui_version.py");
 		string version = "unknown";
 		string rev = "unknown";
 
@@ -101,12 +115,12 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 				rev = revMatch.Groups[1].Value.Substring(0, Math.Min(7, revMatch.Groups[1].Value.Length));
 		}
 
-		if (rev == "unknown" && Directory.Exists(Path.Combine(ComfyInstallService.ComfyPath, ".git")))
+		if (rev == "unknown" && Directory.Exists(Path.Combine(comfyPath, ".git")))
 		{
-			string gitExe = SetupSettingsService.Instance.Settings.GitPath;
+			string gitExe = _comfyInstall.SettingsService.Settings.GitPath;
 			if (string.IsNullOrWhiteSpace(gitExe)) gitExe = "git";
 
-			rev = await DiagnosticNodeHelpers.TryGetGitRevisionAsync(ComfyInstallService.ComfyPath, gitExe, CancellationToken.None);
+			rev = await DiagnosticNodeHelpers.TryGetGitRevisionAsync(comfyPath, gitExe, CancellationToken.None);
 		}
 
 		return (version, rev);
@@ -117,11 +131,11 @@ internal sealed class ComfyCoreDiagnosticNode : IConfigurableDiagnosticNode
 		try
 		{
 			progress?.Report(0.1);
-			var result = await ComfyInstallService.Instance.InstallCoreAsync(cancellationToken);
+			var result = await _comfyInstall.InstallCoreAsync(cancellationToken);
 			progress?.Report(0.6);
 			// After install, read version info
 			var versionInfo = await GetComfyVersionInfoAsync();
-			EnvironmentPath = ComfyInstallService.ComfyPath;
+			EnvironmentPath = _comfyInstall.Paths.ActiveComfyPath;
 			EnvironmentDetails = $"ComfyUI {versionInfo.Version} ({versionInfo.Revision})";
 			progress?.Report(1.0);
 			return new RecoveryResult(result.IsSuccess, result.Message);

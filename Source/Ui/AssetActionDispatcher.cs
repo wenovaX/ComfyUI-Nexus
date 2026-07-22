@@ -123,7 +123,7 @@ internal static class AssetActionDispatcher
 
 	private static async Task OpenInOsAsync(string path)
 	{
-		var result = await PlatformManager.Current.Shell.OpenPathAsync(path);
+		var result = await NexusAppManager.Instance.Platform.Shell.OpenPathAsync(path);
 		if (!result.IsSuccess && !string.IsNullOrWhiteSpace(result.Message))
 		{
 			NexusLog.Warning($"Failed to open in OS: {result.Message}");

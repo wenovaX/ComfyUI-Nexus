@@ -11,11 +11,19 @@ internal sealed class ModelResourceInstaller
 
 	private readonly Action<string> _log;
 	private readonly Action<double, string> _progress;
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusComfyRuntimePaths _paths;
 
-	internal ModelResourceInstaller(Action<string> log, Action<double, string> progress)
+	internal ModelResourceInstaller(
+		Action<string> log,
+		Action<double, string> progress,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
 		_progress = progress;
+		_settingsService = settingsService;
+		_paths = paths;
 	}
 
 	internal async Task<SetupStepResult> DownloadDefaultModelAsync(CancellationToken cancellationToken)
@@ -23,8 +31,8 @@ internal sealed class ModelResourceInstaller
 		cancellationToken.ThrowIfCancellationRequested();
 		try
 		{
-			var settings = SetupSettingsService.Instance.Settings;
-			string checkpointsDir = Path.Combine(ComfyPathResolver.ResolveActiveModelsRootPath(), "checkpoints");
+			var settings = _settingsService.Settings;
+			string checkpointsDir = Path.Combine(_paths.ActiveModelsRootPath, "checkpoints");
 			Directory.CreateDirectory(checkpointsDir);
 
 			string fileName = settings.DefaultModelFileName;
@@ -55,6 +63,7 @@ internal sealed class ModelResourceInstaller
 		{
 			if (ex is OperationCanceledException)
 			{
+				_log($"{CoreTag} Base model download cancelled. The partial staging file is retained for a later resume.");
 				throw;
 			}
 

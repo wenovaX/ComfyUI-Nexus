@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+script_path="$script_dir/tools/windows/dev-help.ps1"
+
+to_windows_path() {
+	if command -v cygpath >/dev/null 2>&1; then
+		cygpath -w "$1"
+	elif command -v wslpath >/dev/null 2>&1; then
+		wslpath -w "$1"
+	else
+		printf '%s\n' "$1"
+	fi
+}
+
+if [[ "${1:-}" == "open" ]]; then
+	tools_dir="$script_dir/tools/windows"
+	if [[ ! -d "$tools_dir" ]]; then
+		echo "[Nexus] ERROR: developer tools folder was not found: $tools_dir" >&2
+		exit 1
+	fi
+
+	if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+		cd "$tools_dir"
+		return 0
+	fi
+
+	# A child process cannot change the caller's working directory. Replace this
+	# launcher with an interactive Bash session rooted at the tools directory.
+	cd "$tools_dir"
+	exec "${SHELL:-bash}" -i
+fi
+
+if [[ ! -f "$script_path" ]]; then
+	echo "[Nexus] ERROR: developer tool help was not found: $script_path" >&2
+	exit 1
+fi
+
+script_path="$(to_windows_path "$script_path")"
+
+exec powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$script_path" "$@"

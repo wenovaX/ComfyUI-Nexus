@@ -77,15 +77,15 @@ public partial class MainPage
 				long lastHandledEscapeTicks = 0;
 				async void RouteNativeKeyDown(object? sender, KeyRoutedEventArgs args)
 				{
-					bool ctrl = PlatformManager.Current.Keyboard.IsCtrlPressed();
-					bool shift = PlatformManager.Current.Keyboard.IsShiftPressed();
-					bool alt = PlatformManager.Current.Keyboard.IsAltPressed();
-					NexusKey key = PlatformManager.Current.Keyboard.ToNexusKey(args.Key);
+					bool ctrl = NexusAppManager.Instance.Platform.Keyboard.IsCtrlPressed();
+					bool shift = NexusAppManager.Instance.Platform.Keyboard.IsShiftPressed();
+					bool alt = NexusAppManager.Instance.Platform.Keyboard.IsAltPressed();
+					NexusKey key = NexusAppManager.Instance.Platform.Keyboard.ToNexusKey(args.Key);
 					var modifiers = new NexusKeyModifiers(ctrl, shift, alt);
 					bool nativeInputFocused = IsNativeInputFocused() || _webInputMode;
 					bool mediaViewerOpen = MediaViewerOverlayControl?.IsOpen == true;
 					bool railShortcutAvailable = !alt && RailControl.CanHandleKeyboardShortcut(key, ctrl, shift);
-					bool modalKeyboardOwnerIsOpen = NexusDialogService.IsOpen || mediaViewerOpen;
+					bool modalKeyboardOwnerIsOpen = Dialogs.IsOpen || mediaViewerOpen;
 					if (CanLogKeyboardIssueRoute(key))
 					{
 						LogKeyboardIssueRoute(
@@ -196,7 +196,7 @@ public partial class MainPage
 		_ = MainThread.InvokeOnMainThreadAsync(HandleGlobalPointerReleasedAsync);
 	}
 
-	private static void OnNativeWindowPointerExited(object? sender, PointerRoutedEventArgs args)
+	private void OnNativeWindowPointerExited(object? sender, PointerRoutedEventArgs args)
 	{
 		if (sender is not Microsoft.UI.Xaml.FrameworkElement windowContent)
 		{
@@ -212,7 +212,7 @@ public partial class MainPage
 			return;
 		}
 
-		RailHoverRegistry.ResetAll();
+		_appManager.RailHoverRegistry.ResetAll();
 	}
 
 	private void OnRailResizeHandleHandlerChanged(object? sender, EventArgs e)

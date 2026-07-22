@@ -7,7 +7,13 @@ using ComfyUI_Nexus.Ui;
 
 internal sealed class NexusAppEntryService
 {
+	private readonly SetupSettingsService _settingsService;
 	private INexusAppEntry? _appEntry;
+
+	internal NexusAppEntryService(SetupSettingsService settingsService)
+	{
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+	}
 
 	internal Action<string>? OnMessage { get; set; }
 
@@ -21,7 +27,7 @@ internal sealed class NexusAppEntryService
 		{
 			OnMessage?.Invoke("[Launch] Nexus App Entry not connected. Checking ComfyUI API readiness fallback...");
 
-			Uri endpoint = new(ComfyApiOptions.ObjectInfoUrl);
+			Uri endpoint = new(ComfyApiOptions.GetObjectInfoUrl(_settingsService.Settings));
 			Task<LocalHttpProbeResult> probeTask = LocalServerProbe.TryGetAsync(endpoint, cancellationToken);
 			LocalHttpProbeResult probeResult = await NexusSoftTimeout.AwaitAsync(
 				probeTask,

@@ -10,11 +10,13 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<DefineConstants>$(DefineConstants)</DefineConstants>
+		<DefineConstants Condition="'$(NexusDistributionProfile)' == 'Store'">$(DefineConstants);NEXUS_STORE_DISTRIBUTION</DefineConstants>
 
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<ApplicationTitle>$(NexusDisplayName)</ApplicationTitle>
-		<ApplicationId>com.companyname.comfyuinexus</ApplicationId>
+		<ApplicationId Condition="'$(NexusDistributionProfile)' == 'Portable'">com.companyname.comfyuinexus</ApplicationId>
+		<ApplicationId Condition="'$(NexusDistributionProfile)' == 'Store'">$(NexusStoreIdentityName)</ApplicationId>
 
 		<ApplicationDisplayVersion>$(NexusApplicationDisplayVersion)</ApplicationDisplayVersion>
 		<ApplicationVersion>$(NexusApplicationVersion)</ApplicationVersion>
@@ -24,7 +26,8 @@
 		<FileVersion>$(NexusVersion)</FileVersion>
 		<InformationalVersion>$(NexusVersion)</InformationalVersion>
 
-		<WindowsPackageType>None</WindowsPackageType>
+		<WindowsPackageType Condition="'$(NexusDistributionProfile)' == 'Portable'">None</WindowsPackageType>
+		<WindowsPackageType Condition="'$(NexusDistributionProfile)' == 'Store'">MSIX</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -55,6 +58,12 @@
 		<None Remove="artifacts\**;build\**" />
 		<None Remove="Resources\Help\help.catalog.json" />
 		<None Remove="Resources\Help\Articles\**\*.txt" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(NexusDistributionProfile)' == 'Store'">
+		<None Include="LocalRuntime\Packages\**\*"
+			CopyToOutputDirectory="PreserveNewest"
+			CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -133,6 +142,54 @@
 			<NexusAppInfoLine Include="}" />
 		</ItemGroup>
 		<WriteLinesToFile File="$(NexusAppInfoFile)" Lines="@(NexusAppInfoLine)" Overwrite="true" Encoding="UTF-8" />
+	</Target>
+
+	<Target Name="ValidateNexusDistributionProfile" BeforeTargets="PrepareForBuild">
+		<Error Condition="'$(NexusDistributionProfile)' != 'Portable' and '$(NexusDistributionProfile)' != 'Store'"
+			Text="NexusDistributionProfile must be Portable or Store. Current value: '$(NexusDistributionProfile)'." />
+		<Error Condition="'$(NexusDistributionProfile)' == 'Store' and ('$(NexusStoreIdentityName)' == '' or '$(NexusStorePublisher)' == '' or '$(NexusStorePublisherDisplayName)' == '')"
+			Text="Store builds require NexusStoreIdentityName, NexusStorePublisher, and NexusStorePublisherDisplayName. Define them in the ignored Store.Build.props file or pass them as MSBuild properties." />
+	</Target>
+
+	<Target Name="ResolveNexusStoreSymbolTool"
+		BeforeTargets="_EnsurePdbCmfExeFullPath"
+		Condition="'$(NexusDistributionProfile)' == 'Store' and '$(MsPdbCmfExeFullpath)' == ''">
+		<PropertyGroup>
+			<NexusVsWherePath>$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe</NexusVsWherePath>
+			<PdbCmfx64ExeFullPath Condition="'$(NexusStoreSymbolToolPath)' != '' and Exists('$(NexusStoreSymbolToolPath)')">$(NexusStoreSymbolToolPath)</PdbCmfx64ExeFullPath>
+		</PropertyGroup>
+		<Exec Condition="'$(PdbCmfx64ExeFullPath)' == '' and Exists('$(NexusVsWherePath)')"
+			Command="&quot;$(NexusVsWherePath)&quot; -latest -products * -find &quot;VC\Tools\MSVC\**\bin\Hostx64\x64\mspdbcmf.exe&quot;"
+			ConsoleToMSBuild="true"
+			IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="NexusDiscoveredSymbolTool" />
+		</Exec>
+		<PropertyGroup>
+			<PdbCmfx64ExeFullPath Condition="'$(PdbCmfx64ExeFullPath)' == '' and '$(NexusDiscoveredSymbolTool)' != ''">$([System.String]::Copy('$(NexusDiscoveredSymbolTool)').Trim())</PdbCmfx64ExeFullPath>
+		</PropertyGroup>
+	</Target>
+
+	<Target Name="ValidateNexusStoreSymbolTool"
+		BeforeTargets="_GenerateAppxSymbolPackage"
+		DependsOnTargets="ResolveNexusStoreSymbolTool;_EnsurePdbCmfExeFullPath"
+		Condition="'$(NexusDistributionProfile)' == 'Store'">
+		<Error Condition="'$(MsPdbCmfExeFullpath)' == '' or !Exists('$(MsPdbCmfExeFullpath)')"
+			Text="Store symbol packaging requires mspdbcmf.exe. Install the MSVC x64/x86 build tools, or set NexusStoreSymbolToolPath to the tool path in Store.Build.props or CI." />
+	</Target>
+
+	<Target Name="GenerateNexusStoreManifest"
+		BeforeTargets="MauiGeneratePackageAppxManifest"
+		Condition="'$(NexusDistributionProfile)' == 'Store'">
+		<PropertyGroup>
+			<NexusStoreManifestFile>$(IntermediateOutputPath)Store\Package.appxmanifest</NexusStoreManifestFile>
+			<NexusStoreManifestContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)\Platforms\Windows\Package.appxmanifest').Replace('maui-package-name-placeholder', '$(NexusStoreIdentityName)').Replace('CN=User Name', '$(NexusStorePublisher)').Replace('&gt;User Name&lt;', '&gt;$(NexusStorePublisherDisplayName)&lt;'))</NexusStoreManifestContent>
+		</PropertyGroup>
+		<MakeDir Directories="$(IntermediateOutputPath)Store" />
+		<WriteLinesToFile File="$(NexusStoreManifestFile)" Lines="$(NexusStoreManifestContent)" Overwrite="true" Encoding="UTF-8" />
+		<ItemGroup>
+			<AppxManifest Remove="@(AppxManifest)" />
+			<AppxManifest Include="$(NexusStoreManifestFile)" />
+		</ItemGroup>
 	</Target>
 
 </Project>

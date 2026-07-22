@@ -8,10 +8,12 @@ internal sealed class RuntimePurgeService
 	private const string RuntimeTag = "[Runtime]";
 
 	private readonly Action<string> _log;
+	private readonly SetupSettingsService _settingsService;
 
-	internal RuntimePurgeService(Action<string> log)
+	internal RuntimePurgeService(Action<string> log, SetupSettingsService settingsService)
 	{
 		_log = log;
+		_settingsService = settingsService;
 	}
 
 	internal async Task<SetupStepResult> PurgeRuntimeAsync(CancellationToken cancellationToken)
@@ -20,14 +22,14 @@ internal sealed class RuntimePurgeService
 
 		try
 		{
-			SetupSettingsService.Instance.MarkRuntimePurgeInProgress();
+			_settingsService.MarkRuntimePurgeInProgress();
 
 			bool hasInstalledRuntime = Directory.Exists(ComfyInstallService.InstalledPath);
 			bool hasPipCache = Directory.Exists(PipCacheService.GetDefaultCachePath());
 			if (!hasInstalledRuntime && !hasPipCache)
 			{
 				_log($"{RuntimeTag} Installed runtime and Nexus pip cache do not exist. Nothing to purge.");
-				SetupSettingsService.Instance.CompleteRuntimePurgeAndResetSetup();
+				_settingsService.CompleteRuntimePurgeAndResetSetup();
 				return new SetupStepResult(true, "Runtime is already clean.", 1);
 			}
 
@@ -40,7 +42,7 @@ internal sealed class RuntimePurgeService
 
 				bool success = await RobustDeleteDirectoryAsync(
 					ComfyInstallService.InstalledPath,
-					Math.Max(1, SetupSettingsService.Instance.Settings.PurgeRetryCount),
+					Math.Max(1, _settingsService.Settings.PurgeRetryCount),
 					cancellationToken);
 
 				if (!success)
@@ -58,7 +60,7 @@ internal sealed class RuntimePurgeService
 				_log($"{RuntimeTag} Nexus pip cache cleared.");
 			}
 
-			SetupSettingsService.Instance.CompleteRuntimePurgeAndResetSetup();
+			_settingsService.CompleteRuntimePurgeAndResetSetup();
 			return new SetupStepResult(true, "Local runtime and Nexus pip cache cleared successfully.", 1);
 		}
 		catch (Exception ex)
@@ -104,7 +106,7 @@ internal sealed class RuntimePurgeService
 #endif
 	}
 
-	private static async Task<bool> RobustDeleteDirectoryAsync(string path, int maxRetries, CancellationToken cancellationToken)
+	private async Task<bool> RobustDeleteDirectoryAsync(string path, int maxRetries, CancellationToken cancellationToken)
 	{
 		for (int i = 0; i < maxRetries; i++)
 		{
@@ -130,8 +132,8 @@ internal sealed class RuntimePurgeService
 		return false;
 	}
 
-	private static TimeSpan GetPurgeRetryDelay()
-		=> TimeSpan.FromMilliseconds(Math.Max(50, SetupSettingsService.Instance.Settings.PurgeRetryDelayMilliseconds));
+	private TimeSpan GetPurgeRetryDelay()
+		=> TimeSpan.FromMilliseconds(Math.Max(50, _settingsService.Settings.PurgeRetryDelayMilliseconds));
 
 	private static void ClearReadOnlyAttributes(DirectoryInfo directory)
 	{

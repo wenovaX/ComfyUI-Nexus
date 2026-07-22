@@ -1,8 +1,11 @@
 <Project>
+	<Import Project="$(MSBuildThisFileDirectory)Store.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)Store.Build.props')" />
 	<PropertyGroup>
-		<NexusVersion>1.0.0.2</NexusVersion>
+		<NexusVersion>1.0.1.0</NexusVersion>
+		<NexusDistributionProfile Condition="'$(NexusDistributionProfile)' == ''">Portable</NexusDistributionProfile>
 		<NexusApplicationDisplayVersion>$([System.Version]::Parse('$(NexusVersion)').ToString(3))</NexusApplicationDisplayVersion>
-		<NexusApplicationVersion>$([System.Version]::Parse('$(NexusVersion)').Revision)</NexusApplicationVersion>
+		<NexusApplicationVersion Condition="'$(NexusDistributionProfile)' != 'Store'">$([System.Version]::Parse('$(NexusVersion)').Revision)</NexusApplicationVersion>
+		<NexusApplicationVersion Condition="'$(NexusDistributionProfile)' == 'Store'">0</NexusApplicationVersion>
 		<MauiVersion>10.0.80</MauiVersion>
 		<NexusDisplayName>Nexus for ComfyUI</NexusDisplayName>
 		<NexusShortName>Nexus</NexusShortName>

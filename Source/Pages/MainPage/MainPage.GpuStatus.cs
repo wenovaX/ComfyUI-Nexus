@@ -17,7 +17,7 @@ public partial class MainPage
 		}
 
 		GpuStatsSnapshot snapshot = CreateGpuStatsSnapshot(data);
-		UiThread.PostLatest("main-page-bridge", "gpu-stats", lease.Generation, () =>
+		_appManager.UiPosts.PostLatest("main-page-bridge", "gpu-stats", lease.Generation, () =>
 		{
 			if (_shellRuntimeServicesActive)
 			{
@@ -157,14 +157,14 @@ public partial class MainPage
 			IsRunning: isRunning);
 	}
 
-	private static string ResolveGpuModelName(string rawModelName, string? gpuId)
+	private string ResolveGpuModelName(string rawModelName, string? gpuId)
 	{
 		if (!IsGenericGpuName(rawModelName))
 		{
 			return rawModelName.Trim();
 		}
 
-		string? discoveredName = GpuDiscoveryService.TryGetCachedDeviceName(gpuId);
+		string? discoveredName = _appManager.GpuDiscovery.TryGetCachedDeviceName(gpuId);
 		return !IsGenericGpuName(discoveredName)
 			? discoveredName!
 			: "GPU";

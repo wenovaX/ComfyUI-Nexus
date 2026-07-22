@@ -40,12 +40,14 @@ internal sealed class WorkflowTabController
 
 	private readonly HeaderView _header;
 	private readonly WorkflowDropdownView _dropdown;
+	private readonly NexusShellLayoutScaleService _shellLayoutScale;
 	private readonly Func<bool> _isDropdownVisible;
 	private readonly Action _hideDropdown;
 	private readonly Action<bool> _showDropdown;
 	private readonly Func<string, Task> _toggleBookmarkAsync;
 	private readonly Func<WorkflowTabInfo, WorkflowActionKind, Task> _executeWorkflowActionAsync;
 	private readonly Func<string, Task> _executeScriptAsync;
+	private readonly Func<int, Task<bool>> _switchWorkflowAsync;
 	private readonly Action _onWorkflowContextChanged;
 
 	private const double LogoWidth = 60;
@@ -109,26 +111,32 @@ internal sealed class WorkflowTabController
 	private DateTime _lastTabRebuildLogUtc = DateTime.MinValue;
 	private int? _optimisticActiveTabIndex;
 	private DateTime _optimisticActiveStartedUtc = DateTime.MinValue;
+	private int? _pendingWorkflowActivationIndex;
+	private bool _isWorkflowActivationLocked;
 
 	internal WorkflowTabController(
 		HeaderView header,
 		WorkflowDropdownView dropdown,
+		NexusShellLayoutScaleService shellLayoutScale,
 		Func<bool> isDropdownVisible,
 		Action hideDropdown,
 		Action<bool> showDropdown,
 		Func<string, Task> toggleBookmarkAsync,
 		Func<WorkflowTabInfo, WorkflowActionKind, Task> executeWorkflowActionAsync,
 		Func<string, Task> executeScriptAsync,
+		Func<int, Task<bool>> switchWorkflowAsync,
 		Action onWorkflowContextChanged)
 	{
 		_header = header;
 		_dropdown = dropdown;
+		_shellLayoutScale = shellLayoutScale;
 		_isDropdownVisible = isDropdownVisible;
 		_hideDropdown = hideDropdown;
 		_showDropdown = showDropdown;
 		_toggleBookmarkAsync = toggleBookmarkAsync;
 		_executeWorkflowActionAsync = executeWorkflowActionAsync;
 		_executeScriptAsync = executeScriptAsync;
+		_switchWorkflowAsync = switchWorkflowAsync;
 		_onWorkflowContextChanged = onWorkflowContextChanged;
 
 		_btnAddTab = CreateAddTabButton();
@@ -172,7 +180,10 @@ internal sealed class WorkflowTabController
 
 		if (!current.Active)
 		{
-			await ActivateWorkflowTabAsync(current.OriginalIndex);
+		if (!await ActivateWorkflowTabAsync(current.OriginalIndex))
+		{
+			return false;
+		}
 		}
 
 		return await WaitForWorkflowStateAsync(
@@ -305,8 +316,7 @@ internal sealed class WorkflowTabController
 			return true;
 		}
 
-		await ActivateWorkflowTabAsync(workflow.OriginalIndex);
-		return true;
+		return await ActivateWorkflowTabAsync(workflow.OriginalIndex);
 	}
 
 	internal bool RemapTrackedWorkflowPaths(string oldRelativePath, string newRelativePath, bool isDirectory)
@@ -375,7 +385,9 @@ internal sealed class WorkflowTabController
 		_lastSyncData = currentData;
 		if (data.ValueKind == JsonValueKind.Array)
 		{
+			int payloadActiveIndex = GetPayloadActiveWorkflowIndex(data);
 			RebuildTabs(data);
+			CompleteWorkflowActivationAfterSync(payloadActiveIndex);
 		}
 
 		return true;
@@ -423,18 +435,67 @@ internal sealed class WorkflowTabController
 		}
 	}
 
-	private async Task ActivateWorkflowTabAsync(int index)
+	private async Task<bool> ActivateWorkflowTabAsync(int index)
 	{
+		if (_isWorkflowActivationLocked || index == _activeTabIndex || _workflows.All(workflow => workflow.OriginalIndex != index))
+		{
+			return false;
+		}
+
+		_isWorkflowActivationLocked = true;
+		_pendingWorkflowActivationIndex = index;
+		_header.SetTabSurfaceInputTransparent(true);
 		OptimisticallyActivateTab(index);
 		try
 		{
-			await SendSwitchWorkflowAsync(index);
+			if (!await _switchWorkflowAsync(index))
+			{
+				ClearOptimisticActiveTab(index);
+				CompleteWorkflowActivation();
+				return false;
+			}
+
+			return true;
 		}
 		catch
 		{
 			ClearOptimisticActiveTab(index);
+			CompleteWorkflowActivation();
 			throw;
 		}
+	}
+
+	private void CompleteWorkflowActivationAfterSync(int payloadActiveIndex)
+	{
+		if (!_isWorkflowActivationLocked || _pendingWorkflowActivationIndex != payloadActiveIndex)
+		{
+			return;
+		}
+
+		_header.CompleteTabSurfaceUpdate(CompleteWorkflowActivation);
+	}
+
+	private void CompleteWorkflowActivation()
+	{
+		_isWorkflowActivationLocked = false;
+		_pendingWorkflowActivationIndex = null;
+		_header.SetTabSurfaceInputTransparent(false);
+	}
+
+	private static int GetPayloadActiveWorkflowIndex(JsonElement data)
+	{
+		int index = 0;
+		foreach (JsonElement workflow in data.EnumerateArray())
+		{
+			if (workflow.TryGetProperty("active", out JsonElement active) && active.GetBoolean())
+			{
+				return index;
+			}
+
+			index++;
+		}
+
+		return -1;
 	}
 
 	private void OptimisticallyActivateTab(int index)
@@ -545,12 +606,12 @@ internal sealed class WorkflowTabController
 			}
 		}
 
-		double logoWidth = ShellLayoutScale.H(LogoWidth, 44);
-		double rightMargin = ShellLayoutScale.H(RightMargin, 12);
-		double addBtnWidth = ShellLayoutScale.H(AddButtonWidth, 32);
-		double overflowBtnWidth = ShellLayoutScale.H(OverflowButtonWidth, 32);
-		double minTabW = ShellLayoutScale.H(MinTabWidth, 80);
-		double maxTabW = ShellLayoutScale.H(MaxTabWidth);
+		double logoWidth = _shellLayoutScale.H(LogoWidth, 44);
+		double rightMargin = _shellLayoutScale.H(RightMargin, 12);
+		double addBtnWidth = _shellLayoutScale.H(AddButtonWidth, 32);
+		double overflowBtnWidth = _shellLayoutScale.H(OverflowButtonWidth, 32);
+		double minTabW = _shellLayoutScale.H(MinTabWidth, 80);
+		double maxTabW = _shellLayoutScale.H(MaxTabWidth);
 
 		double innerWidth = _availableWidth - logoWidth - rightMargin;
 		int totalTabs = workflows.Count;
@@ -854,7 +915,7 @@ internal sealed class WorkflowTabController
 		var switchTap = new TapGestureRecognizer();
 		switchTap.Tapped += async (s, e) =>
 		{
-			if (_isBulkProcessing || active)
+			if (_isBulkProcessing || _isWorkflowActivationLocked || active)
 			{
 				return;
 			}
@@ -1142,9 +1203,6 @@ internal sealed class WorkflowTabController
 		return SendNexusActionAsync(BridgeActions.CloseWorkflow, $"{{index: {index}}}");
 	}
 
-	private Task SendSwitchWorkflowAsync(int index)
-		=> SendNexusActionAsync(BridgeActions.SwitchWorkflow, $"{{index: {index}}}");
-
 	private void MarkPendingClosedWorkflow(int index)
 	{
 		var workflow = _workflows.FirstOrDefault(wf => wf.OriginalIndex == index);
@@ -1186,7 +1244,7 @@ internal sealed class WorkflowTabController
 		}
 
 		string normalized = value.Trim().Replace('\\', '/');
-		if (normalized.StartsWith("/"))
+		if (normalized.StartsWith('/'))
 		{
 			normalized = normalized.TrimStart('/');
 		}
@@ -1357,6 +1415,11 @@ internal sealed class WorkflowTabController
 		var tap = new TapGestureRecognizer();
 		tap.Tapped += async (s, e) =>
 		{
+			if (_isWorkflowActivationLocked)
+			{
+				return;
+			}
+
 			_hideDropdown();
 
 			if (_visualOrder.Contains(index))

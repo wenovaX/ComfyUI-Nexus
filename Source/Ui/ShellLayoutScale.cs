@@ -4,31 +4,31 @@ namespace ComfyUI_Nexus.Ui;
 /// Provides horizontal-only proportional scaling relative to a design-time reference width.
 /// Vertical dimensions are intentionally left untouched.
 /// </summary>
-internal static class ShellLayoutScale
+internal sealed class NexusShellLayoutScaleService : IDisposable
 {
 	/// <summary>Design-time reference width at which all layout constants look "perfect".</summary>
-	internal const double ReferenceWidth = 1280;
+	private const double ReferenceWidth = 1280;
 
 	/// <summary>Minimum allowed horizontal scale factor.</summary>
-	internal const double MinScale = 0.75;
+	private const double MinScale = 0.75;
 
 	/// <summary>Maximum allowed horizontal scale factor.</summary>
-	internal const double MaxScale = 1.3;
+	private const double MaxScale = 1.3;
 
-	private static double _scale = 1.0;
-	private static double _lastWidth;
+	private double _scale = 1.0;
+	private double _lastWidth;
 
 	/// <summary>Current horizontal scale factor (1.0 == reference width).</summary>
-	internal static double Scale => _scale;
+	internal double Scale => _scale;
 
 	/// <summary>Raised on the caller's thread when the scale factor actually changes.</summary>
-	internal static event Action? ScaleChanged;
+	internal event Action? ScaleChanged;
 
 	/// <summary>
 	/// Recalculates the scale factor from the current window width.
 	/// Only raises <see cref="ScaleChanged"/> when the factor actually differs.
 	/// </summary>
-	internal static void Update(double windowWidth)
+	internal void Update(double windowWidth)
 	{
 		if (Math.Abs(_lastWidth - windowWidth) < 0.5)
 			return;
@@ -45,10 +45,15 @@ internal static class ShellLayoutScale
 	}
 
 	/// <summary>Scales a design-time horizontal value by the current factor.</summary>
-	internal static double H(double designValue)
+	internal double H(double designValue)
 		=> Math.Round(designValue * _scale);
 
 	/// <summary>Scales a design-time horizontal value, guaranteeing a minimum result.</summary>
-	internal static double H(double designValue, double minimum)
+	internal double H(double designValue, double minimum)
 		=> Math.Max(minimum, Math.Round(designValue * _scale));
+
+	public void Dispose()
+	{
+		ScaleChanged = null;
+	}
 }

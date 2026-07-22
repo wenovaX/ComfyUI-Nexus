@@ -4,6 +4,10 @@ using System.Globalization;
 using System.Reflection;
 using System.Text;
 
+/// <summary>
+/// Process-wide localization resource service. It intentionally has no dependency
+/// on application lifetime objects, windows, or persisted settings.
+/// </summary>
 internal static class LocalizationManager
 {
 	private const string FallbackLanguage = "en";

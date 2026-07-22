@@ -40,19 +40,27 @@ internal sealed class RuntimeBackupService
 
 	private readonly Action<string> _log;
 	private readonly Action<double, string> _progress;
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusComfyRuntimePaths _paths;
 	private readonly object _progressLock = new();
 	private readonly Stopwatch _progressClock = new();
 	private double _lastProgress = -1;
 
-	internal RuntimeBackupService(Action<string> log, Action<double, string> progress)
+	internal RuntimeBackupService(
+		Action<string> log,
+		Action<double, string> progress,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
 		_progress = progress;
+		_settingsService = settingsService;
+		_paths = paths;
 	}
 
-	internal static string GetConfiguredBackupRoot(SetupSettings? settings = null)
+	internal static string GetConfiguredBackupRoot(SetupSettings settings)
 	{
-		settings ??= SetupSettingsService.Instance.Settings;
+		ArgumentNullException.ThrowIfNull(settings);
 		return string.IsNullOrWhiteSpace(settings.RuntimeBackupPath)
 			? Path.Combine(ComfyInstallService.RootPath, "Backups")
 			: Path.GetFullPath(settings.RuntimeBackupPath);
@@ -96,7 +104,7 @@ internal sealed class RuntimeBackupService
 			var totals = await ScanPathsAsync(sources.Select(source => source.Path), cancellationToken).ConfigureAwait(false);
 			long safetyBytes = Math.Max(MinimumSafetyBytes, CalculatePercent(totals.Bytes, 2));
 			long requiredBytes = AddWithoutOverflow(totals.Bytes, safetyBytes);
-			string backupRoot = GetConfiguredBackupRoot();
+			string backupRoot = GetConfiguredBackupRoot(_settingsService.Settings);
 			if (sources.Any(source => IsSameOrDescendantPath(backupRoot, source.Path)))
 			{
 				return new RuntimeBackupAnalysis(
@@ -553,7 +561,7 @@ internal sealed class RuntimeBackupService
 	{
 		try
 		{
-			string root = GetConfiguredBackupRoot();
+			string root = GetConfiguredBackupRoot(_settingsService.Settings);
 			if (!Directory.Exists(root))
 			{
 				return [];
@@ -742,14 +750,14 @@ internal sealed class RuntimeBackupService
 			: Path.Combine(userRoot, userFolder, "workflows");
 	}
 
-	private static RuntimeBackupAnalysis Failure(string message, IReadOnlyList<string> targets)
-		=> new(false, message, targets, 0, 0, 0, -1, GetConfiguredBackupRoot(), GetActiveComfyPath());
+	private RuntimeBackupAnalysis Failure(string message, IReadOnlyList<string> targets)
+		=> new(false, message, targets, 0, 0, 0, -1, GetConfiguredBackupRoot(_settingsService.Settings), GetActiveComfyPath());
 
-	private static string GetActiveComfyPath()
+	private string GetActiveComfyPath()
 	{
-		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
+		string comfyPath = _paths.ActiveComfyPath;
 		return string.IsNullOrWhiteSpace(comfyPath)
-			? ComfyInstallService.DefaultComfyPath
+			? _paths.ManagedComfyPath
 			: comfyPath;
 	}
 
@@ -1150,7 +1158,7 @@ internal sealed class RuntimeBackupService
 		return $"{target}/{normalized[(separatorIndex + 1)..]}";
 	}
 
-	private static RuntimeRestoreAnalysis RestoreFailure(
+	private RuntimeRestoreAnalysis RestoreFailure(
 		string message,
 		string backupPath,
 		string format = "",
@@ -1548,7 +1556,7 @@ internal sealed class RuntimeBackupService
 		}
 	}
 
-	private static bool IsSafeManagedBackupPath(string path)
+	private bool IsSafeManagedBackupPath(string path)
 	{
 		if (string.IsNullOrWhiteSpace(path))
 		{
@@ -1556,7 +1564,7 @@ internal sealed class RuntimeBackupService
 		}
 
 		string fullPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-		string root = Path.GetFullPath(GetConfiguredBackupRoot()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+		string root = Path.GetFullPath(GetConfiguredBackupRoot(_settingsService.Settings)).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 		string? parent = Directory.GetParent(fullPath)?.FullName.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 		return string.Equals(parent, root, StringComparison.OrdinalIgnoreCase)
 			&& IsManagedBackupName(GetBackupNameWithoutKnownExtension(Path.GetFileName(fullPath)));

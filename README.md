@@ -11,7 +11,7 @@ while Nexus adds a focused Windows shell for startup, server control, workflow m
   <img src="docs/images/nexus-model-thumbnails.png" alt="ComfyUI Nexus model thumbnail preview" width="100%">
 </p>
 
-Language: [English](README.md) | [한국어](README.ko.md)
+Language: [English](README.md) | [한국어](docs/README.ko.md)
 
 Project and branding policy: [PROJECTINFO.md](docs/PROJECTINFO.md)
 
@@ -20,6 +20,9 @@ Release history: [CHANGELOG.md](docs/CHANGELOG.md)
 ## Install
 
 For normal use, download the release ZIP and extract the whole folder.
+
+Every portable release includes a concise `README.txt` at its root with the same
+install-path guidance, minimum and recommended requirements, and relocation notes.
 
 1. Create any writable folder, for example `D:\Nexus`.
 2. Extract the release ZIP into that folder.
@@ -115,6 +118,11 @@ when you want to relocate the installation.
 - Enough disk space for ComfyUI, Python, Git, models, and generated assets
 - .NET 10 SDK and .NET MAUI workloads when building from source
 
+## Privacy
+
+- [Privacy Policy](docs/PRIVACY.md)
+- [개인정보 처리방침](docs/PRIVACY.ko.md)
+
 ## Build
 
 There are two common build paths.
@@ -125,7 +133,7 @@ Use the bundled build script when you want the same shape as the release package
 Choose the package mode explicitly:
 
 ```bat
-dev-build-as-binary.bat Release folder archive
+tools\windows\dev-build-as-binary.bat Release folder archive
 ```
 
 The `folder` mode creates this package:
@@ -144,21 +152,21 @@ binary churn during repeated release builds.<br>
 If you need a full SDK clean first, run:
 
 ```bat
-dev-build-as-binary.bat Release folder clean
+tools\windows\dev-build-as-binary.bat Release folder clean
 ```
 
 Windows-only local Authenticode signing is available through `--cert`.
 The certificate must be available in the Windows `CurrentUser\My` or `LocalMachine\My` store:
 
 ```bat
-dev-build-as-binary.bat Release folder --cert develop
+tools\windows\dev-build-as-binary.bat Release folder --cert develop
 ```
 
 The builder validates the certificate before cleaning, restoring, or publishing.<br>
 Use the same form with a clean build when preparing a release:
 
 ```bat
-dev-build-as-binary.bat Release folder clean archive --cert Release
+tools\windows\dev-build-as-binary.bat Release folder clean archive --cert Release
 ```
 
 Unsigned Windows desktop builds can occasionally trigger strict
@@ -168,7 +176,7 @@ If that happens during release preparation, run the same build once more
 without `clean` and distribute the second artifact:
 
 ```bat
-dev-build-as-binary.bat Release folder archive
+tools\windows\dev-build-as-binary.bat Release folder archive
 ```
 
 Do not work around security warnings by adding unrelated files to the package.<br>
@@ -177,8 +185,21 @@ The release ZIP should contain only the launcher, `App`, and `LocalRuntime`.<br>
 If you want the older compact single-file app shape, run:
 
 ```bat
-dev-build-as-binary.bat Release single archive
+tools\windows\dev-build-as-binary.bat Release single archive
 ```
+
+### Microsoft Store package
+
+Build the Store upload bundle with the local, ignored `Store.Build.props` identity file:
+
+```bat
+tools\windows\dev-build-as-binary.bat Release app-store clean
+```
+
+The result is one `.msixupload` file under `build/Store_Release_<timestamp>/`.<br>
+It contains the MSIX package and public symbols for Partner Center crash analysis.<br>
+`app-store` does not use `archive`, `zip`, or `--cert` because Microsoft Store signs the submitted MSIX package.
+The Store package reserves the fourth version part as `0` automatically, while portable builds retain the full `NexusVersion` value.
 
 The script publishes a self-contained Windows build and writes the release files to:
 
@@ -202,12 +223,12 @@ Extract the ZIP as described in [Install](#install).
 Use the interactive version tool before a release:
 
 ```bash
-./dev-set-version
+./tools/windows/dev-set-version
 ```
 
 It shows the current version, validates a three- or four-part numeric version,
 shows the planned change, and updates both `Directory.Build.props` and the Windows manifest only after confirmation.<br>
-Use `dev-set-version.bat` from Command Prompt when Git Bash is unavailable.
+Use `tools\windows\dev-set-version.bat` from Command Prompt when Git Bash is unavailable.
 
 ### Visual Studio or direct .NET build
 

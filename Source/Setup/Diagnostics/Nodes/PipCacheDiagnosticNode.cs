@@ -6,13 +6,20 @@ using ComfyUI_Nexus.Setup.Services;
 
 internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNode, IFolderSelectionDiagnosticNode
 {
+	private readonly SetupSettingsService _settingsService;
 	private const string PipDefaultOption = "pip-cache:pip-default";
 	private const string NexusDefaultOption = "pip-cache:nexus-default";
 	private const string CustomOption = "pip-cache:custom";
 
+	internal PipCacheDiagnosticNode(SetupSettingsService settingsService)
+	{
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+	}
+
 	public string NodeId => "pip-cache";
 	public string DisplayName => Text("setup.pip_cache.title");
 	public string Description => Text("setup.pip_cache.description");
+	public string FolderPickerTitle => Text("settings.pip_cache.select_folder");
 	public bool IsCritical => false;
 	public string EnvironmentDetails { get; private set; } = string.Empty;
 	public string EnvironmentPath { get; private set; } = string.Empty;
@@ -29,7 +36,7 @@ internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNo
 	public void SelectOption(string optionId)
 	{
 		SelectedOptionId = optionId;
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		settings.PipCacheMode = optionId switch
 		{
 			PipDefaultOption => PipCacheModes.PipDefault,
@@ -37,7 +44,7 @@ internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNo
 			_ => settings.PipCacheMode
 		};
 
-		SetupSettingsService.Instance.Save();
+		_settingsService.Save();
 		RefreshState();
 	}
 
@@ -60,10 +67,10 @@ internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNo
 		try
 		{
 			Directory.CreateDirectory(normalized);
-			var settings = SetupSettingsService.Instance.Settings;
+			var settings = _settingsService.Settings;
 			settings.PipCacheMode = PipCacheModes.Custom;
 			settings.PipCachePath = normalized;
-			if (!SetupSettingsService.Instance.TrySave())
+			if (!_settingsService.TrySave())
 			{
 				return new RecoveryResult(false, LocalizationManager.Text("settings.pip_cache.save_failed"));
 			}
@@ -93,7 +100,7 @@ internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNo
 
 	private void RefreshState()
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		string mode = PipCacheService.GetMode(settings);
 		SelectedOptionId = mode switch
 		{
@@ -127,17 +134,20 @@ internal sealed class PipCacheDiagnosticNode : IOptionalConfigurableDiagnosticNo
 				PipDefaultOption,
 				Text("setup.pip_cache.option_pip_default"),
 				Text("setup.pip_cache.option_pip_default_description"),
-				isRecommended: string.Equals(mode, PipCacheModes.PipDefault, StringComparison.Ordinal)),
+				isRecommended: string.Equals(mode, PipCacheModes.PipDefault, StringComparison.Ordinal),
+				requiresRecovery: false),
 			DiagnosticNodeHelpers.CreateOption(
 				NexusDefaultOption,
 				Text("setup.pip_cache.option_nexus_default"),
 				Text("setup.pip_cache.option_nexus_default_description"),
-				isRecommended: string.Equals(mode, PipCacheModes.NexusDefault, StringComparison.Ordinal)),
+				isRecommended: string.Equals(mode, PipCacheModes.NexusDefault, StringComparison.Ordinal),
+				requiresRecovery: false),
 			DiagnosticNodeHelpers.CreateOption(
 				CustomOption,
 				Text("setup.pip_cache.option_custom"),
 				Text("setup.pip_cache.option_custom_description"),
-				isRecommended: string.Equals(mode, PipCacheModes.Custom, StringComparison.Ordinal))
+				isRecommended: string.Equals(mode, PipCacheModes.Custom, StringComparison.Ordinal),
+				requiresRecovery: false)
 		];
 	}
 

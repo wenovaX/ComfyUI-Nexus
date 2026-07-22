@@ -39,12 +39,12 @@ public partial class MainPage
 
 	private async Task<bool> ExpandRailAsync(CancellationToken cancellationToken)
 	{
+		RailControl.AbortRevealAnimation();
 		if (cancellationToken.IsCancellationRequested)
 		{
 			return false;
 		}
 
-		RailControl.AbortRevealAnimation();
 		try
 		{
 			_isRailAnimating = true;
@@ -76,7 +76,6 @@ public partial class MainPage
 		double collapsedWidth = ShellLayoutOptions.CollapsedRailWidth;
 		ApplyRailWidth(collapsedWidth);
 		UpdateMediaViewerOverlayLayout();
-		RailControl.InputTransparent = false;
 		RailControl.SyncVisualState();
 
 		RailResizeHandleControl.IsHandleVisible = false;
@@ -90,7 +89,7 @@ public partial class MainPage
 
 	private void ConfigureRailResizeCursor()
 	{
-		PlatformManager.Current.Cursor.AttachResizeHandleCursor(
+		NexusAppManager.Instance.Platform.Cursor.AttachResizeHandleCursor(
 			RailResizeHandleControl.HandleElement,
 			pointerEntered: () =>
 			{
@@ -125,41 +124,29 @@ public partial class MainPage
 	private async Task<bool> OpenRailAsync(CancellationToken cancellationToken)
 	{
 		var perf = RailPerformanceDiagnostics.Start();
-		try
+		double targetWidth = _expandedRailWidth;
+		RailControl.SyncVisualState();
+		RailControl.Opacity = 1;
+		if (cancellationToken.IsCancellationRequested)
 		{
-			double targetWidth = _expandedRailWidth;
-			double startWidth = GetCurrentRailWidthOrDefault(ShellLayoutOptions.CollapsedRailWidth);
-			RailPerformanceDiagnostics.Mark("RailRevealPreparing", perf, $"start={startWidth:0.##}, target={targetWidth:0.##}");
-
-			RailControl.SyncVisualState();
-			RailControl.Opacity = 1;
-			if (cancellationToken.IsCancellationRequested)
-			{
-				return false;
-			}
-
-			ApplyRailWidth(targetWidth);
-			UpdateMediaViewerOverlayLayout();
-			RailPerformanceDiagnostics.Mark("RailRevealFinalLayoutCommitted", perf);
-			RailControl.PrepareRevealAnimation(targetWidth);
-			RailPerformanceDiagnostics.Mark("RailRevealAnimationStart", perf);
-			bool completed = await RailControl.AnimateRevealAsync(RailOpenAnimationLength, Easing.CubicOut, cancellationToken);
-			RailPerformanceDiagnostics.Mark("RailRevealAnimationEnd", perf, $"completed={completed}");
-			if (!completed || cancellationToken.IsCancellationRequested)
-			{
-				return false;
-			}
-
-			RailControl.CompleteRevealAnimation();
-			RailControl.Opacity = 1;
-			RailResizeHandleControl.IsHandleVisible = true;
-
-			return true;
+			return false;
 		}
-		finally
+
+		ApplyRailWidth(targetWidth);
+		UpdateMediaViewerOverlayLayout();
+		RailControl.PrepareRevealAnimation(targetWidth);
+		RailPerformanceDiagnostics.Mark("RailRevealAnimationStart", perf, $"target={targetWidth:0.##}");
+		bool completed = await RailControl.AnimateRevealAsync(RailOpenAnimationLength, Easing.CubicOut, cancellationToken);
+		RailPerformanceDiagnostics.Mark("RailRevealAnimationEnd", perf, $"completed={completed}");
+		if (!completed || cancellationToken.IsCancellationRequested)
 		{
-			RailControl.InputTransparent = false;
+			return false;
 		}
+
+		RailControl.CompleteRevealAnimation();
+		RailControl.Opacity = 1;
+		RailResizeHandleControl.IsHandleVisible = true;
+		return true;
 	}
 
 	private void InitializeRailRoot()
@@ -169,7 +156,7 @@ public partial class MainPage
 
 	private string ResolveRailRootPath()
 	{
-		string comfyPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyPath = _appManager.Paths.ConfiguredComfyPath;
 		if (!string.IsNullOrWhiteSpace(comfyPath) && Directory.Exists(comfyPath))
 		{
 			string outputPath = Path.Combine(comfyPath, ComfyPathOptions.OutputDirectoryName);

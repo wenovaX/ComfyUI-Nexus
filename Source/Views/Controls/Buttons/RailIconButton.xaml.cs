@@ -188,14 +188,17 @@ public partial class RailIconButton : ContentView, IRailHoverParticipant
 	}
 
 	private void OnLoaded(object? sender, EventArgs e)
-		=> RailHoverRegistry.Register(this);
+		=> GetHoverRegistry()?.Register(this);
 
 	private void OnUnloaded(object? sender, EventArgs e)
 	{
-		RailHoverRegistry.Unregister(this);
+		GetHoverRegistry()?.Unregister(this);
 		SafeAnimation.AbortAnimation(this, OpacityAnimationName, "RailIconButton");
 		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailIconButton");
 	}
+
+	private static NexusRailHoverRegistry? GetHoverRegistry()
+		=> NexusAppManager.Instance.RailHoverRegistry;
 
 	private void ApplyIconSource()
 	{

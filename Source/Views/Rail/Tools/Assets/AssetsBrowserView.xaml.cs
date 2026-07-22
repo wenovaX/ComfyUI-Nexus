@@ -95,6 +95,8 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 	];
 
 	private readonly List<RailTreeNode> _rootNodes = [];
+	private readonly NexusAppManager _appManager;
+	private SetupSettingsService SettingsService => _appManager.Settings;
 	private readonly ObservableCollection<RailTreeNode> _visibleTreeNodes = [];
 	private readonly Dictionary<string, Grid> _rowMap = new(StringComparer.OrdinalIgnoreCase);
 	private readonly Dictionary<string, Grid> _searchRowMap = new(StringComparer.OrdinalIgnoreCase);
@@ -110,7 +112,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 	private readonly RailDirectoryWatchController _treeWatcher;
 	private readonly AssetFileOperationService _fileOperations;
 	private readonly AssetHubNativeService _assetHubService = new();
-	private readonly NexusOperationController _latestOperations = new("assets-browser");
+	private readonly NexusOperationController _latestOperations;
 	private bool _isAnimating;
 	private readonly AssetClipboardController _clipboard = new();
 	private readonly List<string> _bookmarkedPaths = [];
@@ -168,11 +170,13 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 
 	public AssetsBrowserView()
 	{
+		_appManager = NexusAppManager.Instance;
+		_latestOperations = new NexusOperationController("assets-browser", _appManager.BackgroundWorkers);
 		InitializeComponent();
 		_loadingOverlay = new RailLoadingOverlayController(RailLoadingOverlay);
 		_searchVisuals = new RailSearchVisualController(RailSearchBorder, RailSearchEntry);
 		_searchTextController = new NexusEntryTextController(RailSearchEntry, RailSearchBorder);
-		new RailSearchClearButtonController(RailSearchClearButton, RailSearchClearLabel);
+		RailSearchClearButtonVisuals.Attach(RailSearchClearButton, RailSearchClearLabel);
 		ConfigureTreeVirtualization();
 		ConfigureSearchVirtualization();
 		_treeWatcher = new RailDirectoryWatchController(
@@ -181,6 +185,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 			CanApplyWatcherBatch,
 			ApplyPendingFileSystemChanges);
 		_fileOperations = new AssetFileOperationService(
+			_appManager.Dialogs,
 			_selection,
 			_clipboard,
 			() => _rootPath,
@@ -891,7 +896,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 		{
 			try
 			{
-				using var response = await httpClient.GetAsync(ComfyApiOptions.ModelCategoryUrl(category));
+				using var response = await httpClient.GetAsync(ComfyApiOptions.GetModelCategoryUrl(SettingsService.Settings, category));
 				if (!response.IsSuccessStatusCode)
 				{
 					continue;
@@ -1162,7 +1167,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 		return entries;
 	}
 
-	private static bool IsPathWithinModelsRoot(string path)
+	private bool IsPathWithinModelsRoot(string path)
 	{
 		string modelsRoot = GetModelsRootPath();
 		if (string.IsNullOrWhiteSpace(modelsRoot) || string.IsNullOrWhiteSpace(path))
@@ -1536,8 +1541,8 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 
 	private void SelectNodeFromInput(RailTreeNode node)
 	{
-		bool ctrl = PlatformManager.Current.Keyboard.IsCtrlPressed();
-		bool shift = PlatformManager.Current.Keyboard.IsShiftPressed();
+		bool ctrl = NexusAppManager.Instance.Platform.Keyboard.IsCtrlPressed();
+		bool shift = NexusAppManager.Instance.Platform.Keyboard.IsShiftPressed();
 
 		if (shift)
 		{
@@ -1907,7 +1912,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 		};
 		row.GestureRecognizers.Add(selectTap);
 
-		PlatformManager.Current.Interactions.AttachDoubleTap(row, async () =>
+		NexusAppManager.Instance.Platform.Interactions.AttachDoubleTap(row, async () =>
 		{
 			if (!TryGetBoundNode(row, out var tappedNode))
 			{
@@ -2062,11 +2067,11 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 
 			if (ShouldPublishNativeFileDragPayload(dragRequest))
 			{
-				await PlatformManager.Current.DragDrop.SetDragStartingPathsAsync(e, selectedPaths);
+				await NexusAppManager.Instance.Platform.DragDrop.SetDragStartingPathsAsync(e, selectedPaths);
 			}
 			else
 			{
-				await PlatformManager.Current.DragDrop.SetDragStartingTextAsync(e, CreateAssetDragIntentText(dragRequest));
+				await NexusAppManager.Instance.Platform.DragDrop.SetDragStartingTextAsync(e, CreateAssetDragIntentText(dragRequest));
 			}
 		};
 		drag.DropCompleted += (s, e) =>
@@ -2438,7 +2443,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 		}
 
 		int externalIndex = 1;
-		foreach (string root in SetupSettingsService.Instance.Settings.ModelLibraryRoots)
+		foreach (string root in SettingsService.Settings.ModelLibraryRoots)
 		{
 			if (string.IsNullOrWhiteSpace(root))
 			{
@@ -2497,7 +2502,7 @@ public partial class AssetsBrowserView : ContentView, IAssetRailTool
 	{
 		if (string.IsNullOrWhiteSpace(path)) return;
 
-		var result = await PlatformManager.Current.Shell.OpenPathAsync(path);
+		var result = await NexusAppManager.Instance.Platform.Shell.OpenPathAsync(path);
 		if (!result.IsSuccess && !string.IsNullOrWhiteSpace(result.Message))
 		{
 			NexusLog.Warning($"Failed to open in OS: {result.Message}");

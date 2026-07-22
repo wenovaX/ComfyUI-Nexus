@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+project_root="$(cd -- "$script_dir/../.." && pwd)"
+reset_script="$script_dir/dev-reset-runtime.ps1"
+
+to_windows_path() {
+	if command -v cygpath >/dev/null 2>&1; then
+		cygpath -w "$1"
+	elif command -v wslpath >/dev/null 2>&1; then
+		wslpath -w "$1"
+	else
+		printf '%s\n' "$1"
+	fi
+}
+
+if [[ ! -f "$reset_script" ]]; then
+	echo "[Nexus] ERROR: reset implementation was not found: $reset_script" >&2
+	exit 1
+fi
+
+if ! command -v powershell.exe >/dev/null 2>&1; then
+	echo "[Nexus] ERROR: powershell.exe is required to reset the Windows LocalRuntime." >&2
+	exit 1
+fi
+
+exec powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(to_windows_path "$reset_script")" -ProjectRoot "$(to_windows_path "$project_root")"

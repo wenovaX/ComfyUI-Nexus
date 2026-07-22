@@ -83,14 +83,14 @@ public partial class MainPage
 	{
 		try
 		{
-			string comfyPath = ComfyPathResolver.ResolveConfiguredComfyPath();
+			string comfyPath = _appManager.Paths.ConfiguredComfyPath;
 			UpdateComfyManagerAvailability(comfyPath);
 			if (string.IsNullOrWhiteSpace(comfyPath))
 			{
 				return;
 			}
 
-			PortablePreferences.Set(PreferenceKeys.ComfyUIPath, comfyPath);
+			_appManager.Preferences.Set(PreferenceKeys.ComfyUIPath, comfyPath);
 
 			string userRoot = IOPath.Combine(comfyPath, ComfyPathOptions.UserDirectoryName);
 			string userFolder = DiscoverUserFolder(userRoot);
@@ -159,7 +159,7 @@ public partial class MainPage
 			return;
 		}
 
-		var watchResult = PlatformManager.Current.DirectoryWatcher.TryWatch(
+		var watchResult = NexusAppManager.Instance.Platform.DirectoryWatcher.TryWatch(
 			_comfyWorkflowsPath,
 			new DirectoryWatcherOptions
 			{
@@ -795,7 +795,7 @@ public partial class MainPage
 		string sourcePath = ResolveWorkflowFullPath(workflow.RelativePath);
 		if (!File.Exists(sourcePath))
 		{
-			await NexusDialogService.AlertAsync(
+			await Dialogs.AlertAsync(
 				LocalizationManager.Text("workflow.dialog.workflow_missing_title"),
 				LocalizationManager.Text("workflow.dialog.tracked_workflow_missing_message"));
 			await RefreshWorkflowIndexAndWebAsync();
@@ -803,7 +803,7 @@ public partial class MainPage
 		}
 
 		string currentBaseName = IOPath.GetFileNameWithoutExtension(sourcePath);
-		string? newBaseName = await NexusDialogService.PromptAsync(
+		string? newBaseName = await Dialogs.PromptAsync(
 			LocalizationManager.Text("workflow.dialog.rename_file_title"),
 			LocalizationManager.Format("workflow.dialog.rename_file_message", IOPath.GetDirectoryName(sourcePath)),
 			LocalizationManager.Text("common.rename"),
@@ -819,7 +819,7 @@ public partial class MainPage
 		string safeName = SanitizeWorkflowFileBaseName(newBaseName);
 		if (string.IsNullOrWhiteSpace(safeName))
 		{
-			await NexusDialogService.AlertAsync(
+			await Dialogs.AlertAsync(
 				LocalizationManager.Text("workflow.dialog.invalid_name_title"),
 				LocalizationManager.Text("workflow.dialog.invalid_file_name_message"));
 			return;
@@ -833,7 +833,7 @@ public partial class MainPage
 
 		if (File.Exists(targetPath))
 		{
-			await NexusDialogService.AlertAsync(
+			await Dialogs.AlertAsync(
 				LocalizationManager.Text("workflow.dialog.file_exists_title"),
 				LocalizationManager.Format("workflow.dialog.file_exists_message", IOPath.GetFileName(targetPath)));
 			return;

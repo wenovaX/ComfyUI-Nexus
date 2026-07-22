@@ -68,39 +68,30 @@ internal sealed class RailSearchVisualController
 		=> ApplyNativeSelectionColors();
 }
 
-internal sealed class RailSearchClearButtonController
+internal static class RailSearchClearButtonVisuals
 {
 	private static readonly Color NormalBackgroundColor = Colors.Transparent;
 	private static readonly Color NormalStrokeColor = Colors.Transparent;
 	private static readonly Color NormalTextColor = Color.FromArgb("#8FAFC3");
 	private static readonly Color HoverTextColor = Color.FromArgb("#F2FBFF");
 
-	private readonly Border _button;
-	private readonly Label _label;
-
-	internal RailSearchClearButtonController(Border button, Label label)
+	internal static void Attach(Border button, Label label)
 	{
-		_button = button;
-		_label = label;
-		Apply(false);
+		ArgumentNullException.ThrowIfNull(button);
+		ArgumentNullException.ThrowIfNull(label);
+		Apply(button, label, isHovered: false);
 
 		var pointer = new PointerGestureRecognizer();
-		pointer.PointerEntered += OnPointerEntered;
-		pointer.PointerExited += OnPointerExited;
-		_button.GestureRecognizers.Add(pointer);
+		pointer.PointerEntered += (_, _) => Apply(button, label, isHovered: true);
+		pointer.PointerExited += (_, _) => Apply(button, label, isHovered: false);
+		button.GestureRecognizers.Add(pointer);
 	}
 
-	private void Apply(bool isHovered)
+	private static void Apply(Border button, Label label, bool isHovered)
 	{
-		_button.BackgroundColor = NormalBackgroundColor;
-		_button.Stroke = NormalStrokeColor;
-		_button.StrokeThickness = 0;
-		_label.TextColor = isHovered ? HoverTextColor : NormalTextColor;
+		button.BackgroundColor = NormalBackgroundColor;
+		button.Stroke = NormalStrokeColor;
+		button.StrokeThickness = 0;
+		label.TextColor = isHovered ? HoverTextColor : NormalTextColor;
 	}
-
-	private void OnPointerEntered(object? sender, PointerEventArgs e)
-		=> Apply(true);
-
-	private void OnPointerExited(object? sender, PointerEventArgs e)
-		=> Apply(false);
 }

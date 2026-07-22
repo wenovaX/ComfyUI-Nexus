@@ -154,8 +154,9 @@ public partial class HeaderToolbarTrayView : ContentView
 	{
 		GuardedMainMenuCommand = new Command(ExecuteMainMenuCommand);
 		InitializeComponent();
+		_frameCache = NexusAppManager.Instance.AnimatedWebpFrames;
 		_mainActionMotion = new NexusMotionController("header-toolbar-main-action", "HeaderToolbar.MainActionPulse", Dispatcher);
-		_mainActionStopSignalClip = new NexusAnimatedWebpClip(_mainActionMotion, MainActionStopSignalSurface, "HeaderToolbar.MainActionStopSignal", NexusAnimatedWebpCacheCatalog.HeaderMainActionStopSignal);
+		_mainActionStopSignalClip = new NexusAnimatedWebpClip(_mainActionMotion, _frameCache, MainActionStopSignalSurface, "HeaderToolbar.MainActionStopSignal", NexusAnimatedWebpCacheCatalog.HeaderMainActionStopSignal);
 		RunModeOptionDeck.SelectionChanged += OnRunModeOptionDeckSelectionChanged;
 
 		StopActionButton.IsEnabled = false;
@@ -220,7 +221,7 @@ public partial class HeaderToolbarTrayView : ContentView
 	{
 		try
 		{
-			Task<NexusAnimatedWebpCacheLease> acquireTask = _mainActionStopSignalCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(
+			Task<NexusAnimatedWebpCacheLease> acquireTask = _mainActionStopSignalCacheAcquireTask ??= _frameCache.AcquireAsync(
 				"header-toolbar-main-action",
 				[NexusAnimatedWebpCacheCatalog.HeaderMainActionStopSignal]);
 			NexusAnimatedWebpCacheLease lease = await acquireTask;

@@ -57,6 +57,7 @@ internal sealed class NexusVisualStateAnimator<TState> : IDisposable
 	private readonly object _gate = new();
 	private readonly string _owner;
 	private readonly NexusMotionController _motion;
+	private readonly NexusAnimatedWebpFrameCache _frameCache;
 	private readonly Func<bool> _canRun;
 	private readonly IReadOnlyDictionary<TState, IReadOnlySet<string>> _stateMap;
 	private readonly Dictionary<string, ClipEntry> _clips;
@@ -74,18 +75,21 @@ internal sealed class NexusVisualStateAnimator<TState> : IDisposable
 	internal NexusVisualStateAnimator(
 		string owner,
 		NexusMotionController motion,
+		NexusAnimatedWebpFrameCache frameCache,
 		Func<bool> canRun,
 		IEnumerable<NexusVisualStateAnimation> animations,
 		IReadOnlyDictionary<TState, IReadOnlyCollection<string>> stateMap)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(owner);
 		ArgumentNullException.ThrowIfNull(motion);
+		ArgumentNullException.ThrowIfNull(frameCache);
 		ArgumentNullException.ThrowIfNull(canRun);
 		ArgumentNullException.ThrowIfNull(animations);
 		ArgumentNullException.ThrowIfNull(stateMap);
 
 		_owner = owner;
 		_motion = motion;
+		_frameCache = frameCache;
 		_canRun = canRun;
 		_clips = animations.ToDictionary(
 			animation => animation.Name,
@@ -220,13 +224,13 @@ internal sealed class NexusVisualStateAnimator<TState> : IDisposable
 		ArgumentOutOfRangeException.ThrowIfLessThan(animation.FrameStep, 1);
 		if (animation.PlaybackRate is double playbackRate && (!double.IsFinite(playbackRate) || playbackRate <= 0))
 		{
-			throw new ArgumentOutOfRangeException(nameof(animation.PlaybackRate));
+			throw new ArgumentOutOfRangeException(nameof(animation), "PlaybackRate must be a positive finite value.");
 		}
 
 		return new ClipEntry
 		{
 			Definition = animation,
-			Clip = new NexusAnimatedWebpClip(_motion, animation.Target, $"{_owner}.{animation.Name}", animation.Definition),
+			Clip = new NexusAnimatedWebpClip(_motion, _frameCache, animation.Target, $"{_owner}.{animation.Name}", animation.Definition),
 		};
 	}
 
@@ -235,7 +239,7 @@ internal sealed class NexusVisualStateAnimator<TState> : IDisposable
 		NexusAnimatedWebpCacheLease? lease = null;
 		try
 		{
-			lease = await NexusAnimatedWebpFrameCache.AcquireAsync(_owner, _preloadDefinitions);
+			lease = await _frameCache.AcquireAsync(_owner, _preloadDefinitions);
 			lock (_gate)
 			{
 				if (_isDisposed || cacheGeneration != _cacheGeneration)

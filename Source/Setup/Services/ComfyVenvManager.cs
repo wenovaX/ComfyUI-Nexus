@@ -1,5 +1,6 @@
 namespace ComfyUI_Nexus.Setup.Services;
 
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 
@@ -12,24 +13,37 @@ internal sealed class ComfyVenvManager
 	private const string PyTorchRuntimeDependencies = "filelock fsspec jinja2 networkx numpy pillow setuptools sympy typing_extensions";
 	private const string PipProgressEnvironmentVariableName = "PIP_PROGRESS_BAR";
 	private const string PipProgressMode = "raw";
-	private const string ShortComfyPathPrefix = "nx";
-	private const string ShortComfyPathLinkName = "ComfyUI";
-	private const string ShortComfyPathMarkerFileName = "README_NEXUS_TEMP.txt";
 	private static readonly TimeSpan RequirementsIdleTimeout = TimeSpan.FromMinutes(45);
 	private static readonly TimeSpan PyTorchIdleTimeout = TimeSpan.FromHours(3);
 	private static readonly TimeSpan ReadinessIdleTimeout = TimeSpan.FromSeconds(30);
-	private static string ActiveComfyPath => ComfyPathResolver.ResolveActiveComfyPath();
-	private static string ActiveVenvPath => ComfyPathResolver.ResolveActiveVenvPath();
-	private static string ActiveVenvPythonExe => ComfyPathResolver.ResolveActiveVenvPythonExe();
+	private string ActiveComfyPath => _paths.ActiveComfyPath;
+	private string ActiveVenvPath => _paths.ActiveVenvPath;
+	private string ActiveVenvPythonExe => _paths.ActiveVenvPythonExe;
 	private static string ActiveVenvRelativePythonExe => Path.Combine(".venv", "Scripts", "python.exe");
 
 	private readonly Action<string> _log;
 	private readonly Action<double, string> _progress;
+	private readonly NexusToolingEnvironment _tooling;
+	private readonly SetupSettingsService _settingsService;
+	private readonly PythonRuntimeInfoService _pythonRuntimeInfo;
+	private readonly NexusServerProcessController _serverProcesses;
+	private readonly NexusComfyRuntimePaths _paths;
 
-	internal ComfyVenvManager(Action<string> log, Action<double, string> progress)
+	internal ComfyVenvManager(
+		Action<string> log,
+		Action<double, string> progress,
+		NexusToolingEnvironment tooling,
+		NexusServerProcessController serverProcesses,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
 		_log = log;
 		_progress = progress;
+		_tooling = tooling;
+		_settingsService = settingsService;
+		_paths = paths;
+		_pythonRuntimeInfo = tooling.PythonRuntimeInfo;
+		_serverProcesses = serverProcesses;
 	}
 
 	internal async Task<SetupStepResult> EnsureOnlyAsync(CancellationToken cancellationToken)
@@ -49,10 +63,10 @@ internal sealed class ComfyVenvManager
 		var result = await RepairVenvDependenciesAsync(cancellationToken);
 		if (result.IsSuccess)
 		{
-			var settings = SetupSettingsService.Instance.Settings;
+			var settings = _settingsService.Settings;
 			settings.ServerPythonMode = PythonExecutionModes.Venv;
 			settings.PendingVenvDelete = false;
-			SetupSettingsService.Instance.Save();
+			_settingsService.Save();
 		}
 
 		return result.IsSuccess
@@ -98,9 +112,9 @@ internal sealed class ComfyVenvManager
 		{
 			if (!Directory.Exists(ActiveVenvPath))
 			{
-				SetupSettingsService.Instance.Settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
-				SetupSettingsService.Instance.Settings.PendingVenvDelete = false;
-				SetupSettingsService.Instance.Save();
+				_settingsService.Settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
+				_settingsService.Settings.PendingVenvDelete = false;
+				_settingsService.Save();
 				_log($"{RuntimeTag} .venv does not exist. Direct Python mode is active.");
 				return new SetupStepResult(true, ".venv is already absent.", 1);
 			}
@@ -121,9 +135,9 @@ internal sealed class ComfyVenvManager
 				return CreateVenvDeleteFailureResult("delete");
 			}
 
-			SetupSettingsService.Instance.Settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
-			SetupSettingsService.Instance.Settings.PendingVenvDelete = false;
-			SetupSettingsService.Instance.Save();
+			_settingsService.Settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
+			_settingsService.Settings.PendingVenvDelete = false;
+			_settingsService.Save();
 
 			_log($"{RuntimeTag} .venv deleted. Direct Python mode is active.");
 			return new SetupStepResult(true, ".venv deleted. Direct Python mode is active.", 1);
@@ -136,7 +150,7 @@ internal sealed class ComfyVenvManager
 
 	internal async Task<SetupStepResult> ApplyPendingDeleteAsync(CancellationToken cancellationToken)
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		if (!settings.PendingVenvDelete || !IsDirectPythonMode(settings))
 		{
 			return new SetupStepResult(true, "No pending .venv delete.", 1);
@@ -147,7 +161,7 @@ internal sealed class ComfyVenvManager
 			if (!Directory.Exists(ActiveVenvPath))
 			{
 				settings.PendingVenvDelete = false;
-				SetupSettingsService.Instance.Save();
+				_settingsService.Save();
 				_log($"{RuntimeTag} Pending .venv delete cleared. .venv is already absent.");
 				return new SetupStepResult(true, "Pending .venv delete cleared.", 1);
 			}
@@ -164,7 +178,7 @@ internal sealed class ComfyVenvManager
 			}
 
 			settings.PendingVenvDelete = false;
-			SetupSettingsService.Instance.Save();
+			_settingsService.Save();
 			_log($"{RuntimeTag} Pending .venv delete applied. Direct Python mode is active.");
 			return new SetupStepResult(true, "Pending .venv delete applied. Direct Python mode is active.", 1);
 		}
@@ -177,15 +191,15 @@ internal sealed class ComfyVenvManager
 	private static bool IsDirectPythonMode(SetupSettings settings)
 		=> string.Equals(settings.ServerPythonMode, PythonExecutionModes.ConfiguredPython, StringComparison.Ordinal);
 
-	private static async Task<bool> IsServerRunningAsync(CancellationToken cancellationToken)
-		=> await Task.Run(() => ComfyServerProcessRegistry.FindServerProcess() != null, cancellationToken);
+	private async Task<bool> IsServerRunningAsync(CancellationToken cancellationToken)
+		=> await Task.Run(() => _serverProcesses.FindServerProcess() != null, cancellationToken);
 
 	private SetupStepResult ScheduleDelete(string reason)
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		settings.ServerPythonMode = PythonExecutionModes.ConfiguredPython;
 		settings.PendingVenvDelete = true;
-		SetupSettingsService.Instance.Save();
+		_settingsService.Save();
 
 		_log($"{RuntimeTag} .venv delete scheduled. Reason: {reason}. It will run before the next server boot.");
 		return new SetupStepResult(true, ".venv delete scheduled. Restart the server to remove it safely before the next boot.", 1);
@@ -194,7 +208,14 @@ internal sealed class ComfyVenvManager
 	internal async Task EnsureAsync(string tag, CancellationToken cancellationToken)
 	{
 		_log($"{tag} Ensuring virtual environment...");
-		if (File.Exists(ActiveVenvPythonExe)) return;
+		if (Directory.Exists(ActiveVenvPath) && TryGetActiveVenvIssue(out string? existingVenvIssue))
+		{
+			_log($"{tag} Existing .venv requires recreation: {existingVenvIssue}");
+		}
+		else if (Directory.Exists(ActiveVenvPath))
+		{
+			return;
+		}
 
 		string seedPython = ResolveVenvSeedPython();
 		string? seedWorkingDirectory = ResolveVenvSeedWorkingDirectory(seedPython);
@@ -223,10 +244,25 @@ internal sealed class ComfyVenvManager
 
 		Report(0.18, "Creating ComfyUI .venv folder and Python launcher...");
 		var pipEnvironment = CreatePipEnvironment(tag);
+		NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+		if (lease is not null)
+		{
+			_ = lease.GetComfyRoot();
+		}
+
+		// A venv records its seed Python as its permanent home. Never allow a
+		// temporary tooling alias to be written into pyvenv.cfg.
+		string physicalSeedPython = NexusToolingPathLeaseController.ResolvePhysicalPath(seedPython);
+		string? physicalSeedWorkingDirectory = seedWorkingDirectory is null
+			? null
+			: NexusToolingPathLeaseController.ResolvePhysicalPath(seedWorkingDirectory);
+		string toolingVenvPath = lease is null
+			? ActiveVenvPath
+			: Path.Combine(lease.GetComfyRoot(), ".venv");
 		var result = await ProcessRunner.RunAsync(
-			seedPython,
-			$"-m venv \"{ActiveVenvPath}\"",
-			seedWorkingDirectory,
+			physicalSeedPython,
+			$"-m venv \"{toolingVenvPath}\"",
+			physicalSeedWorkingDirectory,
 			_log,
 			cancellationToken,
 			environmentVariables: pipEnvironment);
@@ -236,10 +272,10 @@ internal sealed class ComfyVenvManager
 		}
 
 		ValidateActiveVenvLayout(seedPython);
-		PythonRuntimeInfoService.Instance.Invalidate();
+		_pythonRuntimeInfo.Invalidate();
 	}
 
-	internal static async Task<VenvSeedReadiness> CheckSeedPythonReadinessAsync(CancellationToken cancellationToken)
+	internal async Task<VenvSeedReadiness> CheckSeedPythonReadinessAsync(CancellationToken cancellationToken)
 	{
 		string seedPython = ResolveVenvSeedPython();
 		string? seedWorkingDirectory = ResolveVenvSeedWorkingDirectory(seedPython);
@@ -251,10 +287,10 @@ internal sealed class ComfyVenvManager
 		try
 		{
 			ComfyInstallService.EnsureComfyWorkspaceDirectories(ActiveComfyPath);
-			string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable();
-			string runtimeLabel = RuntimeRepairTarget.GetLabel();
+			string pythonExecutable = RuntimeRepairTarget.GetPythonExecutable(_settingsService.Settings, _paths);
+			string runtimeLabel = RuntimeRepairTarget.GetLabel(_settingsService.Settings);
 
-			if (RuntimeRepairTarget.IsUsingVenv())
+			if (RuntimeRepairTarget.IsUsingVenv(_settingsService.Settings))
 			{
 				await EnsureAsync(RuntimeTag, cancellationToken);
 				pythonExecutable = ActiveVenvPythonExe;
@@ -301,21 +337,21 @@ internal sealed class ComfyVenvManager
 
 	private IReadOnlyDictionary<string, string>? CreatePipEnvironment(string tag)
 	{
-		var cacheEnvironment = PipCacheService.CreateEnvironment();
+		var cacheEnvironment = PipCacheService.CreateEnvironment(_tooling.CurrentLease, _settingsService.Settings);
 		var environment = CreatePipEnvironmentWithProgress(cacheEnvironment);
 		_log(cacheEnvironment is null
 			? $"{tag} pip cache: pip default"
-			: $"{tag} pip cache: {cacheEnvironment[PipCacheService.EnvironmentVariableName]}");
+			: $"{tag} pip cache: {PipCacheService.GetEffectiveCachePath(_settingsService.Settings)}");
 		return environment;
 	}
 
-	private static IReadOnlyDictionary<string, string>? CreatePipEnvironment(Action<string>? onLog)
+	private IReadOnlyDictionary<string, string>? CreatePipEnvironment(Action<string>? onLog)
 	{
-		var cacheEnvironment = PipCacheService.CreateEnvironment();
+		var cacheEnvironment = PipCacheService.CreateEnvironment(_tooling.CurrentLease, _settingsService.Settings);
 		var environment = CreatePipEnvironmentWithProgress(cacheEnvironment);
 		onLog?.Invoke(cacheEnvironment is null
 			? $"{RuntimeTag} pip cache: pip default"
-			: $"{RuntimeTag} pip cache: {cacheEnvironment[PipCacheService.EnvironmentVariableName]}");
+			: $"{RuntimeTag} pip cache: {PipCacheService.GetEffectiveCachePath(_settingsService.Settings)}");
 		return environment;
 	}
 
@@ -350,13 +386,12 @@ internal sealed class ComfyVenvManager
 		_log($"{tag} Syncing ComfyUI requirements into: {pythonExecutable}");
 		Report(0.38, "Installing ComfyUI requirements into .venv. A fresh setup may take 10-20 minutes.");
 		var pipEnvironment = CreatePipEnvironment(tag);
-		using var pipPath = await CreateShortComfyPathIfNeededAsync(tag, pythonExecutable, cancellationToken);
-		string pipPython = pipPath?.PythonExecutable ?? pythonExecutable;
-		string pipWorkingDirectory = pipPath?.ComfyPath ?? ActiveComfyPath;
-		string pipRequirementsPath = pipPath == null
-			? requirementsPath
-			: Path.Combine(pipPath.ComfyPath, "requirements.txt");
-		_log($"{tag} Requirements install Python: {pipPython}");
+		NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+		string toolingComfyPath = lease?.GetComfyRoot() ?? ActiveComfyPath;
+		string pipPython = lease?.GetToolingPath(pythonExecutable) ?? pythonExecutable;
+		string pipWorkingDirectory = toolingComfyPath;
+		string pipRequirementsPath = Path.Combine(toolingComfyPath, "requirements.txt");
+		_log($"{tag} Requirements install Python: {pythonExecutable}");
 		var result = await ProcessRunner.RunAsync(
 			pipPython,
 			$"-m pip install {PipProgressArguments} -r \"{pipRequirementsPath}\"",
@@ -384,13 +419,13 @@ internal sealed class ComfyVenvManager
 			return new SetupStepResult(true, "CUDA environment already verified.", 1);
 		}
 
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		_log($"{RuntimeTag} CUDA environment is not ready. Installing PyTorch from {settings.PyTorchIndexUrl}...");
 		Report(0.68, "Installing CUDA PyTorch packages. This can download and unpack several GB; progress appears in the setup log when pip reports it.");
 		var pipEnvironment = CreatePipEnvironment(RuntimeTag);
-		using var pipPath = await CreateShortComfyPathIfNeededAsync(RuntimeTag, pythonExecutable, cancellationToken);
-		string pipPython = pipPath?.PythonExecutable ?? pythonExecutable;
-		string pipWorkingDirectory = pipPath?.ComfyPath ?? ActiveComfyPath;
+		NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+		string pipPython = lease?.GetToolingPath(pythonExecutable) ?? pythonExecutable;
+		string pipWorkingDirectory = lease?.GetComfyRoot() ?? ActiveComfyPath;
 		_log($"{RuntimeTag} PyTorch install Python: {pipPython}");
 
 		_log($"{RuntimeTag} Installing configured CUDA PyTorch packages in place.");
@@ -461,7 +496,10 @@ else:
 		try
 		{
 			await File.WriteAllTextAsync(scriptPath, verifyScript, cancellationToken);
-			var (exitCode, output, error) = await ProcessRunner.RunAsync(pythonExecutable, $"\"{scriptPath}\"", ActiveComfyPath, _log, cancellationToken);
+			NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+			string toolingPython = lease?.GetToolingPath(pythonExecutable) ?? pythonExecutable;
+			string toolingComfyPath = lease?.GetComfyRoot() ?? ActiveComfyPath;
+			var (exitCode, output, error) = await ProcessRunner.RunAsync(toolingPython, $"\"{scriptPath}\"", toolingComfyPath, _log, cancellationToken);
 
 			if (exitCode == 0 && output.Contains("CUDA Available: True", StringComparison.Ordinal))
 			{
@@ -477,304 +515,18 @@ else:
 		}
 	}
 
-	private async Task<ShortComfyPathScope?> CreateShortComfyPathIfNeededAsync(
-		string tag,
-		string pythonExecutable,
-		CancellationToken cancellationToken)
-	{
-		const int LongPathRiskThreshold = 40;
-		if (ActiveComfyPath.Length < LongPathRiskThreshold)
-		{
-			return null;
-		}
-
-		CleanupStaleShortComfyPaths(tag);
-
-		foreach (string containerRoot in GetShortComfyPathCandidates())
-		{
-			DeleteShortComfyPath(containerRoot);
-			string shortComfyPath = Path.Combine(containerRoot, ShortComfyPathLinkName);
-			Directory.CreateDirectory(containerRoot);
-			WriteShortComfyPathMarker(containerRoot);
-
-			var create = await ProcessRunner.RunAsync(
-				"cmd.exe",
-				$"/c mklink /J \"{shortComfyPath}\" \"{ActiveComfyPath}\"",
-				null,
-				null,
-				cancellationToken,
-				TimeSpan.FromSeconds(30));
-			if (create.ExitCode != 0 || !Directory.Exists(shortComfyPath))
-			{
-				DeleteShortComfyPath(containerRoot);
-				_log($"{tag} Short pip path candidate unavailable: {containerRoot}. {GetProcessFailureDetail(create)}");
-				continue;
-			}
-
-			string pipPython = pythonExecutable;
-			if (UsesActiveComfyVenv(pythonExecutable))
-			{
-				pipPython = Path.Combine(shortComfyPath, ActiveVenvRelativePythonExe);
-				if (!File.Exists(pipPython))
-				{
-					DeleteShortComfyPath(containerRoot);
-					_log($"{tag} Short pip path was created but .venv python was not found: {shortComfyPath}");
-					continue;
-				}
-			}
-
-			_log($"{tag} Using short pip install path to avoid Windows long-path extraction failures: {shortComfyPath}");
-			return new ShortComfyPathScope(containerRoot, shortComfyPath, pipPython);
-		}
-
-		_log($"{tag} Short pip path unavailable. Continuing with normal path.");
-		return null;
-	}
-
-	private static bool UsesActiveComfyVenv(string pythonExecutable)
-	{
-		try
-		{
-			string venvRoot = Path.GetFullPath(ActiveVenvPath)
-				.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-			string resolvedPython = Path.GetFullPath(pythonExecutable);
-			return resolvedPython.StartsWith(
-				venvRoot + Path.DirectorySeparatorChar,
-				StringComparison.OrdinalIgnoreCase);
-		}
-		catch
-		{
-			return false;
-		}
-	}
-
-	private IEnumerable<string> GetShortComfyPathCandidates()
-	{
-		string suffix = Guid.NewGuid().ToString("N")[..8];
-		string activePath = Path.GetFullPath(ActiveComfyPath);
-		string? activeRoot = Path.GetPathRoot(activePath);
-		if (!string.IsNullOrWhiteSpace(activeRoot))
-		{
-			yield return Path.Combine(activeRoot, $"{ShortComfyPathPrefix}{suffix}");
-
-			string relative = Path.GetRelativePath(activeRoot, activePath);
-			string? firstSegment = relative
-				.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries)
-				.FirstOrDefault();
-			if (!string.IsNullOrWhiteSpace(firstSegment)
-				&& firstSegment != "."
-				&& firstSegment != "..")
-			{
-				yield return Path.Combine(activeRoot, firstSegment, $"{ShortComfyPathPrefix}{suffix}");
-			}
-		}
-
-		string tempRoot = Path.GetTempPath();
-		yield return Path.Combine(tempRoot, $"{ShortComfyPathPrefix}{suffix}");
-	}
-
-	private static void DeleteShortComfyPath(string linkPath)
-	{
-		try
-		{
-			if (Directory.Exists(linkPath))
-			{
-				DeleteShortComfyPathDirectory(linkPath);
-			}
-		}
-		catch
-		{
-		}
-	}
-
-	internal void CleanupStaleShortComfyPaths(string tag)
-	{
-		foreach (string root in GetShortComfyPathCleanupRoots())
-		{
-			if (!Directory.Exists(root))
-			{
-				continue;
-			}
-
-			foreach (string candidate in EnumerateShortComfyPathCandidates(root))
-			{
-				if (!IsShortComfyPathCandidate(candidate))
-				{
-					continue;
-				}
-
-				if (!IsNexusShortComfyPathContainer(candidate))
-				{
-					continue;
-				}
-
-				try
-				{
-					DeleteShortComfyPathDirectory(candidate);
-					_log($"{tag} Removed stale short pip install path: {candidate}");
-				}
-				catch (Exception ex)
-				{
-					_log($"{tag} Stale short pip install path cleanup skipped: {candidate}. {ex.Message}");
-				}
-			}
-		}
-	}
-
-	private IEnumerable<string> EnumerateShortComfyPathCandidates(string root)
-	{
-		IEnumerable<string> candidates;
-		try
-		{
-			candidates = Directory.EnumerateDirectories(root, $"{ShortComfyPathPrefix}????????", SearchOption.TopDirectoryOnly);
-		}
-		catch (Exception ex)
-		{
-			_log($"{RuntimeTag} Short pip path cleanup scan skipped for {root}: {ex.Message}");
-			yield break;
-		}
-
-		foreach (string candidate in candidates)
-		{
-			yield return candidate;
-		}
-	}
-
-	private IEnumerable<string> GetShortComfyPathCleanupRoots()
-	{
-		var roots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		foreach (string candidate in GetShortComfyPathCandidateRoots())
-		{
-			if (Directory.Exists(candidate) && roots.Add(Path.GetFullPath(candidate)))
-			{
-				yield return candidate;
-			}
-		}
-	}
-
-	private IEnumerable<string> GetShortComfyPathCandidateRoots()
-	{
-		string activePath = Path.GetFullPath(ActiveComfyPath);
-		string? activeRoot = Path.GetPathRoot(activePath);
-		if (!string.IsNullOrWhiteSpace(activeRoot))
-		{
-			yield return activeRoot;
-
-			string relative = Path.GetRelativePath(activeRoot, activePath);
-			string? firstSegment = relative
-				.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries)
-				.FirstOrDefault();
-			if (!string.IsNullOrWhiteSpace(firstSegment)
-				&& firstSegment != "."
-				&& firstSegment != "..")
-			{
-				yield return Path.Combine(activeRoot, firstSegment);
-			}
-		}
-
-		yield return Path.GetTempPath();
-	}
-
-	private static bool IsShortComfyPathCandidate(string path)
-	{
-		string name = Path.GetFileName(path);
-		if (name.Length != ShortComfyPathPrefix.Length + 8
-			|| !name.StartsWith(ShortComfyPathPrefix, StringComparison.OrdinalIgnoreCase))
-		{
-			return false;
-		}
-
-		for (int i = ShortComfyPathPrefix.Length; i < name.Length; i++)
-		{
-			if (!Uri.IsHexDigit(name[i]))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private static bool IsNexusShortComfyPathContainer(string path)
-	{
-		if (IsReparsePoint(path))
-		{
-			return true;
-		}
-
-		string markerPath = Path.Combine(path, ShortComfyPathMarkerFileName);
-		string shortComfyPath = Path.Combine(path, ShortComfyPathLinkName);
-		return File.Exists(markerPath)
-			&& Directory.Exists(shortComfyPath)
-			&& IsReparsePoint(shortComfyPath);
-	}
-
-	private static void WriteShortComfyPathMarker(string containerRoot)
-	{
-		string markerPath = Path.Combine(containerRoot, ShortComfyPathMarkerFileName);
-		string text = """
-This folder was created temporarily by Nexus for ComfyUI.
-
-It contains a short-path junction used while installing Python packages such as PyTorch.
-The short path helps avoid Windows path-length extraction failures during pip installs.
-
-Nexus removes this folder automatically after the install step finishes.
-If Nexus or Windows terminated unexpectedly, it is safe to delete this folder when Nexus is not currently installing dependencies.
-""";
-		File.WriteAllText(markerPath, text);
-	}
-
-	private static void DeleteShortComfyPathDirectory(string path)
-	{
-		if (IsReparsePoint(path))
-		{
-			Directory.Delete(path);
-			return;
-		}
-
-		foreach (string directory in Directory.EnumerateDirectories(path))
-		{
-			if (IsReparsePoint(directory))
-			{
-				Directory.Delete(directory);
-			}
-			else
-			{
-				Directory.Delete(directory, recursive: true);
-			}
-		}
-
-		foreach (string file in Directory.EnumerateFiles(path))
-		{
-			File.SetAttributes(file, FileAttributes.Normal);
-			File.Delete(file);
-		}
-
-		Directory.Delete(path);
-	}
-
-	private static bool IsReparsePoint(string path)
-		=> (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0;
-
-	private sealed class ShortComfyPathScope(string containerPath, string comfyPath, string pythonExecutable) : IDisposable
-	{
-		public string ContainerPath { get; } = containerPath;
-		public string ComfyPath { get; } = comfyPath;
-		public string PythonExecutable { get; } = pythonExecutable;
-
-		public void Dispose()
-		{
-			DeleteShortComfyPath(ContainerPath);
-		}
-	}
-
-	private static async Task<VenvSeedReadiness> EnsureSeedPythonReadinessAsync(
+	private async Task<VenvSeedReadiness> EnsureSeedPythonReadinessAsync(
 		string seedPython,
 		string? seedWorkingDirectory,
 		bool bootstrapPip,
 		Action<string>? onLog,
 		CancellationToken cancellationToken)
 	{
+		seedPython = NexusToolingPathLeaseController.ResolvePhysicalPath(seedPython);
+		seedWorkingDirectory = seedWorkingDirectory is null
+			? null
+			: NexusToolingPathLeaseController.ResolvePhysicalPath(seedWorkingDirectory);
+
 		if (LooksLikePath(seedPython) && !File.Exists(seedPython))
 		{
 			return new VenvSeedReadiness(false, seedPython, $"Python executable was not found: {seedPython}");
@@ -910,21 +662,74 @@ If Nexus or Windows terminated unexpectedly, it is safe to delete this folder wh
 		}
 	}
 
-	private static void ValidateActiveVenvLayout(string seedPython)
+	private void ValidateActiveVenvLayout(string seedPython)
 	{
-		if (File.Exists(ActiveVenvPythonExe)) return;
+		if (!TryGetActiveVenvIssue(out string? issue)) return;
 
 		string posixPython = Path.Combine(ActiveVenvPath, "bin", "python.exe");
 		string detail = File.Exists(posixPython)
 			? "The selected Python created bin/python.exe instead of Scripts/python.exe."
-			: "The expected Scripts/python.exe launcher was not created.";
+			: issue ?? "The expected Scripts/python.exe launcher was not created.";
 		throw new InvalidOperationException(
 			$"ComfyUI .venv was created with an unsupported layout. {detail} Seed Python: {seedPython}. Use the bundled Python runtime or a Windows CPython installation.");
 	}
 
-	private static string ResolveVenvSeedPython()
+	private bool TryGetActiveVenvIssue(out string? issue)
 	{
-		string configuredPython = SetupSettingsService.Instance.Settings.PythonPath;
+		issue = null;
+		if (!File.Exists(ActiveVenvPythonExe))
+		{
+			issue = "The expected Scripts/python.exe launcher was not created.";
+			return true;
+		}
+
+		string configurationPath = Path.Combine(ActiveVenvPath, "pyvenv.cfg");
+		if (!File.Exists(configurationPath))
+		{
+			issue = "The pyvenv.cfg configuration file is missing.";
+			return true;
+		}
+
+		string? configuredHome;
+		try
+		{
+			configuredHome = File.ReadLines(configurationPath)
+				.Select(static line => line.Split('=', 2, StringSplitOptions.TrimEntries))
+				.Where(static parts => parts.Length == 2 && string.Equals(parts[0], "home", StringComparison.OrdinalIgnoreCase))
+				.Select(static parts => parts[1])
+				.FirstOrDefault();
+		}
+		catch (IOException ex)
+		{
+			issue = $"The pyvenv.cfg configuration could not be read: {ex.Message}";
+			return true;
+		}
+
+		if (string.IsNullOrWhiteSpace(configuredHome))
+		{
+			issue = "The pyvenv.cfg home path is missing.";
+			return true;
+		}
+
+		string physicalHome = NexusToolingPathLeaseController.ResolvePhysicalPath(configuredHome);
+		if (!string.Equals(Path.GetFullPath(configuredHome), physicalHome, StringComparison.OrdinalIgnoreCase))
+		{
+			issue = "The pyvenv.cfg home path uses a temporary tooling drive.";
+			return true;
+		}
+
+		if (!File.Exists(Path.Combine(physicalHome, "python.exe")))
+		{
+			issue = $"The pyvenv.cfg home Python is unavailable: {physicalHome}";
+			return true;
+		}
+
+		return false;
+	}
+
+	private string ResolveVenvSeedPython()
+	{
+		string configuredPython = _settingsService.Settings.PythonPath;
 		return string.IsNullOrWhiteSpace(configuredPython) ? ComfyInstallService.PythonExe : configuredPython;
 	}
 
@@ -950,10 +755,10 @@ If Nexus or Windows terminated unexpectedly, it is safe to delete this folder wh
 		_log($"{RuntimeTag} {message}");
 	}
 
-	private static async Task<bool> TryDeleteComfyVenvDirectoryAsync(CancellationToken cancellationToken)
+	private async Task<bool> TryDeleteComfyVenvDirectoryAsync(CancellationToken cancellationToken)
 	{
-		PythonRuntimeInfoService.Instance.Invalidate();
-		int maxRetries = Math.Max(1, SetupSettingsService.Instance.Settings.PurgeRetryCount);
+		_pythonRuntimeInfo.Invalidate();
+		int maxRetries = Math.Max(1, _settingsService.Settings.PurgeRetryCount);
 		for (int attempt = 0; attempt < maxRetries; attempt++)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
@@ -996,8 +801,8 @@ If Nexus or Windows terminated unexpectedly, it is safe to delete this folder wh
 			$"Failed to {action} .venv because one or more files are locked. Stop the ComfyUI server and close Python processes, then retry.",
 			0);
 
-	private static TimeSpan GetDeleteRetryDelay()
-		=> TimeSpan.FromMilliseconds(Math.Max(50, SetupSettingsService.Instance.Settings.PurgeRetryDelayMilliseconds));
+	private TimeSpan GetDeleteRetryDelay()
+		=> TimeSpan.FromMilliseconds(Math.Max(50, _settingsService.Settings.PurgeRetryDelayMilliseconds));
 
 	private static void ClearReadOnlyAttributes(DirectoryInfo directory)
 	{
@@ -1017,7 +822,7 @@ If Nexus or Windows terminated unexpectedly, it is safe to delete this folder wh
 		directory.Attributes = FileAttributes.Normal;
 	}
 
-	private static bool IsSafeComfyVenvPath(string path)
+	private bool IsSafeComfyVenvPath(string path)
 	{
 		string fullVenvPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 		string fullComfyPath = Path.GetFullPath(ActiveComfyPath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);

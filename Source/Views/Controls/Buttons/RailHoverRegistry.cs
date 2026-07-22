@@ -9,25 +9,25 @@ internal interface IRailHoverParticipant
 /// Clears transient rail hover visuals when the pointer leaves the native window
 /// before an individual MAUI control receives its PointerExited event.
 /// </summary>
-internal static class RailHoverRegistry
+internal sealed class NexusRailHoverRegistry
 {
-	private static readonly HashSet<IRailHoverParticipant> Participants = [];
+	private readonly HashSet<IRailHoverParticipant> _participants = [];
 
-	internal static void Register(IRailHoverParticipant participant)
+	internal void Register(IRailHoverParticipant participant)
 	{
 		ArgumentNullException.ThrowIfNull(participant);
-		Participants.Add(participant);
+		_participants.Add(participant);
 	}
 
-	internal static void Unregister(IRailHoverParticipant participant)
+	internal void Unregister(IRailHoverParticipant participant)
 	{
 		ArgumentNullException.ThrowIfNull(participant);
-		Participants.Remove(participant);
+		_participants.Remove(participant);
 	}
 
-	internal static void ResetAll()
+	internal void ResetAll()
 	{
-		foreach (IRailHoverParticipant participant in Participants.ToArray())
+		foreach (IRailHoverParticipant participant in _participants.ToArray())
 		{
 			participant.ResetRailHover();
 		}

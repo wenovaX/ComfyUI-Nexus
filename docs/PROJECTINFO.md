@@ -41,7 +41,8 @@ Recommended longer description:
 
 - Vanguard mode manages a Nexus-owned local ComfyUI runtime.
 - Architect mode attaches to an existing user-managed ComfyUI workspace.
-- User data such as models, workflows, inputs, outputs, custom nodes, and external model paths must be treated as runtime data and preserved during repair or migration flows.
+- User data such as models, workflows, inputs, outputs, custom nodes,<br>
+and external model paths must be treated as runtime data and preserved during repair or migration flows.
 
 ## Store Packaging Notes
 

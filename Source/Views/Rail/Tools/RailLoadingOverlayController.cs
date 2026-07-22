@@ -27,12 +27,15 @@ internal sealed class RailLoadingOverlayController
 
 	internal void Show()
 	{
+		StopPendingHide(completed: false);
 		if (_overlay.IsVisible)
 		{
+			_shownAtUtc = DateTime.UtcNow;
+			Interlocked.Increment(ref _version);
+			_overlay.Opacity = 1;
 			return;
 		}
 
-		StopPendingHide(completed: false);
 		_shownAtUtc = DateTime.UtcNow;
 		Interlocked.Increment(ref _version);
 		_overlay.Opacity = 1;

@@ -12,16 +12,19 @@ internal static class StaleRuntimeProcessCleaner
 		"git"
 	};
 
-	internal static Task<int> CleanupBeforeBootAsync(Action<string>? log, CancellationToken cancellationToken)
-		=> Task.Run(() => CleanupBeforeBoot(log, cancellationToken), cancellationToken);
+	internal static Task<int> CleanupBeforeBootAsync(
+		NexusComfyRuntimePaths paths,
+		Action<string>? log,
+		CancellationToken cancellationToken)
+		=> Task.Run(() => CleanupBeforeBoot(paths, log, cancellationToken), cancellationToken);
 
-	private static int CleanupBeforeBoot(Action<string>? log, CancellationToken cancellationToken)
+	private static int CleanupBeforeBoot(NexusComfyRuntimePaths paths, Action<string>? log, CancellationToken cancellationToken)
 	{
 #if !WINDOWS
 		log?.Invoke("[BOOT] Runtime process cleanup is only available on Windows.");
 		return 0;
 #else
-		var roots = GetRuntimeRoots();
+		var roots = GetRuntimeRoots(paths);
 		if (roots.Count == 0)
 		{
 			return 0;
@@ -69,13 +72,13 @@ internal static class StaleRuntimeProcessCleaner
 #endif
 	}
 
-	private static List<string> GetRuntimeRoots()
+	private static List<string> GetRuntimeRoots(NexusComfyRuntimePaths paths)
 	{
 		var roots = new List<string>();
 		AddRoot(roots, ComfyInstallService.LocalRuntimePath);
 		AddRoot(roots, ComfyInstallService.InstalledPath);
 		AddRoot(roots, ComfyInstallService.PythonPath);
-		AddRoot(roots, ComfyPathResolver.ResolveActiveVenvPath());
+		AddRoot(roots, paths.ActiveVenvPath);
 		return roots;
 	}
 

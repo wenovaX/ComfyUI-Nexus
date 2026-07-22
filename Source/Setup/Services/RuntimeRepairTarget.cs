@@ -4,23 +4,24 @@ using ComfyUI_Nexus.Setup.Models;
 
 internal static class RuntimeRepairTarget
 {
-	internal static bool IsUsingVenv(SetupSettings? settings = null)
+	internal static bool IsUsingVenv(SetupSettings settings)
 	{
-		settings ??= SetupSettingsService.Instance.Settings;
+		ArgumentNullException.ThrowIfNull(settings);
 		return string.Equals(settings.ServerPythonMode, PythonExecutionModes.Venv, StringComparison.Ordinal);
 	}
 
-	internal static string GetPythonExecutable(SetupSettings? settings = null)
+	internal static string GetPythonExecutable(SetupSettings settings, NexusComfyRuntimePaths paths)
 	{
-		settings ??= SetupSettingsService.Instance.Settings;
-		if (IsUsingVenv(settings)) return ComfyPathResolver.ResolveActiveVenvPythonExe();
+		ArgumentNullException.ThrowIfNull(settings);
+		ArgumentNullException.ThrowIfNull(paths);
+		if (IsUsingVenv(settings)) return paths.ActiveVenvPythonExe;
 
 		return string.IsNullOrWhiteSpace(settings.PythonPath) ? "python" : settings.PythonPath;
 	}
 
-	internal static string GetLabel(SetupSettings? settings = null)
+	internal static string GetLabel(SetupSettings settings)
 		=> IsUsingVenv(settings) ? "ComfyUI .venv" : "configured Python";
 
-	internal static string GetDisplay(SetupSettings? settings = null)
-		=> $"{GetLabel(settings)} ({GetPythonExecutable(settings)})";
+	internal static string GetDisplay(SetupSettings settings, NexusComfyRuntimePaths paths)
+		=> $"{GetLabel(settings)} ({GetPythonExecutable(settings, paths)})";
 }

@@ -1,6 +1,7 @@
 namespace ComfyUI_Nexus.Setup.Diagnostics;
 
 using ComfyUI_Nexus.Diagnostics;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Localization;
 using ComfyUI_Nexus.Setup.Diagnostics.Nodes;
 using ComfyUI_Nexus.Setup.Services;
@@ -8,6 +9,8 @@ using Microsoft.Maui.Graphics;
 using ComfyUI_Nexus.Ui;
 
 internal sealed class InitiationSequenceRunner(
+	NexusToolingEnvironment tooling,
+	ComfyInstallService comfyInstall,
 	Action<DiagnosticNodeViewModel, IConfigurableDiagnosticNode> populateActions,
 	Action<DiagnosticNodeViewModel> enableInteraction,
 	Action<bool> setSequenceInteractionBlocked,
@@ -171,13 +174,15 @@ internal sealed class InitiationSequenceRunner(
 			vm.ActionText = Text("setup.status.installing");
 		});
 
-		var originalOnProgress = ComfyInstallService.Instance.OnProgress;
-		ComfyInstallService.Instance.OnProgress = (progress, message) => updateProgress(vm, progress, message);
+		var originalOnProgress = comfyInstall.OnProgress;
+		comfyInstall.OnProgress = (progress, message) => updateProgress(vm, progress, message);
 
 		try
 		{
 			var progress = new Progress<double>(value => UiThread.TryBeginInvoke(() => vm.ProgressValue = value, "INITIATION:PROGRESS"));
-			RecoveryResult result = await vm.Node.RecoverAsync(progress, cancellationToken);
+			RecoveryResult result = await tooling.RunToolingAsync(
+				_ => vm.Node.RecoverAsync(progress, cancellationToken),
+				cancellationToken);
 
 			if (result.IsSuccess)
 			{
@@ -203,7 +208,7 @@ internal sealed class InitiationSequenceRunner(
 		}
 		finally
 		{
-			ComfyInstallService.Instance.OnProgress = originalOnProgress;
+			comfyInstall.OnProgress = originalOnProgress;
 			await RunOnMainThreadAsync(() => vm.ShowProgress = false);
 		}
 	}

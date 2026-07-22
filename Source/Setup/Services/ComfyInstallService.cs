@@ -2,17 +2,13 @@ namespace ComfyUI_Nexus.Setup.Services;
 
 using System.IO;
 using System.Threading.Tasks;
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Diagnostics;
 using ComfyUI_Nexus.Setup.Models;
 using ComfyUI_Nexus.Setup.Runtime;
 
 internal sealed class ComfyInstallService
 {
-	internal static ComfyInstallService Instance { get; private set; } = null!;
-
-	// Settings access
-	private static SetupSettings Settings => SetupSettingsService.Instance.Settings;
-
 	private const string CoreTag = "[Core]";
 	private static readonly string[] PreservedComfySourceDirectories =
 	[
@@ -32,12 +28,14 @@ internal sealed class ComfyInstallService
 	];
 
 	// Paths
-	internal static string RootPath => Settings.RootPath;
-	internal static bool PortableOnly => Settings.PortableOnly;
+	internal static string RootPath => NexusStorageLayout.DataRoot;
+	internal static string PackageRoot => NexusStorageLayout.PackageRoot;
 
 	internal Action<string>? OnMessage { get; set; }
 	internal Action<double, string>? OnProgress { get; set; }
 	private readonly RuntimePackageService _packageService;
+	internal SetupSettingsService SettingsService { get; }
+	private readonly NexusToolingEnvironment _tooling;
 	private readonly RuntimePurgeService _purgeService;
 	private readonly RuntimeBackupService _backupService;
 	private readonly GitRepositoryService _gitRepositoryService;
@@ -46,32 +44,48 @@ internal sealed class ComfyInstallService
 	private readonly ExtensionInstaller _extensionInstaller;
 	private readonly HudBridgeInstaller _hudBridgeInstaller;
 	private readonly DependencyInstaller _dependencyInstaller;
+	internal NexusComfyRuntimePaths Paths { get; }
+	private SetupSettings Settings => SettingsService.Settings;
 
-	internal static string LocalRuntimePath => Path.Combine(RootPath, "LocalRuntime");
-	internal static string RuntimeBackupsPath => RuntimeBackupService.GetConfiguredBackupRoot();
+	internal static string LocalRuntimePath => NexusStorageLayout.LocalRuntimeRoot;
+	internal static string RuntimePackagesPath => NexusStorageLayout.RuntimePackagesRoot;
+	internal string RuntimeBackupsPath => RuntimeBackupService.GetConfiguredBackupRoot(SettingsService.Settings);
 	internal static string InstalledPath => Path.Combine(LocalRuntimePath, "Installed");
 	internal static string DefaultComfyPath => Path.Combine(InstalledPath, "ComfyUI");
-	internal static string ComfyPath => string.IsNullOrWhiteSpace(Settings.ComfyPath) ? DefaultComfyPath : Settings.ComfyPath;
 	internal static string PythonPath => Path.Combine(InstalledPath, "Python");
 	internal static string PythonExe => Path.Combine(PythonPath, "python.exe");
-	internal static string ComfyVenvPath => Path.Combine(ComfyPath, ".venv");
-	internal static string ComfyVenvPythonExe => Path.Combine(ComfyVenvPath, "Scripts", "python.exe");
+	internal bool PortableOnly => Settings.PortableOnly;
+	internal string ComfyPath => Paths.ActiveComfyPath;
+	internal string ComfyVenvPath => Paths.ActiveVenvPath;
+	internal string ComfyVenvPythonExe => Paths.ActiveVenvPythonExe;
 
 	internal static string GetLocalRuntimePath(string relativePath)
 		=> Path.Combine(LocalRuntimePath, relativePath.Replace('/', Path.DirectorySeparatorChar));
 
-	internal ComfyInstallService()
+	internal static string GetRuntimePackagePath(string relativePath)
+		=> NexusStorageLayout.GetRuntimePackagePath(relativePath);
+
+	internal ComfyInstallService(
+		NexusToolingEnvironment tooling,
+		NexusServerProcessController serverProcesses,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
 	{
-		Instance = this;
-		_packageService = new RuntimePackageService(Log);
-		_purgeService = new RuntimePurgeService(Log);
-		_backupService = new RuntimeBackupService(Log, ReportProgressOnly);
+		_tooling = tooling ?? throw new ArgumentNullException(nameof(tooling));
+		SettingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+		Paths = paths ?? throw new ArgumentNullException(nameof(paths));
+		_packageService = new RuntimePackageService(Log, _tooling, SettingsService);
+		_purgeService = new RuntimePurgeService(Log, SettingsService);
+		_backupService = new RuntimeBackupService(Log, ReportProgressOnly, SettingsService, Paths);
 		_backupService.CleanupPendingRestoreTemps();
-		_gitRepositoryService = new GitRepositoryService(Log, message => ReportProgressOnly(0, message), _packageService.KillInstalledRuntimeProcesses);
-		_venvManager = new ComfyVenvManager(Log, ReportProgressOnly);
-		_modelResourceInstaller = new ModelResourceInstaller(Log, ReportProgressOnly);
-		_extensionInstaller = new ExtensionInstaller(Log, Progress, _gitRepositoryService);
-		_hudBridgeInstaller = new HudBridgeInstaller(Log, _gitRepositoryService);
+		_gitRepositoryService = new GitRepositoryService(new GitRepositoryOperationContext(
+			Log,
+			message => ReportProgressOnly(0, message),
+			_packageService.KillInstalledRuntimeProcesses));
+		_venvManager = new ComfyVenvManager(Log, ReportProgressOnly, _tooling, serverProcesses, SettingsService, Paths);
+		_modelResourceInstaller = new ModelResourceInstaller(Log, ReportProgressOnly, SettingsService, Paths);
+		_extensionInstaller = new ExtensionInstaller(Log, Progress, _gitRepositoryService, _tooling, this, SettingsService, Paths);
+		_hudBridgeInstaller = new HudBridgeInstaller(Log, _gitRepositoryService, _tooling, SettingsService, Paths);
 		_dependencyInstaller = new DependencyInstaller(_venvManager);
 	}
 
@@ -88,9 +102,6 @@ internal sealed class ComfyInstallService
 		ReportProgressOnly(progress, message);
 		Log(message);
 	}
-
-	internal void CleanupShortPipInstallPathsBeforeBoot()
-		=> _venvManager.CleanupStaleShortComfyPaths("[BOOT]");
 
 	internal async Task ExtractGitPackageAsync(CancellationToken cancellationToken)
 		=> await _packageService.ExtractGitPackageAsync(cancellationToken);
@@ -158,10 +169,11 @@ internal sealed class ComfyInstallService
 				return await InstallCoreFromLocalSourcePackageAsync(cancellationToken);
 			}
 
-			string? gitExe = (await _gitRepositoryService.ResolveConfiguredGitAsync(cancellationToken)).Exe;
+			string? gitExe = (await _gitRepositoryService.ResolveConfiguredGitAsync(Settings.GitPath, cancellationToken)).Exe;
 			if (gitExe == null) return new SetupStepResult(false, "Git is required for ComfyUI installation.", 0);
+			string toolingComfyPath = GetToolingComfyPath();
 
-			var inspection = await _gitRepositoryService.InspectRepositoryAsync(gitExe, Settings.ComfyRepoUrl, ComfyPath, cancellationToken);
+			var inspection = await _gitRepositoryService.InspectRepositoryAsync(gitExe, Settings.ComfyRepoUrl, toolingComfyPath, cancellationToken);
 			if (inspection.Exists && !inspection.IsValid)
 			{
 				if (!IsManagedComfyPath(ComfyPath))
@@ -187,7 +199,7 @@ internal sealed class ComfyInstallService
 			var gitResult = await _gitRepositoryService.EnsureRepositoryAsync(
 				gitExe,
 				Settings.ComfyRepoUrl,
-				ComfyPath,
+				toolingComfyPath,
 				CoreTag,
 				GitRecoveryMode.SyncExisting,
 				cancellationToken);
@@ -222,7 +234,7 @@ internal sealed class ComfyInstallService
 			"v0.27.0",
 			"bb131be",
 			"https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.27.0");
-		string comfyZip = Path.Combine(LocalRuntimePath, "Packages", comfyPackage.Folder, comfyPackage.File);
+		string comfyZip = GetRuntimePackagePath(Path.Combine(comfyPackage.Folder, comfyPackage.File));
 
 		if (!File.Exists(comfyZip))
 		{
@@ -230,7 +242,8 @@ internal sealed class ComfyInstallService
 		}
 
 		await CleanManagedComfySourceTreeBeforePackageExtractAsync(cancellationToken);
-		await _packageService.ExtractComfyZipDirectlyAsync(comfyZip, ComfyPath, comfyPackage, cancellationToken);
+		string toolingComfyPath = GetToolingComfyPath();
+		await _packageService.ExtractComfyZipDirectlyAsync(comfyZip, toolingComfyPath, comfyPackage, cancellationToken);
 		EnsureComfyWorkspaceDirectories();
 
 		await _venvManager.EnsureAsync(CoreTag, cancellationToken);
@@ -242,9 +255,9 @@ internal sealed class ComfyInstallService
 		string gitExe,
 		CancellationToken cancellationToken)
 	{
-		string targetPath = Path.GetFullPath(ComfyPath)
+		string targetPath = GetToolingComfyPath()
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-		string clonePath = GetUniqueManagedComfyRemoteClonePath();
+		string clonePath = GetToolingPath(GetUniqueManagedComfyRemoteClonePath());
 		bool cloneCreated = false;
 
 		try
@@ -352,13 +365,14 @@ internal sealed class ComfyInstallService
 
 	private async Task CleanManagedComfySourceTreeBeforePackageExtractAsync(CancellationToken cancellationToken)
 	{
-		if (!IsManagedComfyPath(ComfyPath))
+		string physicalTargetPath = Paths.ConfiguredComfyPath;
+		if (!IsManagedComfyPath(physicalTargetPath))
 		{
-			Log($"{CoreTag} Skipping source cleanup for external ComfyUI path: {Path.GetFullPath(ComfyPath)}");
+			Log($"{CoreTag} Skipping source cleanup for external ComfyUI path: {Path.GetFullPath(physicalTargetPath)}");
 			return;
 		}
 
-		string targetPath = Path.GetFullPath(ComfyPath)
+		string targetPath = GetToolingComfyPath()
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
 		if (!Directory.Exists(targetPath))
@@ -510,7 +524,7 @@ internal sealed class ComfyInstallService
 
 	private static bool IsInstalledRuntimePath(string path)
 	{
-		string fullPath = Path.GetFullPath(path);
+		string fullPath = NexusToolingPathLeaseController.ResolvePhysicalPath(path);
 		string installedPath = Path.GetFullPath(InstalledPath)
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 
@@ -521,6 +535,11 @@ internal sealed class ComfyInstallService
 
 	private static bool IsManagedComfyPath(string path)
 	{
+		if (string.IsNullOrWhiteSpace(path))
+		{
+			return false;
+		}
+
 		string targetPath = Path.GetFullPath(path)
 			.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 		string managedPath = Path.GetFullPath(DefaultComfyPath)
@@ -529,7 +548,7 @@ internal sealed class ComfyInstallService
 		return string.Equals(targetPath, managedPath, StringComparison.OrdinalIgnoreCase);
 	}
 
-	private static bool IsExternalExistingComfyPath()
+	private bool IsExternalExistingComfyPath()
 		=> !string.IsNullOrWhiteSpace(Settings.ComfyPath)
 			&& !IsManagedComfyPath(ComfyPath)
 			&& File.Exists(Path.Combine(ComfyPath, "main.py"));
@@ -560,8 +579,8 @@ internal sealed class ComfyInstallService
 		File.SetAttributes(path, FileAttributes.Normal);
 	}
 
-	private static void EnsureComfyWorkspaceDirectories()
-		=> EnsureComfyWorkspaceDirectories(ComfyPath);
+	private void EnsureComfyWorkspaceDirectories()
+		=> EnsureComfyWorkspaceDirectories(Paths.ActiveComfyPath);
 
 	internal static void EnsureComfyWorkspaceDirectories(string comfyPath)
 	{
@@ -634,7 +653,8 @@ internal sealed class ComfyInstallService
 			}
 
 			string gitExe = ResolveConfiguredGitExecutable();
-			var inspection = await _gitRepositoryService.InspectRepositoryAsync(gitExe, Settings.ComfyRepoUrl, comfyPath, cancellationToken);
+			string toolingComfyPath = GetToolingComfyPath();
+			var inspection = await _gitRepositoryService.InspectRepositoryAsync(gitExe, Settings.ComfyRepoUrl, toolingComfyPath, cancellationToken);
 			if (!inspection.IsValid)
 			{
 				if (!IsManagedComfyPath(comfyPath))
@@ -648,7 +668,7 @@ internal sealed class ComfyInstallService
 					: await _gitRepositoryService.EnsureRepositoryAsync(
 						gitExe,
 						Settings.ComfyRepoUrl,
-						comfyPath,
+						toolingComfyPath,
 						"[ComfyUI]",
 						GitRecoveryMode.RecoverIfBroken,
 						cancellationToken);
@@ -665,7 +685,7 @@ internal sealed class ComfyInstallService
 			var pullResult = await _gitRepositoryService.EnsureRepositoryAsync(
 				gitExe,
 				Settings.ComfyRepoUrl,
-				comfyPath,
+				toolingComfyPath,
 				"[ComfyUI]",
 				GitRecoveryMode.SyncExisting,
 				cancellationToken);
@@ -700,9 +720,34 @@ internal sealed class ComfyInstallService
 	internal async Task<SetupStepResult> ApplyPendingComfyVenvDeleteAsync(CancellationToken cancellationToken)
 		=> await _venvManager.ApplyPendingDeleteAsync(cancellationToken);
 
-	private static string ResolveConfiguredGitExecutable()
+	private string GetToolingComfyPath()
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		string? toolingPath = _tooling.CurrentLease?.GetComfyRoot();
+		if (!string.IsNullOrWhiteSpace(toolingPath))
+		{
+			return toolingPath;
+		}
+
+		// ActiveComfyPath intentionally remains empty until an installation target exists.
+		// Core installation must instead use the configured physical target on first run.
+		return Paths.ConfiguredComfyPath;
+	}
+
+	private string GetToolingPath(string physicalPath)
+	{
+		NexusRuntimeToolingLease? lease = _tooling.CurrentLease;
+		if (lease is null)
+		{
+			return physicalPath;
+		}
+
+		_ = lease.GetComfyRoot();
+		return lease.GetToolingPath(physicalPath);
+	}
+
+	private string ResolveConfiguredGitExecutable()
+	{
+		var settings = SettingsService.Settings;
 		if (!string.IsNullOrWhiteSpace(settings.GitPath)) return settings.GitPath;
 		return Path.Combine(InstalledPath, "Git", "cmd", "git.exe");
 	}

@@ -10,22 +10,26 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 	private const string AddOption = "add-model-library";
 	private const string ReplacePrefix = "replace-model-library:";
 	private const string RemovePrefix = "remove-model-library:";
+	private readonly SetupSettingsService _settingsService;
 	private readonly bool _allowMultipleRoots;
 	private string _lastApplyError = string.Empty;
 
-	internal ModelLibraryDiagnosticNode(bool allowMultipleRoots)
+	internal ModelLibraryDiagnosticNode(bool allowMultipleRoots, SetupSettingsService settingsService)
 	{
 		_allowMultipleRoots = allowMultipleRoots;
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
 	}
 
 	public string NodeId => "model-library";
 	public string DisplayName => Text("setup.model_library.title");
 	public string Description => Text("setup.model_library.description");
+	public string FolderPickerTitle => Text("setup.model_library.folder_picker_title");
 	public bool IsCritical => false;
 	public string EnvironmentDetails { get; private set; } = string.Empty;
 	public string EnvironmentPath { get; private set; } = string.Empty;
 	public IReadOnlyList<DiagnosticOption> AvailableOptions { get; private set; } = [];
 	public string SelectedOptionId { get; private set; } = ConnectOption;
+	public bool KeepInlineActionsVisibleAfterCompletion => true;
 
 	public async Task ProbeEnvironmentAsync(CancellationToken cancellationToken)
 	{
@@ -51,7 +55,7 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 
 	public RecoveryResult ApplySelectedFolder(string optionId, string folderPath)
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		List<string> previousRoots = settings.ModelLibraryRoots.ToList();
 		string normalized = ExtraModelPathsService.NormalizeFileSystemPath(folderPath);
 		if (normalized.Length == 0)
@@ -105,7 +109,7 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 	public Task<HealthState> CheckHealthAsync(CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		IReadOnlyList<string> roots = ExtraModelPathsService.NormalizeRoots(settings);
 		EnvironmentPath = roots.FirstOrDefault() ?? string.Empty;
 		RefreshOptions();
@@ -139,7 +143,7 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 
 	private RecoveryResult RemoveLibrary(int index)
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		if (index < 0 || index >= settings.ModelLibraryRoots.Count)
 		{
 			return new RecoveryResult(false, Text("setup.model_library.remove_failed"));
@@ -156,7 +160,7 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 		return result;
 	}
 
-	private static RecoveryResult ApplySettings(SetupSettings settings)
+	private RecoveryResult ApplySettings(SetupSettings settings)
 	{
 		string comfyPath = GetEffectiveComfyPath(settings);
 		ExtraModelPathsResult result = ExtraModelPathsService.TryApply(settings, comfyPath, out ExtraModelPathsTransaction? transaction);
@@ -165,7 +169,7 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 			return new RecoveryResult(false, result.Message);
 		}
 
-		if (!SetupSettingsService.Instance.TrySave())
+		if (!_settingsService.TrySave())
 		{
 			transaction?.Rollback();
 			return new RecoveryResult(
@@ -179,14 +183,15 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 
 	private void RefreshOptions()
 	{
-		var settings = SetupSettingsService.Instance.Settings;
+		var settings = _settingsService.Settings;
 		var options = new List<DiagnosticOption>();
 		if (settings.ModelLibraryRoots.Count == 0)
 		{
 			options.Add(DiagnosticNodeHelpers.CreateOption(
 				ConnectOption,
 				Text("setup.model_library.option_connect"),
-				isRecommended: true));
+				isRecommended: true,
+				requiresRecovery: false));
 			AvailableOptions = options;
 			return;
 		}
@@ -198,19 +203,22 @@ internal sealed class ModelLibraryDiagnosticNode : IOptionalConfigurableDiagnost
 				$"{ReplacePrefix}{index}",
 				_allowMultipleRoots
 					? LocalizationManager.Format("setup.model_library.option_replace_indexed", index + 1)
-					: Text("setup.model_library.option_replace")));
+					: Text("setup.model_library.option_replace"),
+				requiresRecovery: false));
 			options.Add(DiagnosticNodeHelpers.CreateOption(
 				$"{RemovePrefix}{index}",
 				_allowMultipleRoots
 					? LocalizationManager.Format("setup.model_library.option_remove_indexed", index + 1)
-					: Text("setup.model_library.option_remove")));
+					: Text("setup.model_library.option_remove"),
+				requiresRecovery: false));
 		}
 
 		if (_allowMultipleRoots)
 		{
 			options.Add(DiagnosticNodeHelpers.CreateOption(
 				AddOption,
-				Text("setup.model_library.option_add")));
+				Text("setup.model_library.option_add"),
+				requiresRecovery: false));
 		}
 
 		AvailableOptions = options;

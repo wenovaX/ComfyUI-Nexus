@@ -14,25 +14,42 @@ internal sealed class ComfyServerProcessService
 {
 	private const string ServerTag = "[Server]";
 	private const string Nodes20EnabledSettingId = "Comfy.VueNodes.Enabled";
-	private static SetupSettings Settings => SetupSettingsService.Instance.Settings;
-	private static int ConfiguredPort => Settings.ServerPort;
-	private static string ConfiguredListenAddress => Settings.ListenAddress;
-	private static string ConfiguredProbeAddress => GetProbeAddress(ConfiguredListenAddress);
-	private static string ConfiguredGpuId => Settings.GpuId;
-	private static TimeSpan StartupIdleTimeout => TimeSpan.FromSeconds(Math.Max(300, Settings.ServerStartupTimeoutSeconds));
-	private static TimeSpan ServerReadinessInterval => TimeSpan.FromMilliseconds(Math.Max(250, Settings.PortProbeIntervalMilliseconds));
-	private static TimeSpan ServerLogTailInterval => TimeSpan.FromMilliseconds(Math.Max(50, Settings.ServerLogTailIntervalMilliseconds));
+	private SetupSettings Settings => _settingsService.Settings;
+	private int ConfiguredPort => Settings.ServerPort;
+	private string ConfiguredListenAddress => Settings.ListenAddress;
+	private string ConfiguredProbeAddress => GetProbeAddress(ConfiguredListenAddress);
+	private string ConfiguredGpuId => Settings.GpuId;
+	private TimeSpan StartupIdleTimeout => TimeSpan.FromSeconds(Math.Max(300, Settings.ServerStartupTimeoutSeconds));
+	private TimeSpan ServerReadinessInterval => TimeSpan.FromMilliseconds(Math.Max(250, Settings.PortProbeIntervalMilliseconds));
+	private TimeSpan ServerLogTailInterval => TimeSpan.FromMilliseconds(Math.Max(50, Settings.ServerLogTailIntervalMilliseconds));
 	private static readonly TimeSpan ReadinessPendingThreshold = TimeSpan.FromSeconds(2);
+	private static readonly JsonSerializerOptions WriteIndentedJsonOptions = new()
+	{
+		WriteIndented = true,
+	};
 
 	private const string StartupArgsFormat = "-u \"{0}\" --listen {1} --port {2} --cuda-device {3} --preview-method none";
 
 	private Process? _serverProcess;
+	private readonly NexusServerProcessController _serverProcesses;
+	private readonly SetupSettingsService _settingsService;
+	private readonly NexusComfyRuntimePaths _paths;
 	private IDisposable? _serverLogTail;
 	private string? _currentServerLogPath;
 	private DateTimeOffset _lastServerStartupActivityAt;
 	private long _readinessGeneration;
 
 	internal Action<string>? OnMessage { get; set; }
+
+	internal ComfyServerProcessService(
+		NexusServerProcessController serverProcesses,
+		SetupSettingsService settingsService,
+		NexusComfyRuntimePaths paths)
+	{
+		_serverProcesses = serverProcesses ?? throw new ArgumentNullException(nameof(serverProcesses));
+		_settingsService = settingsService ?? throw new ArgumentNullException(nameof(settingsService));
+		_paths = paths ?? throw new ArgumentNullException(nameof(paths));
+	}
 
 	private void Log(string message) => OnMessage?.Invoke(message);
 
@@ -42,7 +59,7 @@ internal sealed class ComfyServerProcessService
 		long readinessGeneration = Interlocked.Increment(ref _readinessGeneration);
 
 		string serverPython = ResolveServerPythonExecutable();
-		string comfyPath = ComfyPathResolver.ResolveActiveComfyPath();
+		string comfyPath = ResolvePhysicalPath(_paths.ActiveComfyPath);
 		string mainPy = Path.Combine(comfyPath, "main.py");
 		string logsDirectory = ComfyInstallService.GetLocalRuntimePath("Logs");
 		string latestServerLogPath = SessionLogPaths.GetLatestLogPath(logsDirectory, SessionLogPaths.ComfyServerLatestFileName);
@@ -64,7 +81,7 @@ internal sealed class ComfyServerProcessService
 
 		if (await IsComfyHttpReadyAsync(cancellationToken))
 		{
-			Log($"{ServerTag} Server HTTP endpoint is already ready on {ComfyApiOptions.LocalBaseUrl}. Skipping launch.");
+			Log($"{ServerTag} Server HTTP endpoint is already ready on {ComfyApiOptions.GetLocalBaseUrl(Settings)}. Skipping launch.");
 			MarkLaunchSuccessful();
 			return new SetupStepResult(true, "Server already running.", 1);
 		}
@@ -123,9 +140,10 @@ internal sealed class ComfyServerProcessService
 					["PYTHONIOENCODING"] = "utf-8",
 					["PYTHONUTF8"] = "1"
 				},
-				latestServerLogPath);
+				latestServerLogPath,
+				_serverProcesses.IsShuttingDown);
 			ReplaceServerLogTail(logTail);
-			ComfyServerProcessRegistry.Register(_serverProcess, serverLogPath);
+			_serverProcesses.Register(_serverProcess, serverLogPath);
 			SessionLogPaths.PruneOldSessionLogs(logsDirectory, SessionLogPaths.ComfyServerPrefix);
 
 			return await WaitForServerPortAsync(_serverProcess, readinessGeneration, cancellationToken);
@@ -152,7 +170,7 @@ internal sealed class ComfyServerProcessService
 		Settings.GpuId = configuredGpuId;
 		if (!string.Equals(originalGpuId, configuredGpuId, StringComparison.Ordinal))
 		{
-			SetupSettingsService.Instance.Save();
+			_settingsService.Save();
 		}
 
 		if (configuredGpuId != "0")
@@ -161,18 +179,18 @@ internal sealed class ComfyServerProcessService
 		}
 	}
 
-	private static void MarkLaunchSuccessful()
+	private void MarkLaunchSuccessful()
 	{
 		Settings.LastLaunchSuccessful = true;
 		Settings.LastActivePort = ConfiguredPort;
-		Settings.ActiveServerLaunchSettings = ServerLaunchSettingsSnapshot.FromSettings(Settings, ComfyPathResolver.ResolveActiveComfyPath());
-		SetupSettingsService.Instance.Save();
+		Settings.ActiveServerLaunchSettings = ServerLaunchSettingsSnapshot.FromSettings(Settings, _paths.ActiveComfyPath);
+		_settingsService.Save();
 	}
 
-	private static void MarkLaunchFailed()
+	private void MarkLaunchFailed()
 	{
 		Settings.LastLaunchSuccessful = false;
-		SetupSettingsService.Instance.Save();
+		_settingsService.Save();
 	}
 
 	private static string GetProbeAddress(string listenAddress)
@@ -183,15 +201,25 @@ internal sealed class ComfyServerProcessService
 		return normalized is "0.0.0.0" or "::" or "*" ? "127.0.0.1" : normalized;
 	}
 
-	private static string ResolveServerPythonExecutable()
+	private string ResolveServerPythonExecutable()
 	{
+		string pythonExecutable;
 		if (string.Equals(Settings.ServerPythonMode, PythonExecutionModes.ConfiguredPython, StringComparison.Ordinal))
 		{
-			return string.IsNullOrWhiteSpace(Settings.PythonPath) ? "python" : Settings.PythonPath;
+			pythonExecutable = string.IsNullOrWhiteSpace(Settings.PythonPath) ? "python" : Settings.PythonPath;
+		}
+		else
+		{
+			pythonExecutable = _paths.ActiveVenvPythonExe;
 		}
 
-		return ComfyPathResolver.ResolveActiveVenvPythonExe();
+		return ResolvePhysicalPath(pythonExecutable);
 	}
+
+	private static string ResolvePhysicalPath(string path)
+		=> Path.IsPathRooted(path)
+			? NexusToolingPathLeaseController.ResolvePhysicalPath(path)
+			: path;
 
 	private void EnsureNodes20Enabled(string comfyPath)
 	{
@@ -214,7 +242,7 @@ internal sealed class ComfyServerProcessService
 			settings[Nodes20EnabledSettingId] = true;
 			File.WriteAllText(
 				settingsPath,
-				settings.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+				settings.ToJsonString(WriteIndentedJsonOptions));
 			Log($"{ServerTag} Nodes 2.0 enabled in ComfyUI settings.");
 		}
 		catch (Exception ex)
@@ -264,10 +292,10 @@ internal sealed class ComfyServerProcessService
 
 	private Process? TryAttachPendingServerProcess(string latestServerLogPath)
 	{
-		ComfyServerProcessInfo? processInfo = ComfyServerProcessRegistry.FindServerProcess();
+		ComfyServerProcessInfo? processInfo = _serverProcesses.FindServerProcess();
 		if (processInfo == null) return null;
 
-		Process? process = ComfyServerProcessRegistry.TryGetProcess(processInfo);
+		Process? process = _serverProcesses.TryGetProcess(processInfo);
 		if (process == null) return null;
 
 		_serverProcess = process;
@@ -278,7 +306,13 @@ internal sealed class ComfyServerProcessService
 			: latestServerLogPath;
 		_currentServerLogPath = serverLogPath;
 		Log($"{ServerTag} AttachedLogFile: {serverLogPath}");
-		ReplaceServerLogTail(ProcessRunner.AttachLogTail(serverLogPath, process, LogServerOutput, ServerLogTailInterval, latestServerLogPath));
+		ReplaceServerLogTail(ProcessRunner.AttachLogTail(
+			serverLogPath,
+			process,
+			LogServerOutput,
+			ServerLogTailInterval,
+			latestServerLogPath,
+			_serverProcesses.IsShuttingDown));
 		return process;
 	}
 
@@ -290,7 +324,7 @@ internal sealed class ComfyServerProcessService
 		try
 		{
 			_lastServerStartupActivityAt = DateTimeOffset.UtcNow;
-			Log($"{ServerTag} Waiting for server HTTP readiness ({ComfyApiOptions.LocalBaseUrl}); idle timeout {StartupIdleTimeout.TotalSeconds:0}s...");
+		Log($"{ServerTag} Waiting for server HTTP readiness ({ComfyApiOptions.GetLocalBaseUrl(Settings)}); idle timeout {StartupIdleTimeout.TotalSeconds:0}s...");
 			NexusLog.Trace($"{ServerTag} Readiness loop started. generation={readinessGeneration}, pid={process.Id}");
 			using var readinessTimer = new PeriodicTimer(ServerReadinessInterval);
 
@@ -320,7 +354,7 @@ internal sealed class ComfyServerProcessService
 						return new SetupStepResult(false, "Server startup was superseded by a newer lifecycle operation.", 0);
 					}
 
-					Log($"{ServerTag} Server HTTP readiness confirmed at {ComfyApiOptions.LocalBaseUrl}.");
+					Log($"{ServerTag} Server HTTP readiness confirmed at {ComfyApiOptions.GetLocalBaseUrl(Settings)}.");
 					MarkLaunchSuccessful();
 					return new SetupStepResult(true, $"{ServerTag} Server started successfully.", 1);
 				}
@@ -337,7 +371,7 @@ internal sealed class ComfyServerProcessService
 			}
 
 			MarkLaunchFailed();
-			return new SetupStepResult(false, WithServerLogHint($"Server HTTP readiness failed after startup became idle: {ComfyApiOptions.LocalBaseUrl}"), 0);
+			return new SetupStepResult(false, WithServerLogHint($"Server HTTP readiness failed after startup became idle: {ComfyApiOptions.GetLocalBaseUrl(Settings)}"), 0);
 		}
 		finally
 		{
@@ -352,7 +386,7 @@ internal sealed class ComfyServerProcessService
 
 	private async Task<bool> IsComfyHttpReadyAsync(CancellationToken cancellationToken)
 	{
-		string baseUrl = ComfyApiOptions.LocalBaseUrl.TrimEnd('/');
+		string baseUrl = ComfyApiOptions.GetLocalBaseUrl(Settings).TrimEnd('/');
 		Uri[] endpoints =
 		[
 			new Uri($"{baseUrl}/system_stats"),

@@ -218,7 +218,7 @@ public partial class NodeLibraryView : ContentView, IRailToolView
 		_loadingOverlay = new RailLoadingOverlayController(RailLoadingOverlay);
 		_searchVisuals = new RailSearchVisualController(RailSearchBorder, RailSearchEntry);
 		_searchTextController = new NexusEntryTextController(RailSearchEntry, RailSearchBorder);
-		new RailSearchClearButtonController(RailSearchClearButton, RailSearchClearLabel);
+		RailSearchClearButtonVisuals.Attach(RailSearchClearButton, RailSearchClearLabel);
 
 		ToggleCategoryCommand = new Command<NodeItemViewModel>(OnToggleCategory);
 		ToggleSectionCommand = new Command<NodeItemViewModel>(OnToggleSection);
@@ -311,7 +311,7 @@ public partial class NodeLibraryView : ContentView, IRailToolView
 			return;
 		}
 
-		new NodeLibraryService().SaveBookmarks(root);
+		GetMainPage()?.NodeLibraryService.SaveBookmarks(root);
 
 		// Refresh tree to re-render Bookmarked section and update icons
 		RefreshTree();

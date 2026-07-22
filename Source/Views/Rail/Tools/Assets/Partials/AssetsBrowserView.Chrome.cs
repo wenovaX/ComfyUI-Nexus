@@ -118,13 +118,13 @@ public partial class AssetsBrowserView
 
 	private IEnumerable<AssetRootProfile> GetFixedProfiles()
 	{
-		string comfyRoot = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRoot = _appManager.Paths.ConfiguredComfyPath;
 		return AssetRootProfileProvider.GetFixedProfiles(comfyRoot, _fixedWorkflowsPath);
 	}
 
 	private AssetRootProfile ResolveProfileForPath(string? path)
 	{
-		string comfyRoot = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRoot = _appManager.Paths.ConfiguredComfyPath;
 		return AssetRootProfileProvider.ResolveForPath(path, comfyRoot, _fixedWorkflowsPath);
 	}
 
@@ -149,7 +149,7 @@ public partial class AssetsBrowserView
 	{
 		try
 		{
-			var result = await PlatformManager.Current.FilePicker.PickFolderAsync(LocalizationManager.Text("asset_bookmark.add_asset_bookmark"));
+			var result = await NexusAppManager.Instance.Platform.FilePicker.PickFolderAsync(LocalizationManager.Text("asset_bookmark.add_asset_bookmark"));
 			if (!result.IsSupported)
 			{
 				if (GetHostPage() is { } hostPage)
@@ -315,7 +315,7 @@ public partial class AssetsBrowserView
 		if (!_isValidatingDrag)
 		{
 			_isValidatingDrag = true;
-			bool isFolder = await PlatformManager.Current.DragDrop.ContainsFolderAsync(e);
+			bool isFolder = await NexusAppManager.Instance.Platform.DragDrop.ContainsFolderAsync(e);
 			_currentDragIsFolder = isFolder;
 			_isValidatingDrag = false;
 
@@ -333,12 +333,12 @@ public partial class AssetsBrowserView
 		if (isFolder)
 		{
 			e.AcceptedOperation = Microsoft.Maui.Controls.DataPackageOperation.Copy;
-			PlatformManager.Current.Cursor.SetCursor(NexusCursorShape.Arrow);
+			NexusAppManager.Instance.Platform.Cursor.SetCursor(NexusCursorShape.Arrow);
 		}
 		else
 		{
 			e.AcceptedOperation = Microsoft.Maui.Controls.DataPackageOperation.None;
-			PlatformManager.Current.Cursor.SetCursor(NexusCursorShape.Forbidden);
+			NexusAppManager.Instance.Platform.Cursor.SetCursor(NexusCursorShape.Forbidden);
 		}
 	}
 
@@ -551,7 +551,7 @@ public partial class AssetsBrowserView
 		_currentDragIsFolder = null;
 		_currentDragPaths = null;
 		_isValidatingDrag = false;
-		PlatformManager.Current.Cursor.SetCursor(NexusCursorShape.Arrow);
+		NexusAppManager.Instance.Platform.Cursor.SetCursor(NexusCursorShape.Arrow);
 		RailBookmarksHighlightBorder.Stroke = Colors.Transparent;
 		RailCurrentLocationHighlightBorder.Stroke = Colors.Transparent;
 	}
@@ -581,7 +581,7 @@ public partial class AssetsBrowserView
 
 		if (results.Count > 0) return results;
 
-		return await PlatformManager.Current.DragDrop.GetDroppedPathsAsync(e);
+		return await NexusAppManager.Instance.Platform.DragDrop.GetDroppedPathsAsync(e);
 	}
 
 	private static async Task<IReadOnlyList<string>> TryGetDroppedPathsAsync(DropEventArgs e)
@@ -602,12 +602,12 @@ public partial class AssetsBrowserView
 
 		if (results.Count > 0) return results;
 
-		return await PlatformManager.Current.DragDrop.GetDroppedPathsAsync(e);
+		return await NexusAppManager.Instance.Platform.DragDrop.GetDroppedPathsAsync(e);
 	}
 
 	private IEnumerable<string> GetProtectedBookmarks()
 	{
-		string comfyRoot = ComfyPathResolver.ResolveConfiguredComfyPath();
+		string comfyRoot = _appManager.Paths.ConfiguredComfyPath;
 		return AssetRootProfileProvider.GetProtectedBookmarkPaths(comfyRoot, _fixedWorkflowsPath);
 	}
 

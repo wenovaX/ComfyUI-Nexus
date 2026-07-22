@@ -27,6 +27,7 @@ public partial class ControlDeckView : ContentView, INexusControlDeck
 
 	private readonly List<string> _displayedLogLines = new();
 	private readonly NexusMotionController _motion;
+	private readonly NexusAnimatedWebpFrameCache _frameCache;
 	private readonly NexusAnimatedWebpClip _pulseRunIdleClip;
 	private readonly NexusAnimatedWebpClip _pulseRunActiveClip;
 	private readonly NexusAnimatedWebpClip _pulseWebIdleClip;
@@ -110,11 +111,12 @@ public partial class ControlDeckView : ContentView, INexusControlDeck
 	public ControlDeckView()
 	{
 		InitializeComponent();
+		_frameCache = NexusAppManager.Instance.AnimatedWebpFrames;
 		_motion = new NexusMotionController("control-deck", "CONTROL_DECK", Dispatcher);
-		_pulseRunIdleClip = new NexusAnimatedWebpClip(_motion, PulseRunIdleSurface, "ControlDeck.PulseRunIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
-		_pulseRunActiveClip = new NexusAnimatedWebpClip(_motion, PulseRunActiveSurface, "ControlDeck.PulseRunActive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
-		_pulseWebIdleClip = new NexusAnimatedWebpClip(_motion, PulseWebIdleSurface, "ControlDeck.PulseWebIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
-		_pulseWebLiveClip = new NexusAnimatedWebpClip(_motion, PulseWebLiveSurface, "ControlDeck.PulseWebLive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
+		_pulseRunIdleClip = new NexusAnimatedWebpClip(_motion, _frameCache, PulseRunIdleSurface, "ControlDeck.PulseRunIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
+		_pulseRunActiveClip = new NexusAnimatedWebpClip(_motion, _frameCache, PulseRunActiveSurface, "ControlDeck.PulseRunActive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
+		_pulseWebIdleClip = new NexusAnimatedWebpClip(_motion, _frameCache, PulseWebIdleSurface, "ControlDeck.PulseWebIdle", NexusAnimatedWebpCacheCatalog.HeaderGpuIdle);
+		_pulseWebLiveClip = new NexusAnimatedWebpClip(_motion, _frameCache, PulseWebLiveSurface, "ControlDeck.PulseWebLive", NexusAnimatedWebpCacheCatalog.HeaderGpuRunning);
 		Loaded += OnLoaded;
 		Unloaded += OnUnloaded;
 		ConsoleLogTail.RowColorResolver = ResolveConsoleRowColor;
@@ -304,7 +306,7 @@ public partial class ControlDeckView : ContentView, INexusControlDeck
 			return;
 		}
 
-		_animationCacheAcquireTask ??= NexusAnimatedWebpFrameCache.AcquireAsync(NexusAnimatedWebpCacheGroup.ControlDeck);
+		_animationCacheAcquireTask ??= _frameCache.AcquireAsync(NexusAnimatedWebpCacheGroup.ControlDeck);
 		_animationCacheLease = await _animationCacheAcquireTask;
 	}
 

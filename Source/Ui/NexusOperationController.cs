@@ -35,11 +35,13 @@ internal sealed class NexusOperationController : IDisposable
 	private readonly object _gate = new();
 	private readonly Dictionary<string, Slot> _slots = new(StringComparer.Ordinal);
 	private readonly string _owner;
+	private readonly NexusBackgroundWorkerPool _backgroundWorkers;
 	private bool _disposed;
 
-	internal NexusOperationController(string owner)
+	internal NexusOperationController(string owner, NexusBackgroundWorkerPool backgroundWorkers)
 	{
-		_owner = owner;
+		_owner = owner ?? throw new ArgumentNullException(nameof(owner));
+		_backgroundWorkers = backgroundWorkers ?? throw new ArgumentNullException(nameof(backgroundWorkers));
 		NexusConcurrencyDiagnostics.RegisterOwner(owner, GetSnapshot);
 	}
 
@@ -59,7 +61,7 @@ internal sealed class NexusOperationController : IDisposable
 		CancellationToken lifecycleToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(operation);
-		return NexusBackgroundWorkers.RunAsync(_owner, key, lane, operation, lifecycleToken);
+		return _backgroundWorkers.RunAsync(_owner, key, lane, operation, lifecycleToken);
 	}
 
 	internal Task RunBackgroundAsync(
@@ -375,19 +377,31 @@ internal enum NexusBackgroundLane
 	Maintenance,
 }
 
-internal static class NexusBackgroundWorkers
+/// <summary>
+/// App-lifetime bounded worker budget. The app manager owns this pool and stops it
+/// during final shutdown; view operation controllers only submit named work.
+/// </summary>
+internal sealed class NexusBackgroundWorkerPool : IDisposable
 {
 	private sealed record WorkItem(string Owner, string Key, Func<object?> Operation, TaskCompletionSource<object?> Completion, CancellationToken Token);
 
-	private static readonly IReadOnlyDictionary<NexusBackgroundLane, Channel<WorkItem>> Queues = new Dictionary<NexusBackgroundLane, Channel<WorkItem>>
-	{
-		[NexusBackgroundLane.FileIo] = CreateQueue(NexusBackgroundLane.FileIo, workerCount: 2),
-		[NexusBackgroundLane.Cpu] = CreateQueue(NexusBackgroundLane.Cpu, workerCount: 1),
-		[NexusBackgroundLane.Maintenance] = CreateQueue(NexusBackgroundLane.Maintenance, workerCount: 1),
-	};
+	private readonly CancellationTokenSource _shutdown = new();
+	private readonly IReadOnlyDictionary<NexusBackgroundLane, Channel<WorkItem>> _queues;
+	private bool _disposed;
 
-	internal static async Task<T> RunAsync<T>(string owner, string key, NexusBackgroundLane lane, Func<CancellationToken, T> operation, CancellationToken token)
+	internal NexusBackgroundWorkerPool()
 	{
+		_queues = new Dictionary<NexusBackgroundLane, Channel<WorkItem>>
+		{
+			[NexusBackgroundLane.FileIo] = CreateQueue(NexusBackgroundLane.FileIo, workerCount: 2),
+			[NexusBackgroundLane.Cpu] = CreateQueue(NexusBackgroundLane.Cpu, workerCount: 1),
+			[NexusBackgroundLane.Maintenance] = CreateQueue(NexusBackgroundLane.Maintenance, workerCount: 1),
+		};
+	}
+
+	internal async Task<T> RunAsync<T>(string owner, string key, NexusBackgroundLane lane, Func<CancellationToken, T> operation, CancellationToken token)
+	{
+		ObjectDisposedException.ThrowIf(_disposed, this);
 		if (token.IsCancellationRequested)
 		{
 			return await Task.FromCanceled<T>(token).ConfigureAwait(false);
@@ -395,15 +409,30 @@ internal static class NexusBackgroundWorkers
 
 		var completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 		var item = new WorkItem(owner, key, () => operation(token), completion, token);
-		await Queues[lane].Writer.WriteAsync(item, token).ConfigureAwait(false);
+		await _queues[lane].Writer.WriteAsync(item, token).ConfigureAwait(false);
 		object? result = await completion.Task.ConfigureAwait(false);
 		return (T)result!;
 	}
 
-	internal static string GetSnapshot()
-		=> string.Join(", ", Queues.Select(pair => $"{pair.Key}=queued:{pair.Value.Reader.Count}"));
+	internal string GetSnapshot()
+		=> string.Join(", ", _queues.Select(pair => $"{pair.Key}=queued:{pair.Value.Reader.Count}"));
 
-	private static Channel<WorkItem> CreateQueue(NexusBackgroundLane lane, int workerCount)
+	public void Dispose()
+	{
+		if (_disposed)
+		{
+			return;
+		}
+
+		_disposed = true;
+		_shutdown.Cancel();
+		foreach (Channel<WorkItem> queue in _queues.Values)
+		{
+			queue.Writer.TryComplete();
+		}
+	}
+
+	private Channel<WorkItem> CreateQueue(NexusBackgroundLane lane, int workerCount)
 	{
 		var queue = Channel.CreateBounded<WorkItem>(new BoundedChannelOptions(32)
 		{
@@ -415,7 +444,7 @@ internal static class NexusBackgroundWorkers
 		for (int index = 0; index < workerCount; index++)
 		{
 			_ = Task.Factory.StartNew(
-				async () => await RunWorkerAsync(lane, queue.Reader).ConfigureAwait(false),
+				async () => await RunWorkerAsync(lane, queue.Reader, _shutdown.Token).ConfigureAwait(false),
 				CancellationToken.None,
 				TaskCreationOptions.LongRunning,
 				TaskScheduler.Default).Unwrap();
@@ -424,26 +453,32 @@ internal static class NexusBackgroundWorkers
 		return queue;
 	}
 
-	private static async Task RunWorkerAsync(NexusBackgroundLane lane, ChannelReader<WorkItem> reader)
+	private static async Task RunWorkerAsync(NexusBackgroundLane lane, ChannelReader<WorkItem> reader, CancellationToken shutdownToken)
 	{
-		await foreach (WorkItem item in reader.ReadAllAsync())
+		try
 		{
-			if (item.Token.IsCancellationRequested)
+			await foreach (WorkItem item in reader.ReadAllAsync(shutdownToken))
 			{
-				item.Completion.TrySetCanceled(item.Token);
-				continue;
-			}
+				if (item.Token.IsCancellationRequested)
+				{
+					item.Completion.TrySetCanceled(item.Token);
+					continue;
+				}
 
-			try
-			{
-				object? result = item.Operation();
-				item.Completion.TrySetResult(result);
+				try
+				{
+					object? result = item.Operation();
+					item.Completion.TrySetResult(result);
+				}
+				catch (Exception ex)
+				{
+					NexusConcurrencyDiagnostics.RecordWorkerFault(item.Owner, item.Key, lane, ex);
+					item.Completion.TrySetException(ex);
+				}
 			}
-			catch (Exception ex)
-			{
-				NexusConcurrencyDiagnostics.RecordWorkerFault(item.Owner, item.Key, lane, ex);
-				item.Completion.TrySetException(ex);
-			}
+		}
+		catch (OperationCanceledException) when (shutdownToken.IsCancellationRequested)
+		{
 		}
 	}
 }

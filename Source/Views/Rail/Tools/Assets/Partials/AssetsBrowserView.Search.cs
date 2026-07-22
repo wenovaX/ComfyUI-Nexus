@@ -293,7 +293,7 @@ public partial class AssetsBrowserView
 		};
 		row.GestureRecognizers.Add(selectTap);
 
-		PlatformManager.Current.Interactions.AttachDoubleTap(row, async () =>
+		NexusAppManager.Instance.Platform.Interactions.AttachDoubleTap(row, async () =>
 		{
 			if (!TryGetBoundSearchItem(row, out var item))
 			{
@@ -421,11 +421,11 @@ public partial class AssetsBrowserView
 
 			if (ShouldPublishNativeFileDragPayload(dragRequest))
 			{
-				await PlatformManager.Current.DragDrop.SetDragStartingPathsAsync(e, selectedPaths);
+				await NexusAppManager.Instance.Platform.DragDrop.SetDragStartingPathsAsync(e, selectedPaths);
 			}
 			else
 			{
-				await PlatformManager.Current.DragDrop.SetDragStartingTextAsync(e, CreateAssetDragIntentText(dragRequest));
+				await NexusAppManager.Instance.Platform.DragDrop.SetDragStartingTextAsync(e, CreateAssetDragIntentText(dragRequest));
 			}
 		};
 		drag.DropCompleted += (s, e) =>
@@ -616,8 +616,8 @@ public partial class AssetsBrowserView
 
 	private void SelectSearchItemFromInput(AssetHubItem item)
 	{
-		bool ctrl = PlatformManager.Current.Keyboard.IsCtrlPressed();
-		bool shift = PlatformManager.Current.Keyboard.IsShiftPressed();
+		bool ctrl = NexusAppManager.Instance.Platform.Keyboard.IsCtrlPressed();
+		bool shift = NexusAppManager.Instance.Platform.Keyboard.IsShiftPressed();
 
 		if (shift)
 		{
@@ -666,6 +666,6 @@ public partial class AssetsBrowserView
 	private string NormalizeSearchQuery(string? text)
 		=> text?.Trim() ?? string.Empty;
 
-	private static string GetModelsRootPath()
-		=> ComfyPathResolver.ResolveModelsRootPath();
+	private string GetModelsRootPath()
+		=> _appManager.Paths.ActiveModelsRootPath;
 }

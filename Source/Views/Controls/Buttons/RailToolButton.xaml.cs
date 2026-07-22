@@ -173,13 +173,16 @@ public partial class RailToolButton : ContentView, IRailHoverParticipant
 	}
 
 	private void OnLoaded(object? sender, EventArgs e)
-		=> RailHoverRegistry.Register(this);
+		=> GetHoverRegistry()?.Register(this);
 
 	private void OnUnloaded(object? sender, EventArgs e)
 	{
-		RailHoverRegistry.Unregister(this);
+		GetHoverRegistry()?.Unregister(this);
 		SafeAnimation.AbortAnimation(this, GlowAnimationName, "RailToolButton");
 	}
+
+	private static NexusRailHoverRegistry? GetHoverRegistry()
+		=> NexusAppManager.Instance.RailHoverRegistry;
 
 	private void ApplyActiveEdgeLineState()
 	{

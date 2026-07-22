@@ -7,7 +7,10 @@ using ComfyUI_Nexus.Input;
 using ComfyUI_Nexus.Platform;
 using ComfyUI_Nexus.Setup;
 using ComfyUI_Nexus.Setup.Runtime;
+using ComfyUI_Nexus.Setup.Startup;
 using ComfyUI_Nexus.Ui;
+using ComfyUI_Nexus.Views.Overlays.Controllers;
+using ComfyUI_Nexus.Views.Controllers;
 using ComfyUI_Nexus.Ui.Popups;
 using ComfyUI_Nexus.Views.Rail.Tools.Assets;
 using ComfyUI_Nexus.Views.Rail.Tools.NodeLibrary;
@@ -18,21 +21,24 @@ public partial class MainPage : ContentPage
 {
 	private readonly WorkflowTabController _tabController;
 	private readonly LoadingOverlayController _loadingOverlayController;
+	private readonly NexusAppManager _appManager;
+	private NexusDialogService Dialogs => _appManager.Dialogs;
 	private readonly NexusServerLifecycleCoordinator _serverLifecycle;
 	private readonly HeaderGpuStatusController _gpuStatusController;
 	private readonly NexusWebViewBridge _webViewBridge;
-	private readonly NexusControlDeckWindowService _controlDeckWindow = new();
+	private readonly NexusControlDeckWindowService _controlDeckWindow;
 	private readonly NexusUiSurfaceManager _uiSurfaceManager = new();
 	private NexusPopupManager _popupManager = null!;
 	private readonly NexusInputRouter _inputRouter;
-	private readonly NexusOperationController _latestOperations = new("main-page");
-	private readonly NexusOperationController _bridgeOperations = new("main-page-bridge");
-	private readonly NodeLibraryService _nodeLibraryService = new();
+	private readonly NexusOperationController _latestOperations;
+	private readonly NexusOperationController _bridgeOperations;
+	private readonly NodeLibraryService _nodeLibraryService;
 	private readonly ShellLayoutSignals _shellLayoutSignals = new();
 	private readonly TaskCompletionSource<bool> _webViewPlatformReady = new(TaskCreationOptions.RunContinuationsAsynchronously);
 	private readonly LoginSequenceOrchestrator _loginSequence = new();
 	internal NodeLibraryRoot? _nodeLibrary;
 	internal NodeLibraryRoot? NodeLibrary => _nodeLibrary;
+	internal NodeLibraryService NodeLibraryService => _nodeLibraryService;
 	private string _nodeLibraryManifestSignature = string.Empty;
 	private List<BlueprintItem>? _latestBlueprints;
 	private bool _isBooted = false;
@@ -92,21 +98,28 @@ public partial class MainPage : ContentPage
 		NexusLog.SetSink(AppendLogEntry);
 		try
 		{
-			_serverLifecycle = (Application.Current as App)?.ServerLifecycle
-				?? throw new InvalidOperationException("Nexus server lifecycle coordinator is unavailable.");
-			_inputRouter = new NexusInputRouter(_uiSurfaceManager);
+		_appManager = NexusAppManager.Instance;
+		_latestOperations = new NexusOperationController("main-page", _appManager.BackgroundWorkers);
+		_bridgeOperations = new NexusOperationController("main-page-bridge", _appManager.BackgroundWorkers);
+		_nodeLibraryService = new NodeLibraryService(_appManager.Settings, _appManager.Preferences);
+		_serverLifecycle = _appManager.ServerLifecycle;
+		_controlDeckWindow = _appManager.ControlDeckWindow;
+		_startupRouteDecider = new StartupRouteDecider(_appManager.ServerProcesses, _appManager.Settings, _appManager.Paths);
+			_inputRouter = new NexusInputRouter(_uiSurfaceManager, Dialogs);
 			_webViewBridge = new NexusWebViewBridge(() => WorkspaceControl?.BrowserSurface);
 			_tabController = new WorkflowTabController(
 				HeaderControl,
 				WorkflowDropdownControl,
+				_appManager.ShellLayoutScale,
 				() => WorkflowDropdownControl.IsOpen,
 				HideDropdown,
 				ShowDropdown,
 				ToggleBookmarkAsync,
 				HandleWorkflowTabActionAsync,
 				_webViewBridge.ExecuteRawScriptAsync,
+				_webViewBridge.SwitchWorkflowAsync,
 				UpdateWorkflowContextBar);
-			_loadingOverlayController = new LoadingOverlayController(LoadingOverlayControl, HeaderControl);
+			_loadingOverlayController = new LoadingOverlayController(LoadingOverlayControl, HeaderControl, _appManager.AnimatedWebpFrames);
 			_loadingOverlayController.SetNexusAppEntry(new DelegateNexusAppEntry(LaunchNexusAppEntryAsync));
 			_loadingOverlayController.SetServerLifecycleRunner(RunServerLifecycleFromLoadingAsync);
 			_serverLifecycle.AttachShell(this, new ServerLifecycleShellHooks(
@@ -115,14 +128,14 @@ public partial class MainPage : ContentPage
 				StartShellRuntimeServicesAsync));
 			_serverLifecycle.StateChanged += OnServerLifecycleStateChanged;
 			_serverLifecycle.LogEmitted += OnServerLifecycleLogEmitted;
-			_gpuStatusController = new HeaderGpuStatusController(this, HeaderControl);
+			_gpuStatusController = new HeaderGpuStatusController(this, HeaderControl, _appManager.AnimatedWebpFrames);
 			HeaderControl.Loaded += OnHeaderControlLoaded;
 			HeaderControl.GpuVisualSurfaceLoaded += OnGpuVisualSurfaceLoaded;
 			HeaderControl.Unloaded += OnHeaderControlUnloaded;
 			_shellLayoutSignals.LayoutInvalidated += OnShellLayoutInvalidated;
 			InitializeComfyPaths();
-			NexusDialogService.Register(NexusDialogOverlayControl);
-			NexusDialogService.Closed += OnNexusDialogClosed;
+			Dialogs.Register(NexusDialogOverlayControl);
+			Dialogs.Closed += OnNexusDialogClosed;
 			InitializePopupManager();
 			WireSubviewEvents();
 			InitializeKeyboardSurfaces();
@@ -150,12 +163,12 @@ public partial class MainPage : ContentPage
 
 			this.SizeChanged += (s, e) =>
 			{
-				ShellLayoutScale.Update(this.Width);
+				_appManager.ShellLayoutScale.Update(this.Width);
 				RefreshAvailableWidthAndTabs(ShellLayoutInvalidationReason.WindowSizeChanged);
 				TryStartStartupSequenceAfterLayout();
 			};
 
-			ShellLayoutScale.ScaleChanged += OnLayoutScaleChanged;
+			_appManager.ShellLayoutScale.ScaleChanged += OnLayoutScaleChanged;
 
 			var closeTap = new TapGestureRecognizer();
 			closeTap.Tapped += (s, e) =>
@@ -182,19 +195,20 @@ public partial class MainPage : ContentPage
 		_controlDeckWindow.Close();
 		_loadingOverlayController.Stop();
 		RailControl?.StopPrewarmForShutdown();
-		StopShellRuntimeServicesForUnload();
+		StopShellVisualsForUnload();
 		StopToastHoldTimer();
 		_serverLifecycle.StateChanged -= OnServerLifecycleStateChanged;
 		_serverLifecycle.LogEmitted -= OnServerLifecycleLogEmitted;
 		_serverLifecycle.DetachShell(this);
+		_appManager.ShellLayoutScale.ScaleChanged -= OnLayoutScaleChanged;
 		HeaderControl.Unloaded -= OnHeaderControlUnloaded;
 		HeaderControl.Loaded -= OnHeaderControlLoaded;
 		HeaderControl.GpuVisualSurfaceLoaded -= OnGpuVisualSurfaceLoaded;
 		_loginSequence.Cancel();
 		_latestOperations.StopAll();
 		_bridgeOperations.StopAll();
-		NexusDialogService.Closed -= OnNexusDialogClosed;
-		NexusDialogService.Unregister(NexusDialogOverlayControl);
+		Dialogs.Closed -= OnNexusDialogClosed;
+		Dialogs.Unregister(NexusDialogOverlayControl);
 	}
 
 	private void OnMainPageLoaded(object? sender, EventArgs e)
@@ -410,7 +424,7 @@ public partial class MainPage : ContentPage
 				ModelThumbnailPreviewImage.Source = ImageSource.FromFile(request.ThumbnailPath);
 			}
 
-			var pointer = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
+			var pointer = NexusAppManager.Instance.Platform.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
 			double railRight = GetTargetRailWidth();
 			double x = railRight + 10;
 			double y = pointer?.Y + 14 ?? HeaderControl.Height + 24;
@@ -517,7 +531,6 @@ public partial class MainPage : ContentPage
 			return;
 		}
 
-		// WebView is not resized by the native rail; JS uses this only as a visual origin hint.
 		request = AttachRailWidth(request);
 
 		if (request.Action is AssetInteractionAction.Open or AssetInteractionAction.Insert)
@@ -546,11 +559,11 @@ public partial class MainPage : ContentPage
 		{
 			_isAssetDragActive = true;
 			_activeAssetDragRequest = request;
-			_assetDragSawPrimaryPressed = PlatformManager.Current.Cursor.IsPrimaryPointerPressed();
+			_assetDragSawPrimaryPressed = NexusAppManager.Instance.Platform.Cursor.IsPrimaryPointerPressed();
 			_assetDragStartedUtc = DateTime.UtcNow;
 			_lastAppliedCursor = CssCursorNames.Grabbing;
 			ShowAssetDragGhost(request);
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Grabbing);
+			NexusAppManager.Instance.Platform.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Grabbing);
 			if (request.Mode == AssetInteractionMode.Image)
 			{
 				await _webViewBridge.NotifyAssetDropFeedbackSourceAsync(request);
@@ -566,7 +579,7 @@ public partial class MainPage : ContentPage
 			_assetDragSawPrimaryPressed = false;
 			_activeAssetDragRequest = null;
 			HideAssetDragGhost();
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
+			NexusAppManager.Instance.Platform.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
 			Log($"Asset drag intent failed: {ex.GetType().Name} - {ex.Message}");
 		}
 	}
@@ -614,7 +627,7 @@ public partial class MainPage : ContentPage
 
 	private bool IsPointerOverAssetDropSurface()
 	{
-		var rootPoint = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
+		var rootPoint = NexusAppManager.Instance.Platform.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
 		if (rootPoint is null)
 		{
 			return false;
@@ -622,7 +635,7 @@ public partial class MainPage : ContentPage
 
 		double blockedLeftWidth =
 			0
-			+ (_isFileRailExpanded ? _expandedRailWidth : ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
+			+ (_isFileRailExpanded ? _expandedRailWidth : _appManager.ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
 		double topLimit = HeaderControl.Height;
 		double bottomLimit = Math.Max(topLimit, RootLayoutGrid.Height - ToolbarControl.Height);
 		bool insideWorkspaceBand = rootPoint.Value.Y >= topLimit && rootPoint.Value.Y <= bottomLimit;
@@ -685,7 +698,7 @@ public partial class MainPage : ContentPage
 			_assetDragSawPrimaryPressed = false;
 			_lastAppliedCursor = CssCursorNames.Default;
 			HideAssetDragGhost();
-			PlatformManager.Current.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
+			NexusAppManager.Instance.Platform.Cursor.SetCursor(WorkspaceControl.BrowserSurface.InputElement, NexusCursorShape.Arrow);
 			_isAssetDragCompleting = false;
 		}
 	}
@@ -718,7 +731,7 @@ public partial class MainPage : ContentPage
 			return;
 		}
 
-		bool isPressed = PlatformManager.Current.Cursor.IsPrimaryPointerPressed();
+		bool isPressed = NexusAppManager.Instance.Platform.Cursor.IsPrimaryPointerPressed();
 		if (isPressed)
 		{
 			_assetDragSawPrimaryPressed = true;
@@ -738,7 +751,7 @@ public partial class MainPage : ContentPage
 
 	private void UpdateAssetDragGhostPosition()
 	{
-		var point = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
+		var point = NexusAppManager.Instance.Platform.Cursor.GetPointerPositionRelativeTo(RootLayoutGrid);
 		if (point is null)
 		{
 			return;
@@ -760,7 +773,7 @@ public partial class MainPage : ContentPage
 
 	private AssetOpenRequest AttachAssetDropClientPosition(AssetOpenRequest request)
 	{
-		var point = PlatformManager.Current.Cursor.GetPointerPositionRelativeTo(WorkspaceControl.BrowserSurface.InputElement);
+		var point = NexusAppManager.Instance.Platform.Cursor.GetPointerPositionRelativeTo(WorkspaceControl.BrowserSurface.InputElement);
 		if (point is null)
 		{
 			return request;
@@ -777,7 +790,7 @@ public partial class MainPage : ContentPage
 	{
 		double railWidth =
 			0
-			+ (_isFileRailExpanded ? _expandedRailWidth : ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
+			+ (_isFileRailExpanded ? _expandedRailWidth : _appManager.ShellLayoutScale.H(ShellLayoutOptions.CollapsedRailWidth, ShellLayoutOptions.CollapsedRailWidth));
 		return request with { RailWidth = railWidth };
 	}
 

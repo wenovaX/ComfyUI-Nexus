@@ -1,3 +1,4 @@
+using ComfyUI_Nexus.Configuration;
 using ComfyUI_Nexus.Setup.Models;
 
 namespace ComfyUI_Nexus.Setup.Services;
@@ -9,20 +10,21 @@ internal static class PipCacheService
 	internal static string GetDefaultCachePath()
 		=> ComfyInstallService.GetLocalRuntimePath("Cache/pip");
 
-	internal static string GetMode(SetupSettings? settings = null)
+	internal static string GetMode(SetupSettings settings)
 	{
-		string mode = settings?.PipCacheMode ?? SetupSettingsService.Instance.Settings.PipCacheMode;
+		ArgumentNullException.ThrowIfNull(settings);
+		string mode = settings.PipCacheMode;
 		return PipCacheModes.IsKnown(mode) ? mode : PipCacheModes.NexusDefault;
 	}
 
-	internal static string GetEffectiveCachePath(SetupSettings? settings = null)
+	internal static string GetEffectiveCachePath(SetupSettings settings)
 	{
 		if (string.Equals(GetMode(settings), PipCacheModes.PipDefault, StringComparison.Ordinal))
 		{
 			return string.Empty;
 		}
 
-		string configuredPath = settings?.PipCachePath ?? SetupSettingsService.Instance.Settings.PipCachePath;
+		string configuredPath = settings.PipCachePath;
 		string path = string.Equals(GetMode(settings), PipCacheModes.Custom, StringComparison.Ordinal)
 			&& !string.IsNullOrWhiteSpace(configuredPath)
 			? configuredPath.Trim()
@@ -30,7 +32,9 @@ internal static class PipCacheService
 		return Path.GetFullPath(path);
 	}
 
-	internal static IReadOnlyDictionary<string, string>? CreateEnvironment(SetupSettings? settings = null)
+	internal static IReadOnlyDictionary<string, string>? CreateEnvironment(
+		NexusRuntimeToolingLease? lease,
+		SetupSettings settings)
 	{
 		if (string.Equals(GetMode(settings), PipCacheModes.PipDefault, StringComparison.Ordinal))
 		{
@@ -39,13 +43,14 @@ internal static class PipCacheService
 
 		string cachePath = GetEffectiveCachePath(settings);
 		Directory.CreateDirectory(cachePath);
+		string toolingCachePath = lease?.GetPipCachePath() ?? cachePath;
 		return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 		{
-			[EnvironmentVariableName] = cachePath
+			[EnvironmentVariableName] = toolingCachePath
 		};
 	}
 
-	internal static void ClearCache(SetupSettings? settings = null)
+	internal static void ClearCache(SetupSettings settings)
 	{
 		if (string.Equals(GetMode(settings), PipCacheModes.PipDefault, StringComparison.Ordinal))
 		{

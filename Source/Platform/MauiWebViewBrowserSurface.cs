@@ -36,13 +36,13 @@ internal sealed class MauiWebViewBrowserSurface : INexusBrowserSurface
 		=> _disposed ? Task.FromResult<string?>(null) : _webView.EvaluateJavaScriptAsync(script);
 
 	public Task EnsureReadyAsync()
-		=> PlatformManager.Current.WebView.EnsureReadyAsync(this);
+		=> NexusAppManager.Instance.Platform.WebView.EnsureReadyAsync(this);
 
 	public Task ConfigureBridgeAsync(Func<string, Task> processMessageAsync, Action<string?> navigationStarting, Action? bridgeActivated, Func<NexusKey, bool, bool, bool, bool>? acceleratorKeyHandler)
-		=> PlatformManager.Current.WebView.ConfigureBridgeAsync(this, processMessageAsync, navigationStarting, bridgeActivated, acceleratorKeyHandler);
+		=> NexusAppManager.Instance.Platform.WebView.ConfigureBridgeAsync(this, processMessageAsync, navigationStarting, bridgeActivated, acceleratorKeyHandler);
 
 	public Task DisableReloadHandlingAsync(Func<Task> clearBeforeUnloadAsync)
-		=> PlatformManager.Current.WebView.DisableBrowserReloadHandlingAsync(this, clearBeforeUnloadAsync);
+		=> NexusAppManager.Instance.Platform.WebView.DisableBrowserReloadHandlingAsync(this, clearBeforeUnloadAsync);
 
 	public Task SimulateFileDropAsync(string filePath, string? workflowRelativePath = null)
 		=> WebViewUtility.SimulateFileDropAsync(this, filePath, workflowRelativePath);
@@ -51,7 +51,7 @@ internal sealed class MauiWebViewBrowserSurface : INexusBrowserSurface
 	{
 		if (!_disposed)
 		{
-			PlatformManager.Current.WebView.Reload(this);
+			NexusAppManager.Instance.Platform.WebView.Reload(this);
 		}
 	}
 
@@ -59,7 +59,7 @@ internal sealed class MauiWebViewBrowserSurface : INexusBrowserSurface
 	{
 		if (!_disposed)
 		{
-			PlatformManager.Current.WebView.Focus(this);
+			NexusAppManager.Instance.Platform.WebView.Focus(this);
 		}
 	}
 
@@ -67,7 +67,7 @@ internal sealed class MauiWebViewBrowserSurface : INexusBrowserSurface
 	{
 		if (!_disposed)
 		{
-			PlatformManager.Current.WebView.SetDevToolsEnabled(this, isEnabled);
+			NexusAppManager.Instance.Platform.WebView.SetDevToolsEnabled(this, isEnabled);
 		}
 	}
 
@@ -75,7 +75,7 @@ internal sealed class MauiWebViewBrowserSurface : INexusBrowserSurface
 	{
 		if (!_disposed)
 		{
-			PlatformManager.Current.WebView.OpenDevTools(this);
+			NexusAppManager.Instance.Platform.WebView.OpenDevTools(this);
 		}
 	}
 

@@ -40,7 +40,7 @@ public partial class MainPage
 		}
 	}
 
-	private static bool IsExpectedComfyNavigationUrl(string? url)
+	private bool IsExpectedComfyNavigationUrl(string? url)
 	{
 		if (string.IsNullOrWhiteSpace(url))
 		{
@@ -48,7 +48,7 @@ public partial class MainPage
 		}
 
 		if (!Uri.TryCreate(url, UriKind.Absolute, out var navigatedUri)
-			|| !Uri.TryCreate(ComfyApiOptions.LocalBaseUrl, UriKind.Absolute, out var configuredUri))
+			|| !Uri.TryCreate(ComfyApiOptions.GetLocalBaseUrl(_appManager.Settings.Settings), UriKind.Absolute, out var configuredUri))
 		{
 			return false;
 		}
